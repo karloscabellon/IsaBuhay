@@ -1,4 +1,4 @@
 # IsaBuhay
 
 ``venv\scripts\activate``
-''py manage.py runserver''
+``py manage.py runserver``
