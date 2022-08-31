@@ -3,7 +3,8 @@ from . import views
 from .views import *
 
 urlpatterns = [
-    path('', DisplayAllCBCTestResult.as_view(), name='DisplayAllCBCTestResult'),
+    path('clientSide/', DisplayClientSide.as_view(), name='DisplayClientSide'),
+    path('reports/', DisplayAllCBCTestResult.as_view(), name='DisplayAllCBCTestResult'),
     path('CBCTestResults/<str:pk>/', DisplayCBCTestResult.as_view(), name='DisplayCBCTestResult'),
     path('addingOptions/', DisplayAddingOptions.as_view(), name='DisplayAddingOptions'),
     path('uploadImage/', UploadImage.as_view(), name='UploadImage'),

@@ -19,6 +19,9 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
 
+class DisplayClientSide(TemplateView):
+    template_name = 'displayClientSide.html'
+
 class DisplayAllCBCTestResult(ListView):
     model = CBCTestResult
     ordering = ['-dateRequested']
