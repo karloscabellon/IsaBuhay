@@ -1,4 +1,5 @@
 from lib2to3.refactor import get_all_fix_names
+from pipes import Template
 from urllib import request
 from django.shortcuts import render
 from django.urls import reverse_lazy
@@ -18,6 +19,9 @@ from urllib.request import urlopen
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
+
+class DisplayLandingPage(TemplateView):
+    template_name = 'displayLandingPage.html'
 
 class DisplayClientSide(TemplateView):
     template_name = 'displayClientSide.html'
