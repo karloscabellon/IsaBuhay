@@ -20,6 +20,15 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
 
+class DisplayAccountPage(TemplateView):
+    template_name = 'displayAccountPage.html'
+
+class UpdateAccountPage(TemplateView):
+    template_name = 'updateAccountPage.html'
+
+class DeleteAccountPage(TemplateView):
+    template_name = 'deleteAccountPage.html'
+
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
 
