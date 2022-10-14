@@ -5,6 +5,9 @@ from .views import *
 urlpatterns = [
     path('', DisplayLandingPage.as_view(), name='DisplayLandingPage'),
     path('clientSide/', DisplayClientSide.as_view(), name='DisplayClientSide'),
+    path('account/', DisplayAccountPage.as_view(), name='DisplayAccountPage'),
+    path('account/update', UpdateAccountPage.as_view(), name='UpdateAccountPage'),
+    path('account/delete', DeleteAccountPage.as_view(), name='DeleteAccountPage'),
     path('reports/', DisplayAllCBCTestResult.as_view(), name='DisplayAllCBCTestResult'),
     path('CBCTestResults/<str:pk>/', DisplayCBCTestResult.as_view(), name='DisplayCBCTestResult'),
     path('addingOptions/', DisplayAddingOptions.as_view(), name='DisplayAddingOptions'),
