@@ -71,6 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'IsabuhayWebsite.wsgi.application'
 
+AUTH_USER_MODEL = 'isabuhaywebapp.User'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases

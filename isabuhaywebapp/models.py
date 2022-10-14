@@ -1,8 +1,82 @@
+from enum import unique
+from tabnanny import verbose
 from django.urls import reverse
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from traitlets import default
 # Create your models here.
 
+class UserManager(BaseUserManager):
+    def create_user(self, username, email, firstname, lastname, phone_number, password=None):
+        if not username: raise ValueError("Username is required")
+        if not email: raise ValueError("Email is required")
+        if not firstname: raise ValueError("Firstname is required")
+        if not lastname: raise ValueError("Lastname is required")
+        if not phone_number: raise ValueError("Phone_number is required")
+
+        user = self.model(
+            username = username,
+            email = self.normalize_email(email),
+            firstname = firstname,
+            lastname = lastname,
+            phone_number = phone_number
+        )
+        user.set_password(password)
+        user.save()
+        return user
+    
+    def create_superuser(self, username, email, firstname, lastname, phone_number, password=None):
+        user = self.model(
+            username = username,
+            email = self.normalize_email(email),
+            firstname = firstname,
+            lastname = lastname,
+            phone_number = phone_number
+        )
+        user.is_admin = True
+        user.is_superuser = True
+        user.save()
+        return user
+
+class User(AbstractBaseUser):
+    username = models.CharField(verbose_name="username", max_length=25, blank=False, null=False, unique=True)
+    email = models.EmailField(verbose_name="email address", max_length=50, blank=False, null=False, unique=True)
+    firstname = models.CharField(verbose_name="first name", max_length=20, blank=False, null=False)
+    lastname = models.CharField(verbose_name="last name", max_length=20, blank=False, null=False)
+    phone_number = models.CharField(verbose_name="phone number", max_length=15, blank=False, null=False)
+
+    birthdate = models.DateTimeField(verbose_name="birthdate", blank=True, null=True)
+    blood_type = models.CharField(verbose_name="blood type", max_length=5, blank=True, null=True)
+    height = models.PositiveIntegerField(verbose_name="height", blank=True, null=True)
+    weight = models.PositiveIntegerField(verbose_name="weight", blank=True, null=True)
+
+    is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    USERNAME_FIELD="username"
+
+    REQUIRED_FIELDS = [
+        'email',
+        'firstname',
+        'lastname',
+        'phone_number',
+    ]
+
+    objects = UserManager()
+
+    def __str__(self):
+        return self.id
+    
+    def has_perm(self, perm, obj=None):
+        return True
+    
+    def has_module_perm(self, app_label):
+        return True
+
+# class Client
+    
 
 class CBCTestResultImage(models.Model):
     testImage = models.ImageField(upload_to='images/', blank=False, null=False)
