@@ -103,7 +103,7 @@ https://templatemo.com/tm-570-chain-app-dev
             <h4>Create <em>Account</em></h4>
            </div>
           
-          <form id="msform">
+          <form id="msform" action="" method="POST">
             {% csrf_token %}
             <!-- progressbar -->
             <ul id="progressbar">
@@ -115,30 +115,36 @@ https://templatemo.com/tm-570-chain-app-dev
             <fieldset>
                 <h2 class="fs-title">Personal Details</h2>
                 <h3 class="fs-subtitle">Tell us about yourself</h3>
-                
                 <table style="width: 100%;">
-                  <tr><td colspan="2">{{form.email}}</td></tr>
                   <tr>
-                    <td>{{form.firstname}}</td>
-                    <td>{{form.lastname}}</td>
+                    <td>
+                      {{form.firstname.errors}}
+                      {{form.firstname}}
+                    </td>
+                    <td>
+                      {{form.lastname.errors}}
+                      {{form.lastname}}
+                    </td>
                   </tr>
-                  <tr><td colspan="2">{{form.phone_number}}</td></tr>
+                  <tr><td colspan="2">
+                    {{form.phone_number.errors}}
+                    {{form.phone_number}}
+                  </td></tr>
+                  <tr><td colspan="2">
+                    {{form.birthdate.errors}}
+                    {{form.birthdate}}
+                  </td></tr>
                 </table>
-                <input type="submit" name="next" class="next action-button" value="Next"/>
+                <input type="button" name="next" class="next action-button" value="Next"/>
                 <p>Already have an account?</p>
                 <a href="{% url 'DisplayLoginPage' %}">Login here</a>
             </fieldset>
             <fieldset>
                 <h2 class="fs-title">Client Details (Optional)</h2>
                 <h3 class="fs-subtitle">Tell us more about you</h3>
-                <table style="width: 100%;">
-                  <tr><td colspan="2">{{form.birthdate}}</td></tr>
-                  <tr><td colspan="2">{{form.blood_type}}</td></tr>
-                  <tr>
-                    <td>{{form.height}}</td>
-                    <td>{{form.weight}}</td>
-                  </tr>
-                </table>
+                {{form.blood_type.errors}}{{form.blood_type}}
+                {{form.height.errors}}{{form.height}}
+                {{form.weight.errors}}{{form.weight}}
                 <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
                 <input type="button" name="next" class="next action-button" value="Next"/>
                 <p>Already have an account?</p>
@@ -148,21 +154,50 @@ https://templatemo.com/tm-570-chain-app-dev
                 <h2 class="fs-title">Create your account</h2>
                 <h3 class="fs-subtitle">Fill in your credentials</h3>
                 <input type="hidden" name="email" maxlength="50" placeholder="Email" required id="id_email">
-                {{form.username}}
-                {{form.password1}}
-                {{form.password2}}
+                <table style="width: 100%;">
+                  <tr><td colspan="2">
+                    {{form.email.errors}}
+                    {{form.email}}
+                  </td></tr>
+                  <tr><td colspan="2">
+                    {{form.username.errors}}
+                    {{form.username}}
+                  </td></tr>
+                  <tr>
+                    <td colspan="2">
+                      <p>
+                        Your password can’t be too similar to your other personal information.
+                        Your password must contain at least 8 characters.
+                        Your password can’t be a commonly used password.
+                        Your password can’t be entirely numeric.
+                      </p>
+                    </td>
+                  </tr>
+                  <tr> 
+                    <td>
+                      {{form.password1.errors}}
+                      {{form.password1}}
+                    </td>
+                    <td>
+                      {{form.password2.errors}}
+                      {{form.password2}}
+                    </td>
+                  </tr>
+                </table>
                 <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
                 <input type="submit" class="action-button"/>
                 <p>Already have an account?</p>
+                {{form.is_active.name}}
                 <a href="{% url 'DisplayLoginPage' %}">Login here</a>
             </fieldset>
+            <fieldset>
+              <!-- Hidden fields -->
+              {{form.is_admin}}
+              {{form.is_active}}
+              {{form.is_staff}}
+            </fieldset>
           </form>
-
-
-
         </div>
-        
-        
 
         <div class="col-lg-6">
           <div class="right-image">

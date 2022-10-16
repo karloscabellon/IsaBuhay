@@ -103,14 +103,13 @@ https://templatemo.com/tm-570-chain-app-dev
             <h4>Login to <em>IsaBuhay</em></h4>
            </div>
           
-
+           
            <form id="msform">
             {% csrf_token %}
             <fieldset>
                 <h2 class="fs-title">Account Credentials</h2>
                 <h3 class="fs-subtitle">Continue with your IsaBuhay account</h3>
-                <input type="text" placeholder="Username">
-                <input type="password" placeholder="Password">
+                {{form}}
                 <input type="submit" class="action-button" value="Login">
                 <p>Don't have an account yet?</p>
                 <a href="{% url 'CreateAccountPage' %}">Register here</a>
