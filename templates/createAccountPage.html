@@ -103,62 +103,60 @@ https://templatemo.com/tm-570-chain-app-dev
             <h4>Create <em>Account</em></h4>
            </div>
           
-          </div>
-            <form id="msform">
-              {% csrf_token %}
-              <!-- progressbar -->
-              <ul id="progressbar">
-                  <li class="active">Personal Details</li>
-                  <li>Client Details</li>
-                  <li>Account Setup</li>
-              </ul>
-              <!-- fieldsets -->
-              <fieldset>
-                  <h2 class="fs-title">Personal Details</h2>
-                  <h3 class="fs-subtitle">Tell us about yourself</h3>
-                  
-                  <table style="width: 100%;">
-                    <tr><td colspan="2">{{form.email}}</td></tr>
-                    <tr>
-                      <td>{{form.firstname}}</td>
-                      <td>{{form.lastname}}</td>
-                    </tr>
-                    <tr><td colspan="2">{{form.phone_number}}</td></tr>
-                  </table>
-                  <input type="submit" name="next" class="next action-button" value="Next"/>
-                  <p>Already have an account?</p>
-                  <a href="{% url 'DisplayLoginPage' %}">Login here</a>
-              </fieldset>
-              <fieldset>
-                  <h2 class="fs-title">Client Details (Optional)</h2>
-                  <h3 class="fs-subtitle">Tell us more about you</h3>
-                  <table style="width: 100%;">
-                    <tr><td colspan="2">{{form.birthdate}}</td></tr>
-                    <tr><td colspan="2">{{form.blood_type}}</td></tr>
-                    <tr>
-                      <td>{{form.height}}</td>
-                      <td>{{form.weight}}</td>
-                    </tr>
-                  </table>
-                  <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
-                  <input type="button" name="next" class="next action-button" value="Next"/>
-                  <p>Already have an account?</p>
-                  <a href="{% url 'DisplayLoginPage' %}">Login here</a>
-              </fieldset>
-              <fieldset>
-                  <h2 class="fs-title">Create your account</h2>
-                  <h3 class="fs-subtitle">Fill in your credentials</h3>
-                  <input type="hidden" name="email" maxlength="50" placeholder="Email" required id="id_email">
-                  {{form.username}}
-                  {{form.password1}}
-                  {{form.password2}}
-                  <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
-                  <input type="submit" class="action-button"/>
-                  <p>Already have an account?</p>
-                  <a href="{% url 'DisplayLoginPage' %}">Login here</a>
-              </fieldset>
-            </form>
-          </div>
+          <form id="msform">
+            {% csrf_token %}
+            <!-- progressbar -->
+            <ul id="progressbar">
+                <li class="active">Personal Details</li>
+                <li>Client Details</li>
+                <li>Account Setup</li>
+            </ul>
+            <!-- fieldsets -->
+            <fieldset>
+                <h2 class="fs-title">Personal Details</h2>
+                <h3 class="fs-subtitle">Tell us about yourself</h3>
+                
+                <table style="width: 100%;">
+                  <tr><td colspan="2">{{form.email}}</td></tr>
+                  <tr>
+                    <td>{{form.firstname}}</td>
+                    <td>{{form.lastname}}</td>
+                  </tr>
+                  <tr><td colspan="2">{{form.phone_number}}</td></tr>
+                </table>
+                <input type="submit" name="next" class="next action-button" value="Next"/>
+                <p>Already have an account?</p>
+                <a href="{% url 'DisplayLoginPage' %}">Login here</a>
+            </fieldset>
+            <fieldset>
+                <h2 class="fs-title">Client Details (Optional)</h2>
+                <h3 class="fs-subtitle">Tell us more about you</h3>
+                <table style="width: 100%;">
+                  <tr><td colspan="2">{{form.birthdate}}</td></tr>
+                  <tr><td colspan="2">{{form.blood_type}}</td></tr>
+                  <tr>
+                    <td>{{form.height}}</td>
+                    <td>{{form.weight}}</td>
+                  </tr>
+                </table>
+                <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
+                <input type="button" name="next" class="next action-button" value="Next"/>
+                <p>Already have an account?</p>
+                <a href="{% url 'DisplayLoginPage' %}">Login here</a>
+            </fieldset>
+            <fieldset>
+                <h2 class="fs-title">Create your account</h2>
+                <h3 class="fs-subtitle">Fill in your credentials</h3>
+                <input type="hidden" name="email" maxlength="50" placeholder="Email" required id="id_email">
+                {{form.username}}
+                {{form.password1}}
+                {{form.password2}}
+                <input type="button" name="previous" class="previous action-button-previous" value="Previous"/>
+                <input type="submit" class="action-button"/>
+                <p>Already have an account?</p>
+                <a href="{% url 'DisplayLoginPage' %}">Login here</a>
+            </fieldset>
+          </form>
 
 
 
