@@ -1153,7 +1153,7 @@ About Us
   z-index: 1;
 }
 
-.about-us:after {
+.about-us::before {
   background-image: url(../images/about-bg.jpg);
   width: 777px;
   height: 1132px;
