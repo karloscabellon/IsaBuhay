@@ -1,5 +1,6 @@
 from dataclasses import field
 from django.contrib.auth import password_validation
+from django.contrib.auth import forms as cforms
 from django.core.exceptions import ValidationError
 from django import forms
 from .models import *
@@ -7,7 +8,7 @@ from .models import *
 class DateInput(forms.DateInput):
     input_type = 'date'
 
-class CustomUserCreationForm(forms.ModelForm):
+class CustomUserCreationForm(cforms.UserCreationForm):
     password1 = forms.CharField(
         strip=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
@@ -42,8 +43,6 @@ class CustomUserCreationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-        password_val = "Must be at least 8 characters and cannot be entirely numeric."
 
         self.fields['username'].widget.attrs.update({'placeholder' : 'Username'})
         self.fields['email'].widget.attrs.update({'placeholder' : 'Email'})
@@ -53,13 +52,8 @@ class CustomUserCreationForm(forms.ModelForm):
         self.fields['blood_type'].widget.attrs.update({'placeholder' : 'Blood Type'})
         self.fields['height'].widget.attrs.update({'placeholder' : 'Height'})
         self.fields['weight'].widget.attrs.update({'placeholder' : 'Weight'})
-        self.fields['password1'].widget.attrs.update({
-            'placeholder' : 'Password',
-            'onfocus': "alert('" +password_val+"'); (this.onfocus = '');"
-        })
-        self.fields['password2'].widget.attrs.update({
-            'placeholder' : 'Confirm Password'
-        })
+        self.fields['password1'].widget.attrs.update({'placeholder' : 'Password',})
+        self.fields['password2'].widget.attrs.update({'placeholder' : 'Confirm Password'})
         self.fields['birthdate'].widget.attrs.update({
             'placeholder' : 'Birthdate',
             'onfocus': '(this.type = \'date\')'
