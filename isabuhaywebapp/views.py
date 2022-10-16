@@ -8,6 +8,7 @@ from isabuhaywebapp.models import *
 from django.shortcuts import *
 from .forms import *
 from datetime import datetime
+from django.contrib.auth.views import LoginView
 import cv2
 import numpy as np
 import pytesseract
@@ -17,8 +18,15 @@ import PyPDF4
 import docx2txt as d2t
 from urllib.request import urlopen
 from django.core.files import File
-from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
+
+class CreateAccountPage(CreateView):
+    form_class = CustomUserCreationForm
+    template_name = 'createAccountPage.html'
+    success_url = reverse_lazy('DisplayLandingPage')
+
+class DisplayLoginPage(LoginView):
+    template_name = 'loginPage.html'
 
 class DisplayAccountPage(TemplateView):
     template_name = 'displayAccountPage.html'
