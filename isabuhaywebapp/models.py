@@ -1,7 +1,10 @@
+from decimal import Decimal
 from enum import unique
 from tabnanny import verbose
+from unicodedata import decimal
 from django.urls import reverse
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from traitlets import default
 # Create your models here.
@@ -47,8 +50,8 @@ class User(AbstractBaseUser):
 
     birthdate = models.DateTimeField(verbose_name="birthdate", blank=True, null=True)
     blood_type = models.CharField(verbose_name="blood type", max_length=5, blank=True, null=True)
-    height = models.PositiveIntegerField(verbose_name="height", blank=True, null=True)
-    weight = models.PositiveIntegerField(verbose_name="weight", blank=True, null=True)
+    height = models.DecimalField(verbose_name="height", decimal_places = 2, max_digits = 6, validators=[MinValueValidator(Decimal('0.01'))], blank=True, null=True)
+    weight = models.DecimalField(verbose_name="weight", decimal_places = 2, max_digits = 6, validators=[MinValueValidator(Decimal('0.01'))], blank=True, null=True)
 
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -67,7 +70,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     def __str__(self):
-        return self.id
+        return self.username
     
     def has_perm(self, perm, obj=None):
         return True
