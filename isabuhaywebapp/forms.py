@@ -43,6 +43,8 @@ class CustomUserCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        password_val = "Must be at least 8 characters and cannot be entirely numeric."
+
         self.fields['username'].widget.attrs.update({'placeholder' : 'Username'})
         self.fields['email'].widget.attrs.update({'placeholder' : 'Email'})
         self.fields['firstname'].widget.attrs.update({'placeholder' : 'Firstname'})
@@ -51,8 +53,13 @@ class CustomUserCreationForm(forms.ModelForm):
         self.fields['blood_type'].widget.attrs.update({'placeholder' : 'Blood Type'})
         self.fields['height'].widget.attrs.update({'placeholder' : 'Height'})
         self.fields['weight'].widget.attrs.update({'placeholder' : 'Weight'})
-        self.fields['password1'].widget.attrs.update({'placeholder' : 'Password'})
-        self.fields['password2'].widget.attrs.update({'placeholder' : 'Confirm Password'})
+        self.fields['password1'].widget.attrs.update({
+            'placeholder' : 'Password',
+            'onfocus': "alert('" +password_val+"'); (this.onfocus = '');"
+        })
+        self.fields['password2'].widget.attrs.update({
+            'placeholder' : 'Confirm Password'
+        })
         self.fields['birthdate'].widget.attrs.update({
             'placeholder' : 'Birthdate',
             'onfocus': '(this.type = \'date\')'
@@ -80,7 +87,6 @@ class CustomUserCreationForm(forms.ModelForm):
                 self.add_error("password2", error)
 
     def save(self, commit=True):
-        print("**************THIS RAN*****************")
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         if commit:
