@@ -21,7 +21,6 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 
 class CreateAccountPage(CreateView):
-    model = User
     form_class = CustomUserCreationForm
     template_name = 'createAccountPage.html'
     success_url = reverse_lazy('DisplayLandingPage')
