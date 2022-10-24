@@ -11,7 +11,7 @@
     <meta name="author" content="">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
 
     <title>Isabuhay - Reports</title>
 
@@ -65,7 +65,7 @@ https://templatemo.com/tm-570-chain-app-dev
                 <li class="scroll-to-section"><a href="#" class="active">Client Page</a></li>
                 <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
                 <li class="scroll-to-section"><a href="#">Analytics</a></li>
-                <li class="scroll-to-section"><a href="#">Account</a></li>
+                <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
                 <li class="scroll-to-section"><a href="#">Sign Out</a></li>
                 <li></li>
               </ul>        

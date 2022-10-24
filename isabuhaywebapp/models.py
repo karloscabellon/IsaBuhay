@@ -49,6 +49,7 @@ class User(AbstractBaseUser):
     lastname = models.CharField(verbose_name="last name", max_length=20, blank=False, null=False)
     phone_number = models.CharField(verbose_name="phone number", max_length=15, blank=False, null=False)
 
+    profile_picture = models.ImageField(verbose_name="profile picture", null=True, blank=True)
     birthdate = models.DateTimeField(verbose_name="birthdate", blank=True, null=True)
     blood_type = models.CharField(verbose_name="blood type", max_length=5, blank=True, null=True)
     height = models.DecimalField(verbose_name="height", decimal_places = 2, max_digits = 6, validators=[MinValueValidator(Decimal('0.01'))], blank=True, null=True)

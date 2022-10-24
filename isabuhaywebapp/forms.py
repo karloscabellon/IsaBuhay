@@ -37,10 +37,6 @@ class CustomUserCreationForm(cforms.UserCreationForm):
             'is_superuser'
         ]
 
-        # widgets = {
-        #     'birthdate' : DateInput,
-        # }
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
