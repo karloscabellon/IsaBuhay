@@ -23,7 +23,7 @@ from django.core.files.temp import NamedTemporaryFile
 class CreateAccountPage(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'createAccountPage.html'
-    success_url = reverse_lazy('DisplayLandingPage')
+    success_url = reverse_lazy('DisplayLoginPage')
 
 class DisplayLoginPage(LoginView):
     template_name = 'loginPage.html'
