@@ -54,11 +54,6 @@ class LogoutView(View):
 class DisplayClientSide(LoginRequiredMixin, TemplateView):
     template_name = 'displayClientSide.html'
 
-    def get_context_data(self, **kwargs):
-        context =  super().get_context_data(**kwargs)
-        context['name'] = self.request.user.firstname
-        return context
-
 class DisplayAccountPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAccountPage.html'
 
