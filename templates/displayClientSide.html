@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
 
-    <title>Isabuhay - Reports</title>
+    <title>Isabuhay - Home</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -66,7 +66,7 @@ https://templatemo.com/tm-570-chain-app-dev
                 <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
                 <li class="scroll-to-section"><a href="#">Analytics</a></li>
                 <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
-                <li class="scroll-to-section"><a href="#">Sign Out</a></li>
+                <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
                 <li></li>
               </ul>        
               <a class='menu-trigger'>
@@ -86,14 +86,16 @@ https://templatemo.com/tm-570-chain-app-dev
         <div class="row">
           <div class="col-lg-8 offset-lg-2">
             <div class="section-heading  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
-              <h4>Client Page</h4>
+              <h4>Hello <em>{{name}}</em>,</h4>
               <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
              </div>
           </div>
         </div>
       </div>
+      
       <div class="container">
-        <!-- SOMETHING HERE -->
+        
+
       </div>
     </div>
 

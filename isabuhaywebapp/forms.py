@@ -1,12 +1,8 @@
-from dataclasses import field
 from django.contrib.auth import password_validation
 from django.contrib.auth import forms as cforms
 from django.core.exceptions import ValidationError
 from django import forms
 from .models import *
-
-class DateInput(forms.DateInput):
-    input_type = 'date'
 
 class CustomUserCreationForm(cforms.UserCreationForm):
     password1 = forms.CharField(
