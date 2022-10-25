@@ -1,7 +1,11 @@
-from lib2to3.refactor import get_all_fix_names
-from pipes import Template
-from urllib import request
-from django.shortcuts import render
+import cv2
+import numpy as np
+import pytesseract
+import re
+import PyPDF4
+import docx2txt as d2t
+from urllib.request import urlopen
+from django.contrib.auth import logout
 from django.urls import reverse_lazy
 from django.views.generic import *
 from isabuhaywebapp.models import *
@@ -9,16 +13,14 @@ from django.shortcuts import *
 from .forms import *
 from datetime import datetime
 from django.contrib.auth.views import LoginView
-import cv2
-import numpy as np
-import pytesseract
-import os
-import re
-import PyPDF4
-import docx2txt as d2t
-from urllib.request import urlopen
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
+from django.contrib.auth.mixins import LoginRequiredMixin
+from IsabuhayWebsite import settings
+
+
+class DisplayLandingPage(TemplateView):
+    template_name = 'displayLandingPage.html'
 
 class CreateAccountPage(CreateView):
     form_class = CustomUserCreationForm
@@ -27,6 +29,15 @@ class CreateAccountPage(CreateView):
 
 class DisplayLoginPage(LoginView):
     template_name = 'loginPage.html'
+    next_page = 'DisplayClientSide'
+
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return HttpResponseRedirect(settings.LOGIN_URL)
+
+class DisplayClientSide(LoginRequiredMixin, TemplateView):
+    template_name = 'displayClientSide.html'
 
 class DisplayAccountPage(TemplateView):
     template_name = 'displayAccountPage.html'
@@ -36,12 +47,6 @@ class UpdateAccountPage(TemplateView):
 
 class DeleteAccountPage(TemplateView):
     template_name = 'deleteAccountPage.html'
-
-class DisplayLandingPage(TemplateView):
-    template_name = 'displayLandingPage.html'
-
-class DisplayClientSide(TemplateView):
-    template_name = 'displayClientSide.html'
 
 class DisplayAllCBCTestResult(ListView):
     model = CBCTestResult
