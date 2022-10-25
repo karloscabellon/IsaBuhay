@@ -58,17 +58,36 @@ class DisplayClientSide(LoginRequiredMixin, TemplateView):
         context =  super().get_context_data(**kwargs)
         context['name'] = self.request.user.firstname
         return context
-        
 
-
-class DisplayAccountPage(TemplateView):
+class DisplayAccountPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAccountPage.html'
 
-class UpdateAccountPage(TemplateView):
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
+
+class UpdateAccountPage(LoginRequiredMixin, TemplateView):
     template_name = 'updateAccountPage.html'
 
-class DeleteAccountPage(TemplateView):
-    template_name = 'deleteAccountPage.html'
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
+        
+# class UpdateAccountPage(LoginRequiredMixin, UpdateView):
+#     model = User
+#     form_class = CustomUserCreationForm
+#     template_name = 'updateAccountPage.html/'
+
+#     def get_context_data(self, **kwargs):
+#         context =  super().get_context_data(**kwargs)
+#         context['user'] = self.request.user
+#         return context
+
+class DeleteAccountPage(DeleteView):
+    pass
+    
 
 class DisplayAllCBCTestResult(ListView):
     model = CBCTestResult
