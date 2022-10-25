@@ -17,7 +17,8 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from IsabuhayWebsite import settings
-
+import json
+from django.http import JsonResponse
 
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
@@ -48,6 +49,17 @@ class UpdateAccountPage(TemplateView):
 class DeleteAccountPage(TemplateView):
     template_name = 'deleteAccountPage.html'
 
+# Marc John Corral
+
+def paymentComplete(request):
+	body = json.loads(request.body)
+	promo = PromoOptions.objects.get(id=body['promoId'])
+	Payments.objects.create(
+		promo=promo
+		)
+
+	return JsonResponse('Payment completed!', safe=False)
+
 class DisplayAllCBCTestResult(ListView):
     model = CBCTestResult
     ordering = ['-dateRequested']
@@ -59,6 +71,14 @@ class DisplayCBCTestResult(DetailView):
 
 class DisplayAddingOptions(TemplateView):
     template_name = 'DisplayAddingOptions.html'
+
+class PaymentMethod(DetailView):
+    model = PromoOptions
+    template_name = 'paymentMethod.html'
+
+class DisplayAllPromoOptions(ListView):
+    model = PromoOptions
+    template_name = 'promoOptions.html'
 
 class UploadPDF(CreateView):
     model = CBCTestResultPDF
@@ -130,7 +150,7 @@ class CreateCBCTestResult(CreateView):
             initial['testImage'] = None
             initial['testPDF'] = None
             initial['testDocx'] = docxObject
-            FILE_PATH = 'D:/Django Projects/IsabuhayWebsite'+str(docxObject.testDocx.url)
+            FILE_PATH = 'D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(docxObject.testDocx.url)
             txt = d2t.process(FILE_PATH)
 
             numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
@@ -166,7 +186,7 @@ class CreateCBCTestResult(CreateView):
             initial['testPDF'] = pdfObject
             initial['testImage'] = None
             initial['testDocx'] = None
-            FILE_PATH = 'D:/Django Projects/IsabuhayWebsite'+str(pdfObject.testPDF.url)
+            FILE_PATH = 'D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(pdfObject.testPDF.url)
 
             with open(FILE_PATH, mode='rb') as f:
                 reader = PyPDF4.PdfFileReader(f)
@@ -236,7 +256,7 @@ class CreateCBCTestResult(CreateView):
             per = 25
             pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
             
-            imgQ = cv2.imread('D:\\Django Projects\\IsabuhayWebsite\\imageQuery\\sample.png')
+            imgQ = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\IsabuhayWebsite\\IsabuhayWebsite\\imageQuery\\sample.png')
             h,w,c = imgQ.shape
             gray_image = grayscale(imgQ)
             thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
@@ -248,7 +268,7 @@ class CreateCBCTestResult(CreateView):
             initial['testImage'] = imgObject
             initial['testPDF'] = None
             initial['testDocx'] = None
-            img = cv2.imread('D:/Django Projects/IsabuhayWebsite'+str(imgObject.testImage.url))
+            img = cv2.imread('D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(imgObject.testImage.url))
             gray_image = grayscale(img)
             thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
             kp2, des2 = orb.detectAndCompute(im_bw, None)
@@ -375,3 +395,5 @@ class DeleteDocx(DeleteView):
         context = super(DeleteDocx, self).get_context_data(**kwargs)
         context['type'] = 'docx'
         return context
+
+# Marc John Corral

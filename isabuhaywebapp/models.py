@@ -79,7 +79,9 @@ class User(AbstractBaseUser):
         return True
 
 # class Client
-    
+
+
+# Marc John Corral
 
 class CBCTestResultImage(models.Model):
     testImage = models.ImageField(upload_to='images/', blank=False, null=False)
@@ -99,6 +101,16 @@ class CBCTestResultDocx(models.Model):
     def get_absolute_url(self):
         return reverse('CreateCBCTestResult', kwargs={'pk': str(self.pk), 'type': 'docx'})
 
+class PromoOptions(models.Model):
+    uploads = models.IntegerField(blank=False, null=False)
+    price = models.FloatField(blank=False, null=False)
+
+    def get_absolute_url(self):
+        return reverse('PaymentMethod', kwargs={'pk': str(self.pk)})
+
+class Payments(models.Model):
+    promo = models.ForeignKey(PromoOptions, on_delete=models.SET_DEFAULT, blank=False, null=False)
+    user = models.ForeignKey(PromoOptions, on_delete=models.SET_DEFAULT, blank=False, null=False)
 class CBCTestResult(models.Model):
     testImage = models.OneToOneField(CBCTestResultImage, on_delete=models.CASCADE, blank=True, null=True)
     testPDF = models.OneToOneField(CBCTestResultPDF, on_delete=models.CASCADE, blank=True, null=True)
@@ -132,3 +144,5 @@ class CBCTestResult(models.Model):
 
     def get_absolute_url(self):
         return reverse('DisplayCBCTestResult', kwargs={'pk': str(self.pk)})
+
+# Marc John Corral
