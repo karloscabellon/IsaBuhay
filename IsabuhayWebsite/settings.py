@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from django.urls import reverse_lazy
 from pathlib import Path
 import os
 
@@ -72,6 +73,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'IsabuhayWebsite.wsgi.application'
 
 AUTH_USER_MODEL = 'isabuhaywebapp.User'
+
+LOGIN_URL = reverse_lazy('DisplayLoginPage')
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
