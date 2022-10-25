@@ -185,7 +185,14 @@ function getCookie(name) {
 	 				'X-CSRFToken':csrftoken,
 	 			},
 	 			body:JSON.stringify({'promoId':promoId})
-	 		})
+	 		}).then((response) => response.json())
+	    	.then((data) => {
+				console.log('Success:', data);
+				alert('Transaction completed');  
+
+				window.location.href = "{% url 'UploadImage' %}"
+
+				})
 	 	}
 
         // Render the PayPal button into #paypal-button-container
@@ -213,7 +220,6 @@ function getCookie(name) {
                     // Successful capture! For demo purposes:
                     // console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
                     completeOrder()
-                    window.location.href = "{% url 'UploadImage' %}"
                     // var transaction = orderData.purchase_units[0].payments.captures[0];
                     // alert('Transaction '+ transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
 
