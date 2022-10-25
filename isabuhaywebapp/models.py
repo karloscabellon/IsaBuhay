@@ -61,6 +61,8 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
+    uploads = models.FloatField(blank=False, null=False, default=5)
+
     USERNAME_FIELD="username"
 
     REQUIRED_FIELDS = [
@@ -109,8 +111,9 @@ class PromoOptions(models.Model):
         return reverse('PaymentMethod', kwargs={'pk': str(self.pk)})
 
 class Payments(models.Model):
-    promo = models.ForeignKey(PromoOptions, on_delete=models.SET_DEFAULT, blank=False, null=False)
-    user = models.ForeignKey(PromoOptions, on_delete=models.SET_DEFAULT, blank=False, null=False)
+    promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, related_name='promo', blank=True, null=True)
+    user = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, related_name='user', blank=True, null=True)
+    
 class CBCTestResult(models.Model):
     testImage = models.OneToOneField(CBCTestResultImage, on_delete=models.CASCADE, blank=True, null=True)
     testPDF = models.OneToOneField(CBCTestResultPDF, on_delete=models.CASCADE, blank=True, null=True)
