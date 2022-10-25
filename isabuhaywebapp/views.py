@@ -51,14 +51,14 @@ class DeleteAccountPage(TemplateView):
 
 # Marc John Corral
 
-def paymentComplete(request):
-	body = json.loads(request.body)
-	promo = PromoOptions.objects.get(id=body['promoId'])
-	Payments.objects.create(
-		promo=promo
-		)
-
-	return JsonResponse('Payment completed!', safe=False)
+class PaymentComplete(View):
+    def post(self, request, *args, **kwargs):
+        body = json.loads(request.body)
+        promo = PromoOptions.objects.get(id=body['promoId'])
+        Payments.objects.create(
+            promo=promo
+            )
+        return JsonResponse('Payment completed!', safe=False)
 
 class DisplayAllCBCTestResult(ListView):
     model = CBCTestResult

@@ -111,8 +111,8 @@ class PromoOptions(models.Model):
         return reverse('PaymentMethod', kwargs={'pk': str(self.pk)})
 
 class Payments(models.Model):
-    promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, related_name='promo', blank=True, null=True)
-    user = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, related_name='user', blank=True, null=True)
+    promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     
 class CBCTestResult(models.Model):
     testImage = models.OneToOneField(CBCTestResultImage, on_delete=models.CASCADE, blank=True, null=True)

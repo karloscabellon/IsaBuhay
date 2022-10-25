@@ -27,5 +27,5 @@ urlpatterns = [
     path('capturedImage/delete/<str:pk>/', DeleteCapturedImage.as_view(), name='DeleteCapturedImage'),
     path('pdf/delete/<str:pk>/', DeletePDF.as_view(), name='DeletePDF'),
     path('docx/delete/<str:pk>/', DeleteDocx.as_view(), name='DeleteDocx'),
-    path('complete/', views.paymentComplete, name="complete"),
+    path('complete/', PaymentComplete.as_view(), name="complete"),
 ]
