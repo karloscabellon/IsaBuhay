@@ -22,14 +22,29 @@ from IsabuhayWebsite import settings
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
 
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
+        return super().get(request, *args, **kwargs)
+
 class CreateAccountPage(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'createAccountPage.html'
     success_url = reverse_lazy('DisplayLoginPage')
 
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
+        return super().get(request, *args, **kwargs)
+
 class DisplayLoginPage(LoginView):
     template_name = 'loginPage.html'
     next_page = 'DisplayClientSide'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
+        return super().get(request, *args, **kwargs)
 
 class LogoutView(View):
     def get(self, request):
