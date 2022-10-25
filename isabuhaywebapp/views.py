@@ -62,19 +62,11 @@ class DisplayClientSide(LoginRequiredMixin, TemplateView):
 class DisplayAccountPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAccountPage.html'
 
-    def get_context_data(self, **kwargs):
-        context =  super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context
-
+   
 class UpdateAccountPage(LoginRequiredMixin, TemplateView):
     template_name = 'updateAccountPage.html'
 
-    def get_context_data(self, **kwargs):
-        context =  super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context
-
+    
 class DeleteAccountPage(DeleteView):
     pass
     
