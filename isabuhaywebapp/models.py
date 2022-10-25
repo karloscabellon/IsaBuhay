@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from traitlets import default
+# from traitlets import default
 # Create your models here.
 
 class UserManager(BaseUserManager):
