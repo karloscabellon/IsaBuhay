@@ -115,12 +115,160 @@ https://templatemo.com/tm-570-chain-app-dev
     </div>
     <div class="contentarea wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
       <div class="Input">
-        <form method="POST" name="inputForm" enctype='multipart/form-data'>
+        <form action="." method="POST" >
           {% csrf_token %}
-          {{ form.as_p }}
-          <br>
-          <button>Update</button>
-      </form>
+          <div class="modal-header">
+            <h4 class="modal-title" id="modal-basic-title">Update CBC Test Result</h4>
+          </div>
+          <div class="modal-body">
+          <div class="row">
+              <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+                  <div class="form-group">
+                      <label>WBC</label>
+                      <input type="number"  name="whiteBloodCells" class="form-control" min=0 step="any" min=0 step="any" required  value="{{object.whiteBloodCells}}" >
+                  </div>
+              </div>
+              <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+                  <div class="form-group">
+                      <label>RBC</label>
+                      <input type="number"  name="redBloodCells" class="form-control" min=0 step="any" required  value="{{object.redBloodCells}}" >
+                  </div>
+              </div>
+              <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+                <div class="form-group">
+                    <label>HGB</label>
+                    <input type="number"  name="hemoglobin" class="form-control" min=0 step="any" required  value="{{object.hemoglobin}}" >
+                </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+                <div class="form-group">
+                    <label>HCT</label>
+                    <input type="number"  name="hematocrit" class="form-control" min=0 step="any" required  value="{{object.hematocrit}}" >
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+                <div class="form-group">
+                    <label>MCV</label>
+                    <input type="number"  name="meanCorpuscularVolume" class="form-control" min=0 step="any" required  value="{{object.meanCorpuscularVolume}}" >
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+              <div class="form-group">
+                  <label>MCH</label>
+                  <input type="number"  name="meanCorpuscularHb" class="form-control" min=0 step="any" required  value="{{object.meanCorpuscularHb}}" >
+              </div>
+          </div>
+          </div>
+          <div class="row">
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+              <div class="form-group">
+                  <label>MCHC</label>
+                  <input type="number"  name="meanCorpuscularHbConc" class="form-control" min=0 step="any" required  value="{{object.meanCorpuscularHbConc}}" >
+              </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+              <div class="form-group">
+                  <label>RDW</label>
+                  <input type="number"  name="rbcDistributionWidth" class="form-control" min=0 step="any" required  value="{{object.rbcDistributionWidth}}" >
+              </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+            <div class="form-group">
+                <label>PLT</label>
+                <input type="number"  name="plateletCount" class="form-control" min=0 step="any" required  value="{{object.plateletCount}}" >
+            </div>
+          </div>
+          </div>
+          <div class="row">
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+            <div class="form-group">
+                <label>SEGMENTERS</label>
+                <input type="number"  name="segmenters" class="form-control" min=0 step="any" required  value="{{object.segmenters}}" >
+            </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+            <div class="form-group">
+                <label>LYMPH</label>
+                <input type="number"  name="lymphocytes" class="form-control" min=0 step="any" required  value="{{object.lymphocytes}}" >
+            </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+              <label>MONO</label>
+              <input type="number"  name="monocytes" class="form-control" min=0 step="any" required  value="{{object.monocytes}}" >
+          </div>
+          </div>
+          </div>
+          <div class="row">
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+              <label>EOS</label>
+              <input type="number"  name="eosinophils" class="form-control" min=0 step="any" required  value="{{object.eosinophils}}" >
+          </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+              <label>BASO</label>
+              <input type="number"  name="basophils" class="form-control" min=0 step="any" required  value="{{object.basophils}}" >
+          </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+            <label>BANDS</label>
+            <input type="number"  name="bands" class="form-control" min=0 step="any" required  value="{{object.bands}}" >
+          </div>
+          </div>
+          </div>
+          <div class="row">
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+              <label>ABS SEGMENTERS</label>
+              <input type="number"  name="absoluteSeg" class="form-control" min=0 step="any" required  value="{{object.absoluteSeg}}" >
+          </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+              <label>ABS LYMPH</label>
+              <input type="number"  name="absoluteLymphocyteCount" class="form-control" min=0 step="any" required  value="{{object.absoluteLymphocyteCount}}" >
+          </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+            <label>ABS MONO</label>
+            <input type="number"  name="absoluteMonocyteCount" class="form-control" min=0 step="any" required  value="{{object.absoluteMonocyteCount}}" >
+          </div>
+          </div>
+          </div>
+          <div class="row">
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+              <label>ABS EOS</label>
+              <input type="number"  name="absoluteEosinophilCount" class="form-control" min=0 step="any" required  value="{{object.absoluteEosinophilCount}}" >
+          </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+              <label>ABS BASO</label>
+              <input type="number"  name="absoluteBasophilCount" class="form-control" min=0 step="any" required  value="{{object.absoluteBasophilCount}}" >
+          </div>
+          </div>
+          <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+          <div class="form-group">
+            <label>ABS BAND</label>
+            <input type="number"  name="absoluteBandCount" class="form-control" min=0 step="any" required  value="{{object.absoluteBandCount}}" >
+          </div>
+          </div>
+          </div>
+          </div>
+          <div class="modal-footer">
+              <a href="{% url 'DisplayCBCTestResult' object.pk %}">Cancel</a>
+          <button type="submit">
+          <span >Update</span>
+          </button>
+          </div>
+          </form>
       </div>
     </div>
   </div>

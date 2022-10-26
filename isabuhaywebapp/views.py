@@ -126,30 +126,64 @@ class CaptureImage(TemplateView):
         obj.save()
         return redirect('CreateCBCTestResult', pk = obj.pk, type = 'picture')
 
-class CreateCBCTestResult(CreateView):
-    model = CBCTestResult
-    form_class = CBCTestResultForm
-    template_name = 'createCBCTestResult.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(CreateCBCTestResult, self).get_context_data(**kwargs)
-        context['type'] = self.kwargs['type']
-        if self.kwargs['type'] == 'docx':
-            context['docxObject'] = CBCTestResultDocx.objects.get(pk = int(self.kwargs['pk']))
-        elif self.kwargs['type'] == 'pdf':
-            context['pdfObject'] = CBCTestResultPDF.objects.get(pk = int(self.kwargs['pk']))
-        elif self.kwargs['type'] == 'image' or self.kwargs['type'] == 'picture':
-            context['imgObject'] = CBCTestResultImage.objects.get(pk = int(self.kwargs['pk']))
-        return context
+class CreateCBCTestResult(View):
+    def post(self, request, type, pk, *args, **kwargs):
+        object = CBCTestResult()
+        if object != None:
+            if type == 'docx':
+                object.testDocx = CBCTestResultDocx.objects.get(id=pk)
+            elif type == 'docx':
+                object.testPDF = CBCTestResultPDF.objects.get(id=pk)
+            elif type == 'image' or type == 'picture':
+                object.testImage = CBCTestResultImage.objects.get(id=pk)
 
-    def get_initial(self, *args, **kwargs):
-        initial = super(CreateCBCTestResult, self).get_initial(**kwargs)
-        data = {}
-        if self.kwargs['type'] == 'docx':
-            docxObject = CBCTestResultDocx.objects.get(pk = int(self.kwargs['pk']))
-            initial['testImage'] = None
-            initial['testPDF'] = None
-            initial['testDocx'] = docxObject
+            date_time_str = request.POST.get('dateRequested')
+            try:
+                object.dateRequested = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            except:
+                object.dateRequested = None
+            
+            date_time_str = request.POST.get('dateReceived')
+            try:
+                object.dateReceived = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            except:
+                object.dateReceived = None
+
+            object.source = request.POST.get('source')
+            object.labNumber = request.POST.get('labNumber')
+            object.pid = request.POST.get('pid')
+            object.whiteBloodCells = request.POST.get('whiteBloodCells')
+            object.redBloodCells = request.POST.get('redBloodCells')
+            object.hemoglobin = request.POST.get('hemoglobin')
+            object.hematocrit = request.POST.get('hematocrit')
+            object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
+            object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
+            object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
+            object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
+            object.plateletCount = request.POST.get('plateletCount')
+            object.segmenters = request.POST.get('segmenters')
+            object.lymphocytes = request.POST.get('lymphocytes')
+            object.monocytes = request.POST.get('monocytes')
+            object.eosinophils = request.POST.get('eosinophils')
+            object.basophils = request.POST.get('basophils')
+            object.bands = request.POST.get('bands')
+            object.absoluteSeg = request.POST.get('absoluteSeg')
+            object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
+            object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
+            object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
+            object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
+            object.absoluteBandCount = request.POST.get('absoluteBandCount')
+            object.save()
+            return redirect('DisplayCBCTestResult', pk=object.pk)
+        context = {'object': object}
+        return render(request, 'createCBCTestResult.html', context)
+
+    def get(self, request, type, pk, *args, **kwargs):
+        data = {'type': type}
+        if type == 'docx':
+            docxObject = CBCTestResultDocx.objects.get(id=pk)
+            data['object'] = docxObject
             FILE_PATH = 'D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(docxObject.testDocx.url)
             txt = d2t.process(FILE_PATH)
 
@@ -181,11 +215,9 @@ class CreateCBCTestResult(CreateView):
             data['absoluteEosinophilCount'] = numericalValues[83] 
             data['absoluteBasophilCount'] = numericalValues[87] 
             data['absoluteBandCount'] = numericalValues[91]
-        elif self.kwargs['type'] == 'pdf':
-            pdfObject = CBCTestResultPDF.objects.get(pk = int(self.kwargs['pk']))
-            initial['testPDF'] = pdfObject
-            initial['testImage'] = None
-            initial['testDocx'] = None
+        elif type == 'pdf':
+            pdfObject = CBCTestResultPDF.objects.get(id=pk)
+            data['object'] = pdfObject
             FILE_PATH = 'D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(pdfObject.testPDF.url)
 
             with open(FILE_PATH, mode='rb') as f:
@@ -221,7 +253,7 @@ class CreateCBCTestResult(CreateView):
             data['absoluteEosinophilCount'] = numericalValues[83] 
             data['absoluteBasophilCount'] = numericalValues[87] 
             data['absoluteBandCount'] = numericalValues[91]
-        elif self.kwargs['type'] == 'image' or self.kwargs['type'] == 'picture':
+        elif type == 'image' or type == 'picture':
             roi = [ [(250, 235), (837, 293), 'text', 'source'],
                 [(1193, 89), (1500, 144), 'text', 'labNumber'], 
                 [(253, 143), (590, 190), 'text', 'pid'], 
@@ -256,7 +288,7 @@ class CreateCBCTestResult(CreateView):
             per = 25
             pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
             
-            imgQ = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\IsabuhayWebsite\\IsabuhayWebsite\\imageQuery\\sample.png')
+            imgQ = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay\\imageQuery\\sample.png')
             h,w,c = imgQ.shape
             gray_image = grayscale(imgQ)
             thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
@@ -264,11 +296,9 @@ class CreateCBCTestResult(CreateView):
             orb = cv2.ORB_create(1000)
             kp1, des1 = orb.detectAndCompute(im_bw, None)
 
-            imgObject = CBCTestResultImage.objects.get(pk = int(self.kwargs['pk']))
-            initial['testImage'] = imgObject
-            initial['testPDF'] = None
-            initial['testDocx'] = None
-            img = cv2.imread('D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(imgObject.testImage.url))
+            imgObject = CBCTestResultImage.objects.get(id=pk)
+            data['object'] = imgObject
+            img = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url))
             gray_image = grayscale(img)
             thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
             kp2, des2 = orb.detectAndCompute(im_bw, None)
@@ -305,46 +335,44 @@ class CreateCBCTestResult(CreateView):
                     else:
                         data[r[3]] = None
 
-        initial['source'] = data['source']
-        initial['labNumber'] = data['labNumber']
-        initial['pid'] = data['pid']
-        date_time_str = data['dateRequested']
-        try:
-            initial['dateRequested'] = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
-        except:
-            initial['dateRequested'] = None
-        date_time_str = data['dateReceived']
-        try:
-            initial['dateReceived'] = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
-        except:
-            initial['dateReceived'] = None
-        initial['whiteBloodCells'] = data['whiteBloodCells']
-        initial['redBloodCells'] = data['redBloodCells']
-        initial['hemoglobin'] = data['hemoglobin']
-        initial['hematocrit'] = data['hematocrit']
-        initial['meanCorpuscularVolume'] = data['meanCorpuscularVolume']
-        initial['meanCorpuscularHb'] = data['meanCorpuscularHb']
-        initial['meanCorpuscularHbConc'] = data['meanCorpuscularHbConc']
-        initial['rbcDistributionWidth'] = data['rbcDistributionWidth']
-        initial['plateletCount'] = data['plateletCount']
-        initial['segmenters'] = data['segmenters']
-        initial['lymphocytes'] = data['lymphocytes']
-        initial['monocytes'] = data['monocytes']
-        initial['eosinophils'] = data['eosinophils']
-        initial['basophils'] = data['basophils']
-        initial['bands'] = data['bands']
-        initial['absoluteSeg'] = data['absoluteSeg']
-        initial['absoluteLymphocyteCount'] = data['absoluteLymphocyteCount']
-        initial['absoluteMonocyteCount'] = data['absoluteMonocyteCount']
-        initial['absoluteEosinophilCount'] = data['absoluteEosinophilCount']
-        initial['absoluteBasophilCount'] = data['absoluteBasophilCount']
-        initial['absoluteBandCount'] = data['absoluteBandCount']
-        return initial
+        return render(request, 'createCBCTestResult.html', data)
 
-class UpdateCBCTestResult(UpdateView):
-    model = CBCTestResult
-    form_class = CBCTestResultForm
-    template_name = 'updateCBCTestResult.html'
+
+
+class UpdateCBCTestResult(View):
+    def post(self, request, pk, *args, **kwargs):
+        object = CBCTestResult.objects.get(id=pk)
+        if object != None:
+            object.whiteBloodCells = request.POST.get('whiteBloodCells')
+            object.redBloodCells = request.POST.get('redBloodCells')
+            object.hemoglobin = request.POST.get('hemoglobin')
+            object.hematocrit = request.POST.get('hematocrit')
+            object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
+            object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
+            object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
+            object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
+            object.plateletCount = request.POST.get('plateletCount')
+            object.segmenters = request.POST.get('segmenters')
+            object.lymphocytes = request.POST.get('lymphocytes')
+            object.monocytes = request.POST.get('monocytes')
+            object.eosinophils = request.POST.get('eosinophils')
+            object.basophils = request.POST.get('basophils')
+            object.bands = request.POST.get('bands')
+            object.absoluteSeg = request.POST.get('absoluteSeg')
+            object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
+            object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
+            object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
+            object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
+            object.absoluteBandCount = request.POST.get('absoluteBandCount')
+            object.save()
+            return redirect('DisplayCBCTestResult', pk=pk)
+        context = {'object': object}
+        return render(request, 'updateCBCTestResult.html', context)
+
+    def get(self, request, pk, *args, **kwargs):
+        object = CBCTestResult.objects.get(id=pk)
+        context = {'object': object}
+        return render(request, 'updateCBCTestResult.html', context)
 
 class DeleteCBCTestResult(DeleteView):
     model = CBCTestResult
