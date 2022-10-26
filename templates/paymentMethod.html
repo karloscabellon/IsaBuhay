@@ -126,7 +126,7 @@ https://templatemo.com/tm-570-chain-app-dev
             <div class="col-lg-12">
               <p>Not finding what you need?</p>
               <div class="gradient-button">
-                <a href="{% url 'DisplayAllPromoOptions' %}">Go Back</a>
+                <a href="{% url 'DisplayAllPromoOptions' type %}">Go Back</a>
               </div>
             </div>
           </div>
@@ -190,7 +190,16 @@ function getCookie(name) {
 				console.log('Success:', data);
 				alert('Transaction completed');  
 
-				window.location.href = "{% url 'UploadImage' %}"
+        if ('{{type}}' === 'image') {
+          window.location.href = "{% url 'UploadImage' %}"
+        } else if ('{{type}}' === 'picture') {
+          window.location.href = "{% url 'CaptureImage' %}"
+        } else if ('{{type}}' === 'pdf') {
+          window.location.href = "{% url 'UploadPDF' %}"
+        } else if ('{{type}}' === 'docx') {
+          window.location.href = "{% url 'UploadDocx' %}"
+        }
+				
 
 				})
 	 	}

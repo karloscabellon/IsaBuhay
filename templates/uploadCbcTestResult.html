@@ -135,15 +135,26 @@ https://templatemo.com/tm-570-chain-app-dev
     </div>
     <div class="contentarea wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
       <div class="Input">
-        <form method="POST" name="inputForm" enctype='multipart/form-data'>
+        <form action="." method="POST" enctype='multipart/form-data'>
           {% csrf_token %}
-          {{ form.as_p }}
-          <br>
-          <button>Upload</button>
+          <div class="form-group">
+            {% if type == 'docx' %}
+            <input type="file" name="testDocx" accept=".doc, .docx" required>
+            {% elif type ==  'pdf' %}
+            <input type="file" name="testPDF" accept=".pdf" required>
+            {% elif type == 'image' %}
+            <input type="file" name="testImage" accept="image/*" required>
+            {% endif %}
+        <div class="modal-footer">
+        <button type="submit">
+        <span >Upload</span>
+        </button>
+        </div>
       </form>
       </div>
     </div>
   </div>
+
 
   <!-- Scripts -->
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>

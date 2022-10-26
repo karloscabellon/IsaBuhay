@@ -110,9 +110,9 @@ https://templatemo.com/tm-570-chain-app-dev
             <div class="col-lg-6">
               <div class="box-item">
                 {% if result.uploads == 1 %}
-                <h4><a href="{% url 'PaymentMethod' result.pk %}">{{  result.uploads }} Upload</a></h4>
+                <h4><a href="{% url 'PaymentMethod' type result.pk %}">{{  result.uploads }} Upload</a></h4>
                 {% else %}
-                <h4><a href="{% url 'PaymentMethod' result.pk %}">{{  result.uploads }} Uploads</a></h4>
+                <h4><a href="{% url 'PaymentMethod' type result.pk %}">{{  result.uploads }} Uploads</a></h4>
                 {% endif %}
                 <p><span>&#8369;</span>{{  result.price }}</p>
               </div>

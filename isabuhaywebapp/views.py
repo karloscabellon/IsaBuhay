@@ -18,6 +18,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from IsabuhayWebsite import settings
 import json
+import os
 from django.http import JsonResponse
 
 class DisplayLandingPage(TemplateView):
@@ -72,23 +73,28 @@ class DisplayCBCTestResult(DetailView):
 class DisplayAddingOptions(TemplateView):
     template_name = 'DisplayAddingOptions.html'
 
-class PaymentMethod(DetailView):
-    model = PromoOptions
-    template_name = 'paymentMethod.html'
+class PaymentMethod(View):
+    def get(self, request, type, pk, *args, **kwargs):
+        object = PromoOptions.objects.get(id=pk)
+        context = {'type': type, 'object': object}
+        return render(request, 'paymentMethod.html', context)
 
-class DisplayAllPromoOptions(ListView):
-    model = PromoOptions
-    template_name = 'promoOptions.html'
+class DisplayAllPromoOptions(View):
+    def get(self, request, type, *args, **kwargs):
+        object_list = PromoOptions.objects.all()
+        context = {'type': type, 'object_list': object_list}
+        return render(request, 'promoOptions.html', context)
 
-class UploadPDF(CreateView):
-    model = CBCTestResultPDF
-    form_class = CBCTestResultPDFForm
-    template_name = 'uploadCBCTestResult.html'
+class UploadPDF(View):
+    def post(self, request, *args, **kwargs):
+        object = CBCTestResultPDF()
+        object.testPDF = request.FILES.get('testPDF')
+        object.save()
+        return redirect('CreateCBCTestResult', type = 'pdf', pk = object.pk)
 
-    def get_context_data(self, **kwargs):
-        context = super(UploadPDF, self).get_context_data(**kwargs)
-        context['type'] = 'pdf'
-        return context
+    def get(self, request, *args, **kwargs):
+        context = {'type': 'pdf'}
+        return render(request, 'uploadCBCTestResult.html', context)
 
 class UploadDocx(CreateView):
     model = CBCTestResultDocx
@@ -100,15 +106,16 @@ class UploadDocx(CreateView):
         context['type'] = 'docx'
         return context
 
-class UploadImage(CreateView):
-    model = CBCTestResultImage
-    form_class = CBCTestResultImageForm
-    template_name = 'uploadCBCTestResult.html'
+class UploadImage(View):
+    def post(self, request, *args, **kwargs):
+        object = CBCTestResultImage()
+        object.testImage = request.FILES.get('testImage')
+        object.save()
+        return redirect('CreateCBCTestResult', type = 'image', pk = object.pk)
 
-    def get_context_data(self, **kwargs):
-        context = super(UploadImage, self).get_context_data(**kwargs)
-        context['type'] = 'image'
-        return context
+    def get(self, request, *args, **kwargs):
+        context = {'type': 'image'}
+        return render(request, 'uploadCBCTestResult.html', context)
 
 class CaptureImage(TemplateView):
     template_name = 'captureImage.html'
@@ -130,61 +137,58 @@ class CaptureImage(TemplateView):
 class CreateCBCTestResult(View):
     def post(self, request, type, pk, *args, **kwargs):
         object = CBCTestResult()
-        if object != None:
-            if type == 'docx':
-                object.testDocx = CBCTestResultDocx.objects.get(id=pk)
-            elif type == 'docx':
-                object.testPDF = CBCTestResultPDF.objects.get(id=pk)
-            elif type == 'image' or type == 'picture':
-                object.testImage = CBCTestResultImage.objects.get(id=pk)
+        if type == 'docx':
+            object.testDocx = CBCTestResultDocx.objects.get(id=pk)
+        elif type == 'pdf':
+            object.testPDF = CBCTestResultPDF.objects.get(id=pk)
+        elif type == 'image' or type == 'picture':
+            object.testImage = CBCTestResultImage.objects.get(id=pk)
 
-            date_time_str = request.POST.get('dateRequested')
-            try:
-                object.dateRequested = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
-            except:
-                object.dateRequested = None
-            
-            date_time_str = request.POST.get('dateReceived')
-            try:
-                object.dateReceived = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
-            except:
-                object.dateReceived = None
+        date_time_str = request.POST.get('dateRequested')
+        try:
+            object.dateRequested = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+        except:
+            object.dateRequested = None
+        
+        date_time_str = request.POST.get('dateReceived')
+        try:
+            object.dateReceived = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+        except:
+            object.dateReceived = None
 
-            object.source = request.POST.get('source')
-            object.labNumber = request.POST.get('labNumber')
-            object.pid = request.POST.get('pid')
-            object.whiteBloodCells = request.POST.get('whiteBloodCells')
-            object.redBloodCells = request.POST.get('redBloodCells')
-            object.hemoglobin = request.POST.get('hemoglobin')
-            object.hematocrit = request.POST.get('hematocrit')
-            object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
-            object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
-            object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
-            object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
-            object.plateletCount = request.POST.get('plateletCount')
-            object.segmenters = request.POST.get('segmenters')
-            object.lymphocytes = request.POST.get('lymphocytes')
-            object.monocytes = request.POST.get('monocytes')
-            object.eosinophils = request.POST.get('eosinophils')
-            object.basophils = request.POST.get('basophils')
-            object.bands = request.POST.get('bands')
-            object.absoluteSeg = request.POST.get('absoluteSeg')
-            object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
-            object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
-            object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
-            object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
-            object.absoluteBandCount = request.POST.get('absoluteBandCount')
-            object.save()
-            return redirect('DisplayCBCTestResult', pk=object.pk)
-        context = {'object': object}
-        return render(request, 'createCBCTestResult.html', context)
+        object.source = request.POST.get('source')
+        object.labNumber = request.POST.get('labNumber')
+        object.pid = request.POST.get('pid')
+        object.whiteBloodCells = request.POST.get('whiteBloodCells')
+        object.redBloodCells = request.POST.get('redBloodCells')
+        object.hemoglobin = request.POST.get('hemoglobin')
+        object.hematocrit = request.POST.get('hematocrit')
+        object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
+        object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
+        object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
+        object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
+        object.plateletCount = request.POST.get('plateletCount')
+        object.segmenters = request.POST.get('segmenters')
+        object.lymphocytes = request.POST.get('lymphocytes')
+        object.monocytes = request.POST.get('monocytes')
+        object.eosinophils = request.POST.get('eosinophils')
+        object.basophils = request.POST.get('basophils')
+        object.bands = request.POST.get('bands')
+        object.absoluteSeg = request.POST.get('absoluteSeg')
+        object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
+        object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
+        object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
+        object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
+        object.absoluteBandCount = request.POST.get('absoluteBandCount')
+        object.save()
+        return redirect('DisplayCBCTestResult', pk=object.pk)
 
     def get(self, request, type, pk, *args, **kwargs):
         data = {'type': type}
         if type == 'docx':
             docxObject = CBCTestResultDocx.objects.get(id=pk)
             data['object'] = docxObject
-            FILE_PATH = 'D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(docxObject.testDocx.url)
+            FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)
             txt = d2t.process(FILE_PATH)
 
             numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
@@ -218,7 +222,7 @@ class CreateCBCTestResult(View):
         elif type == 'pdf':
             pdfObject = CBCTestResultPDF.objects.get(id=pk)
             data['object'] = pdfObject
-            FILE_PATH = 'D:\WEB Development Projects\DJANGO PROJECTS\IsabuhayWebsite\IsabuhayWebsite'+str(pdfObject.testPDF.url)
+            FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)
 
             with open(FILE_PATH, mode='rb') as f:
                 reader = PyPDF4.PdfFileReader(f)
@@ -374,25 +378,43 @@ class UpdateCBCTestResult(View):
         context = {'object': object}
         return render(request, 'updateCBCTestResult.html', context)
 
-class DeleteCBCTestResult(DeleteView):
-    model = CBCTestResult
-    template_name = 'deleteCBCTestResult.html'
-    success_url = reverse_lazy('DisplayAllCBCTestResult')
+class DeleteCBCTestResult(View):
+    def post(self, request, pk, *args, **kwargs):
+        object = CBCTestResult.objects.get(id=pk)
+        if object != None:
+            object.delete()
 
-    def get_context_data(self, **kwargs):
-        context = super(DeleteCBCTestResult, self).get_context_data(**kwargs)
-        context['type'] = 'record'
-        return context
+            if object.testPDF != None:
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.url)) 
+            elif object.testDocx != None:
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.url)) 
+            elif object.testImage != None:
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
 
-class DeleteUploadedImage(DeleteView):
-    model = CBCTestResultImage
-    template_name = 'deleteCBCTestResult.html'
-    success_url = reverse_lazy('UploadImage')
+            return redirect('DisplayAllCBCTestResult')
 
-    def get_context_data(self, **kwargs):
-        context = super(DeleteUploadedImage, self).get_context_data(**kwargs)
-        context['type'] = 'image'
-        return context
+        context = {'object': object}
+        return render(request, 'deleteCBCTestResult.html', context)
+
+    def get(self, request, pk, *args, **kwargs):
+        object = CBCTestResult.objects.get(id=pk)
+        context = {'object': object}
+        return render(request, 'deleteCBCTestResult.html', context)
+
+class DeleteUploadedImage(View):
+    def post(self, request, pk, *args, **kwargs):
+        object = CBCTestResultImage.objects.get(id=pk)
+        if object != None:
+            object.delete()
+            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
+            return redirect('UploadImage')
+        context = {'object': object}
+        return render(request, 'deleteCBCTestResult.html', context)
+
+    def get(self, request, pk, *args, **kwargs):
+        object = CBCTestResultImage.objects.get(id=pk)
+        context = {'object': object, 'type': 'image'}
+        return render(request, 'deleteCBCTestResult.html', context)
     
 class DeleteCapturedImage(DeleteView):
     model = CBCTestResultImage
@@ -405,23 +427,34 @@ class DeleteCapturedImage(DeleteView):
         return context
 
 class DeletePDF(DeleteView):
-    model = CBCTestResultPDF
-    template_name = 'deleteCBCTestResult.html'
-    success_url = reverse_lazy('UploadPDF')
+    def post(self, request, pk, *args, **kwargs):
+        object = CBCTestResultPDF.objects.get(id=pk)
+        if object != None:
+            object.delete()
+            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.url)) 
+            return redirect('UploadPDF')
+        context = {'object': object}
+        return render(request, 'deleteCBCTestResult.html', context)
 
-    def get_context_data(self, **kwargs):
-        context = super(DeletePDF, self).get_context_data(**kwargs)
-        context['type'] = 'pdf'
-        return context
+    def get(self, request, pk, *args, **kwargs):
+        object = CBCTestResultPDF.objects.get(id=pk)
+        context = {'object': object, 'type': 'pdf'}
+        return render(request, 'deleteCBCTestResult.html', context)
 
 class DeleteDocx(DeleteView):
-    model = CBCTestResultDocx
-    template_name = 'deleteCBCTestResult.html'
-    success_url = reverse_lazy('UploadDocx')
+    def post(self, request, pk, *args, **kwargs):
+        object = CBCTestResultDocx.objects.get(id=pk)
+        if object != None:
+            object.delete()
+            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.url)) 
+            return redirect('UploadDocx')
+        context = {'object': object}
+        return render(request, 'deleteCBCTestResult.html', context)
 
-    def get_context_data(self, **kwargs):
-        context = super(DeleteDocx, self).get_context_data(**kwargs)
-        context['type'] = 'docx'
-        return context
+    def get(self, request, pk, *args, **kwargs):
+        object = CBCTestResultDocx.objects.get(id=pk)
+        context = {'object': object, 'type': 'docx'}
+        return render(request, 'deleteCBCTestResult.html', context)
+
 
 # Marc John Corral
