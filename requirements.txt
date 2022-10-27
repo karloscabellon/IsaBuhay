@@ -1,5 +1,0 @@
-django
-opencv-python
-pytesseract
-PyPDF4
-docx2txt
