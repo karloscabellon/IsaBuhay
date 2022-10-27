@@ -52,41 +52,62 @@ class DeleteAccountPage(TemplateView):
 
 # Marc John Corral
 
-class PaymentComplete(View):
+class PaymentComplete(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         body = json.loads(request.body)
         promo = PromoOptions.objects.get(id=body['promoId'])
-        Payments.objects.create(
-            promo=promo
-            )
+        
+        user = User.objects.get(id=request.user.id)
+        user.uploads = user.uploads + promo.uploads
+        user.save()
+        Payments.objects.create( promo=promo, user=user)
         return JsonResponse('Payment completed!', safe=False)
 
-class DisplayAllCBCTestResult(ListView):
-    model = CBCTestResult
-    ordering = ['-dateRequested']
-    template_name = 'displayAllCBCTestResult.html'
+class DisplayAllCBCTestResult(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        object_list = user.cbctestresult_set.all()
+        context = {'object_list': object_list}
+        return render(request, 'displayAllCBCTestResult.html', context)
 
-class DisplayCBCTestResult(DetailView):
-    model = CBCTestResult
-    template_name = 'displayCBCTestResult.html'
+class DisplayCBCTestResult(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        object = user.cbctestresult_set.get(id=pk)
+        context = {'object': object}
+        return render(request, 'displayCBCTestResult.html', context)
 
-class DisplayAddingOptions(TemplateView):
+class DisplayAddingOptions(LoginRequiredMixin, TemplateView):
     template_name = 'DisplayAddingOptions.html'
 
-class PaymentMethod(View):
+class PaymentMethod(LoginRequiredMixin, View):
     def get(self, request, type, pk, *args, **kwargs):
         object = PromoOptions.objects.get(id=pk)
         context = {'type': type, 'object': object}
         return render(request, 'paymentMethod.html', context)
 
-class DisplayAllPromoOptions(View):
+class DisplayAllPromoOptions(LoginRequiredMixin, View):
     def get(self, request, type, *args, **kwargs):
-        object_list = PromoOptions.objects.all()
-        context = {'type': type, 'object_list': object_list}
-        return render(request, 'promoOptions.html', context)
+        user = User.objects.get(id=request.user.id)
+        if user.uploads == 0:
+            object_list = PromoOptions.objects.all()
+            context = {'type': type, 'object_list': object_list}
+            return render(request, 'promoOptions.html', context)
+        
+        if type == 'pdf':
+            return redirect('UploadPDF')
+        elif type == 'docx':
+            return redirect('UploadDocx')
+        elif type == 'picture':
+            return redirect('CaptureImage')
+        elif type == 'image':
+            return redirect('UploadImage')
 
-class UploadPDF(View):
+class UploadPDF(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        user.uploads = user.uploads - 1
+        user.save()
         object = CBCTestResultPDF()
         object.testPDF = request.FILES.get('testPDF')
         object.save()
@@ -96,18 +117,25 @@ class UploadPDF(View):
         context = {'type': 'pdf'}
         return render(request, 'uploadCBCTestResult.html', context)
 
-class UploadDocx(CreateView):
-    model = CBCTestResultDocx
-    form_class = CBCTestResultDocxForm
-    template_name = 'uploadCBCTestResult.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(UploadDocx, self).get_context_data(**kwargs)
-        context['type'] = 'docx'
-        return context
-
-class UploadImage(View):
+class UploadDocx(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        user.uploads = user.uploads - 1
+        user.save()
+        object = CBCTestResultDocx()
+        object.testDocx = request.FILES.get('testDocx')
+        object.save()
+        return redirect('CreateCBCTestResult', type = 'docx', pk = object.pk)
+
+    def get(self, request, *args, **kwargs):
+        context = {'type': 'docx'}
+        return render(request, 'uploadCBCTestResult.html', context)
+
+class UploadImage(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        user.uploads = user.uploads - 1
+        user.save()
         object = CBCTestResultImage()
         object.testImage = request.FILES.get('testImage')
         object.save()
@@ -117,7 +145,7 @@ class UploadImage(View):
         context = {'type': 'image'}
         return render(request, 'uploadCBCTestResult.html', context)
 
-class CaptureImage(TemplateView):
+class CaptureImage(LoginRequiredMixin, TemplateView):
     template_name = 'captureImage.html'
 
     def post(self, request, *args, **kwargs):
@@ -134,7 +162,7 @@ class CaptureImage(TemplateView):
         return redirect('CreateCBCTestResult', pk = obj.pk, type = 'picture')
 
 
-class CreateCBCTestResult(View):
+class CreateCBCTestResult(LoginRequiredMixin, View):
     def post(self, request, type, pk, *args, **kwargs):
         object = CBCTestResult()
         if type == 'docx':
@@ -156,6 +184,7 @@ class CreateCBCTestResult(View):
         except:
             object.dateReceived = None
 
+        object.user = User.objects.get(id=request.user.id)
         object.source = request.POST.get('source')
         object.labNumber = request.POST.get('labNumber')
         object.pid = request.POST.get('pid')
@@ -343,7 +372,7 @@ class CreateCBCTestResult(View):
 
 
 
-class UpdateCBCTestResult(View):
+class UpdateCBCTestResult(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         object = CBCTestResult.objects.get(id=pk)
         if object != None:
@@ -378,37 +407,38 @@ class UpdateCBCTestResult(View):
         context = {'object': object}
         return render(request, 'updateCBCTestResult.html', context)
 
-class DeleteCBCTestResult(View):
+class DeleteCBCTestResult(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         object = CBCTestResult.objects.get(id=pk)
         if object != None:
             object.delete()
 
             if object.testPDF != None:
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.url)) 
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.testPDF.url)) 
             elif object.testDocx != None:
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.url)) 
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.testDocx.url)) 
             elif object.testImage != None:
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.testImage.url)) 
 
             return redirect('DisplayAllCBCTestResult')
 
-        context = {'object': object}
+        context = {'object': object, 'type': 'record'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
         object = CBCTestResult.objects.get(id=pk)
-        context = {'object': object}
+        context = {'object': object, 'type': 'record'}
         return render(request, 'deleteCBCTestResult.html', context)
 
-class DeleteUploadedImage(View):
+class DeleteUploadedImage(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         object = CBCTestResultImage.objects.get(id=pk)
         if object != None:
             object.delete()
             os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
             return redirect('UploadImage')
-        context = {'object': object}
+        
+        context = {'object': object, 'type': 'image'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
@@ -416,7 +446,7 @@ class DeleteUploadedImage(View):
         context = {'object': object, 'type': 'image'}
         return render(request, 'deleteCBCTestResult.html', context)
     
-class DeleteCapturedImage(DeleteView):
+class DeleteCapturedImage(LoginRequiredMixin, DeleteView):
     model = CBCTestResultImage
     template_name = 'deleteCBCTestResult.html'
     success_url = reverse_lazy('CaptureImage')
@@ -426,14 +456,15 @@ class DeleteCapturedImage(DeleteView):
         context['type'] = 'picture'
         return context
 
-class DeletePDF(DeleteView):
+class DeletePDF(LoginRequiredMixin, DeleteView):
     def post(self, request, pk, *args, **kwargs):
         object = CBCTestResultPDF.objects.get(id=pk)
         if object != None:
             object.delete()
             os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.url)) 
             return redirect('UploadPDF')
-        context = {'object': object}
+        
+        context = {'object': object, 'type': 'pdf'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
@@ -441,14 +472,15 @@ class DeletePDF(DeleteView):
         context = {'object': object, 'type': 'pdf'}
         return render(request, 'deleteCBCTestResult.html', context)
 
-class DeleteDocx(DeleteView):
+class DeleteDocx(LoginRequiredMixin, DeleteView):
     def post(self, request, pk, *args, **kwargs):
         object = CBCTestResultDocx.objects.get(id=pk)
         if object != None:
             object.delete()
             os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.url)) 
             return redirect('UploadDocx')
-        context = {'object': object}
+        
+        context = {'object': object, 'type': 'docx'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
