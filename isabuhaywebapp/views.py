@@ -62,11 +62,24 @@ class DisplayClientSide(LoginRequiredMixin, TemplateView):
 class DisplayAccountPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAccountPage.html'
 
-   
-class UpdateAccountPage(LoginRequiredMixin, TemplateView):
-    template_name = 'updateAccountPage.html'
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        self.request.user.birthdate = None if self.request.user.birthdate is None else datetime.strftime(self.request.user.birthdate, "%Y-%m-%d")
+        return self.render_to_response(context)
 
-    
+   
+class UpdateAccountPage(LoginRequiredMixin, UpdateView):
+    template_name = 'updateAccountPage.html'
+    model = User
+    form_class = UpdateAccountForm
+    success_url = reverse_lazy('DisplayAccountPage')
+
+    def get_object(self, queryset = None):
+        userObject = self.request.user
+        userObject.birthdate = None if self.request.user.birthdate is None else datetime.strftime(self.request.user.birthdate, "%Y-%m-%d")
+        return userObject
+
+
 class DeleteAccountPage(DeleteView):
     pass
     

@@ -79,6 +79,29 @@ class CustomUserCreationForm(cforms.UserCreationForm):
             user.save()
         return user
 
+class UpdateAccountForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = [
+            # 'profile_picture',
+            'firstname',
+            'lastname',
+            'birthdate',
+            'phone_number',
+            'blood_type',
+            'weight',
+            'height',
+            'email',
+            'username',
+        ]
+
+class UpdatePasswordForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = [
+            'password'
+        ]
+
 class CBCTestResultForm(forms.ModelForm):
     class Meta:
         model = CBCTestResult
