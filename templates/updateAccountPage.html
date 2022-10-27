@@ -107,81 +107,80 @@ https://templatemo.com/tm-570-chain-app-dev
               </div>  
             </div>
           </div>
+        
+          <div class="col-lg-9 wow slideInRight">
+            <form action="" method="POST">
+              {% csrf_token %}
+              <div class="card-body align-items-center text-center" style="background-color: white; box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.1); z-index: 10; border-top-right-radius: 50px; border-bottom-right-radius: 50px; height: 500px;">
+                <div class="row">
+                  <div class="col-lg-6">
+                    
+                      <h2 class="fs-title">Personal Details</h2>
+                      <br>
+                        <table style="width: 100%; text-align: left;">
+                          <tr>
+                            <td>Firstname: </td>
+                            <td><input type="text" name="firstname" value="{{user.firstname}}"></td>
+                          </tr>
+                          <tr>
+                            <td>Lastname: </td>
+                            <td><input type="text" name="lastname" value="{{user.lastname}}"></td>
+                          </tr>
+                          <tr>
+                            <td>Birthdate: </td>
+                            <td><input type="date" name="birthdate" value="{{user.birthdate}}" onfocus="this.type='date'"></td>
+                          </tr>
+                          <tr>
+                            <td>Phone Number: </td>
+                            <td><input type="text" name="phone_number" value="{{user.phone_number}}"></td>
+                          </tr>
+                          <tr>
+                            <td>Blood Type: </td>
+                            <td><input type="text" name="blood_type" value="{{user.blood_type}}"></td>
+                          </tr>
+                          <tr>
+                            <td>Weight: </td>
+                            <td><input type="number" name="weight" value="{{user.weight}}"></td>
+                          </tr>
+                          <tr>
+                            <td>Height: </td>
+                            <td><input type="number" name="height" value="{{user.height}}"></td>
+                          </tr>
+                          <tr>
+                            <td>Last CBC: </td>
+                            <td><input type="text" value="09/15/2020" readonly></td>
+                          </tr>
 
-          <div class="col-lg-9 wow slideInRight" >
-            <div class="card-body align-items-center text-center" style="background-color: white; box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.1); z-index: 10; border-top-right-radius: 50px; border-bottom-right-radius: 50px; height: 700px;">
-              <div class="row">
-                <div class="col-lg-6" style="text-align: left;">
-                  <div id="msform">
-                    <h2 class="fs-title">Personal Details</h2>
-                    <br>
+                        </table>
+                  {{form.errors}}
+                  </div>
+                  <div class="col-lg-6">
+                      <h2 class="fs-title">Account Details</h2>
+                      <br>
                       <table style="width: 100%; text-align: left;">
                         <tr>
-                          <td>Firstname: </td>
-                          <td><input type="text" value="{{user.firstname}}"></td>
+                          <td>Email: </td>
+                          <td><input type="text" name="email" value="{{user.email}}" ></td>
                         </tr>
                         <tr>
-                          <td>Lastname: </td>
-                          <td><input type="text" value="{{user.lastname}}"></td>
+                          <td>Username:</td>
+                          <td><input type="text" name="username" value="{{user.username}}" ></td>
                         </tr>
                         <tr>
-                          <td>Birthdate: </td>
-                          <td><input type="text" value="{{user.birthdate}}" onfocus="this.type='date'"></td>
+                          <td>Password:</td>
+                          <td>************</td>
                         </tr>
-                        <tr>
-                          <td>Phone Number: </td>
-                          <td><input type="text" value="{{user.phone_number}}"></td>
-                        </tr>
-                        <tr>
-                          <td>Blood Type: </td>
-                          <td><input type="text" value="{{user.blood_type}}"></td>
-                        </tr>
-                        <tr>
-                          <td>Weight: </td>
-                          <td><input type="text" value="{{user.weight}} kg"></td>
-                        </tr>
-                        <tr>
-                          <td>Height: </td>
-                          <td><input type="text" value="{{user.height}} cm"></td>
-                        </tr>
-                        <tr>
-                          <td>Last CBC: </td>
-                          <td><input type="text" value="09/15/2020" readonly></td>
-                        </tr>
-
                       </table>
-                        
+                      <!-- <input type="button" name="next" class="next action-button" value="Next"/> -->
+                      <br>
+                      <input type="button" class="btn btn-outline-secondary" value="Change Password">
                   </div>
-
                 </div>
-                <div class="col-lg-6">
-                  <form id="msform" action="" method="POST">
-                    <h2 class="fs-title">Account Details</h2>
-                    <br>
-                    <table style="width: 100%; text-align: left;">
-                      <tr>
-                        <td>Email: </td>
-                        <td><input type="text" value="{{user.email}}" readonly></td>
-                      </tr>
-                      <tr>
-                        <td>Username:</td>
-                        <td><input type="text" value="{{user.username}}" readonly></td>
-                      </tr>
-                      <tr>
-                        <td>Password:</td>
-                        <td><input type="password" value="123456789"></td>
-                      </tr>
-                      <tr>
-                        <td>Confirm Password:</td>
-                        <td><input type="password" value="123456789"></td>
-                      </tr>
-                    </table>
-                    <!-- <input type="button" name="next" class="next action-button" value="Next"/> -->
-                  </form>   
-                </div>
+                <br></br>
+                <input type="submit" class="btn btn-outline-primary" value="Save Changes">
+                <!-- <a href="{% url 'DisplayAccountPage' %}"><button class="btn btn-outline-primary">Save Changes</button></a> -->
               </div>
-              <a href="{% url 'DisplayAccountPage' %}"><button class="btn btn-outline-primary">Save Changes</button></a>
-            </div>
+            </form> 
           </div>
 
         </div>
