@@ -1,0 +1,168 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+
+    
+    {% if type == 'docx' %}
+    <title>Isabuhay - Upload Docx</title>
+    {% elif type ==  'pdf' %}
+    <title>Isabuhay - Upload PDF</title>
+    {% elif type == 'image' %}
+    <title>Isabuhay - Upload Image</title>
+    {% endif %}
+
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+<!--
+
+TemplateMo 570 Chain App Dev
+
+https://templatemo.com/tm-570-chain-app-dev
+
+-->
+
+     <!-- Additional CSS Files -->
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+     <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
+     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
+     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
+ 
+
+    <!-- Buttonsss -->
+
+    <style>
+      button{
+        border-radius: 25px;
+        padding: 10px;
+        width: 125px;
+        color: white;
+        border: none;
+        background-image: linear-gradient(to right, rgb(88,110,236), rgb(43,217,252));
+      }
+      .Input{
+        margin: auto;
+        max-width: 400px;
+        padding: 10px;
+        border-radius: 4px;
+      }
+    </style>
+
+  </head>
+
+<body>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <nav class="main-nav">
+            <!-- ***** Logo Start ***** -->
+            <a href="#" class="logo">
+                <img src="{% static 'assets/images/logo.png' %}" alt="Chain App Dev">
+            </a>
+            <!-- ***** Logo End ***** -->
+            <!-- ***** Menu Start ***** -->
+            <ul class="nav">
+              <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
+                <li class="scroll-to-section"><a href="#">Analytics</a></li>
+                <li class="scroll-to-section"><a href="#">Account</a></li>
+                <li class="scroll-to-section"><a href="#">Sign Out</a></li>
+              <!-- <li class="scroll-to-section"><a href="#">Newsletter</a></li> -->
+              <!-- <li><div class="gradient-button"><a id="modal_trigger" href="#"><i class="fa fa-sign-in-alt"></i> Sign In Now</a></div></li>  -->
+              <li></li>
+            </ul>        
+            <a class='menu-trigger'>
+                <span>Menu</span>
+            </a>
+            <!-- ***** Menu End ***** -->
+          </nav>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+
+  <div id="services" class="services section">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+          <div class="section-heading show-up header-text  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
+            {% if type == 'docx' %}
+              <h4>Upload <em>Docx</em></h4>  
+            {% elif type ==  'pdf' %}
+              <h4>Upload <em>PDF</em></h4>
+            {% elif type == 'image' %}
+              <h4>Upload <em>Image</em></h4>
+            {% endif %}
+            <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
+            {% if type == 'docx' %}
+            <p>Want to upload a Docx?</p>
+            {% elif type ==  'pdf' %}
+            <p>Want to upload a PDF?</p>
+            {% elif type == 'image' %}
+            <p>Want to upload an Image?</p>
+            {% endif %}
+            <p><a href="{% url 'DisplayAddingOptions' %}">Go Back to Previous Page</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="contentarea wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
+      <div class="Input">
+        <form action="." method="POST" enctype='multipart/form-data'>
+          {% csrf_token %}
+          <div class="form-group">
+            {% if type == 'docx' %}
+            <input type="file" name="testDocx" accept=".doc, .docx" required>
+            {% elif type ==  'pdf' %}
+            <input type="file" name="testPDF" accept=".pdf" required>
+            {% elif type == 'image' %}
+            <input type="file" name="testImage" accept="image/*" required>
+            {% endif %}
+        <div class="modal-footer">
+        <button type="submit">
+        <span >Upload</span>
+        </button>
+        </div>
+      </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Scripts -->
+  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
+  <script src="{% static 'assets/js/animation.js' %}"></script>
+  <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
+  <script src="{% static 'assets/js/popup.js' %}"></script>
+  <script src="{% static 'assets/js/custom.js' %}"></script>
+</body>
+</html>
