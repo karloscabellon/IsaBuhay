@@ -103,6 +103,8 @@
     
       <div id="services" class="services section">
         <div class="container">
+          
+      {% include 'messages.html' %}
           <div class="row">
             <div class="col-lg-8 offset-lg-2">
               <div class="section-heading show-up header-text  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
@@ -166,5 +168,13 @@
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
+  
+  <script>
+    setTimeout(function(){
+      if ($('#msg').length > 0) {
+        $('#msg').remove();
+      }
+    }, 3000)
+  </script> 
     </body>
     </html>

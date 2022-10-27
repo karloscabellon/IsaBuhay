@@ -82,9 +82,10 @@ https://templatemo.com/tm-570-chain-app-dev
   </header>
   <!-- ***** Header Area End ***** -->
   
+
   <div id="clients" class="pricing-tables">
     <div class="container">
-      
+  {% include 'messages.html' %}
       <div class="row">
         <div class="col-lg-8 offset-lg-2">
           <div class="section-heading" style="margin-bottom: 40px;">
@@ -537,5 +538,13 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
+
+  <script>
+    setTimeout(function(){
+      if ($('#msg').length > 0) {
+        $('#msg').remove();
+      }
+    }, 3000)
+  </script> 
 </body>
 </html>

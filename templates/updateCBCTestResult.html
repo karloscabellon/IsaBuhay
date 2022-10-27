@@ -106,7 +106,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-
+      {% include 'messages.html' %}
       <div class="row">
         <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
 
@@ -268,5 +268,13 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/custom.js' %}"></script>
   <script src="{% static 'js/jeff_custom.js' %}"></script>
   <script src="{% static 'js/form_animation.js' %}"></script>
+
+  <script>
+    setTimeout(function(){
+      if ($('#msg').length > 0) {
+        $('#msg').remove();
+      }
+    }, 3000)
+  </script> 
 </body>
 </html>

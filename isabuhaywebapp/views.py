@@ -20,6 +20,7 @@ from IsabuhayWebsite import settings
 import json
 import os
 from django.http import JsonResponse
+from django.contrib import messages
 
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
@@ -61,6 +62,8 @@ class PaymentComplete(LoginRequiredMixin, View):
         user.uploads = user.uploads + promo.uploads
         user.save()
         Payments.objects.create( promo=promo, user=user)
+
+        messages.success(request, 'Payment Successful!')
         return JsonResponse('Payment completed!', safe=False)
 
 class DisplayAllCBCTestResult(LoginRequiredMixin, View):
@@ -111,6 +114,9 @@ class UploadPDF(LoginRequiredMixin, View):
         object = CBCTestResultPDF()
         object.testPDF = request.FILES.get('testPDF')
         object.save()
+
+        messages.success(request, 'Upload PDF Successful!')
+
         return redirect('CreateCBCTestResult', type = 'pdf', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
@@ -125,6 +131,9 @@ class UploadDocx(LoginRequiredMixin, View):
         object = CBCTestResultDocx()
         object.testDocx = request.FILES.get('testDocx')
         object.save()
+
+        messages.success(request, 'Upload Docx Successful!')
+
         return redirect('CreateCBCTestResult', type = 'docx', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
@@ -139,6 +148,9 @@ class UploadImage(LoginRequiredMixin, View):
         object = CBCTestResultImage()
         object.testImage = request.FILES.get('testImage')
         object.save()
+
+        messages.success(request, 'Upload Image Successful!')
+
         return redirect('CreateCBCTestResult', type = 'image', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
@@ -210,6 +222,9 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
         object.absoluteBandCount = request.POST.get('absoluteBandCount')
         object.save()
+
+        messages.success(request, 'Create CBC Test Result Successful!')
+
         return redirect('DisplayCBCTestResult', pk=object.pk)
 
     def get(self, request, type, pk, *args, **kwargs):
@@ -398,6 +413,9 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
             object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
             object.absoluteBandCount = request.POST.get('absoluteBandCount')
             object.save()
+
+            messages.success(request, 'Update CBC Test Result Successful!')
+
             return redirect('DisplayCBCTestResult', pk=pk)
         context = {'object': object}
         return render(request, 'updateCBCTestResult.html', context)
@@ -420,6 +438,8 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
             elif object.testImage != None:
                 os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.testImage.url)) 
 
+            messages.success(request, 'Delete CBC Test Result Successful!')
+
             return redirect('DisplayAllCBCTestResult')
 
         context = {'object': object, 'type': 'record'}
@@ -439,6 +459,9 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
             user = User.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
+
+            messages.success(request, 'Delete Image Successful!')
+
             return redirect('UploadImage')
         
         context = {'object': object, 'type': 'image'}
@@ -468,6 +491,9 @@ class DeletePDF(LoginRequiredMixin, DeleteView):
             user = User.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
+
+            messages.success(request, 'Delete PDF Successful!')
+
             return redirect('UploadPDF')
         
         context = {'object': object, 'type': 'pdf'}
@@ -487,6 +513,9 @@ class DeleteDocx(LoginRequiredMixin, DeleteView):
             user = User.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
+
+            messages.success(request, 'Delete Docx Successful!')
+
             return redirect('UploadDocx')
         
         context = {'object': object, 'type': 'docx'}
