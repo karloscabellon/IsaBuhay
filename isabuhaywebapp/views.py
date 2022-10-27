@@ -80,8 +80,11 @@ class DisplayCBCTestResult(LoginRequiredMixin, View):
         context = {'object': object}
         return render(request, 'displayCBCTestResult.html', context)
 
-class DisplayAddingOptions(LoginRequiredMixin, TemplateView):
-    template_name = 'DisplayAddingOptions.html'
+class DisplayAddingOptions(LoginRequiredMixin, View):
+    def get(self, request,  *args, **kwargs):
+        object = User.objects.get(id=request.user.id)
+        context = {'object': object}
+        return render(request, 'displayAddingOptions.html', context)
 
 class PaymentMethod(LoginRequiredMixin, View):
     def get(self, request, type, pk, *args, **kwargs):
