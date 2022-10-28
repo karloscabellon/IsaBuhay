@@ -98,43 +98,30 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-      {% include 'messages.html' %}
       <div class="row">
         <div class="col-lg-6 align-self-center wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.5s">
           <div class="section-heading show-up header-text">
-            <h4>CBC Test Result <em>Adding Options</em></h4>
+            <h4>CBC Test Result <em>Promo Options</em></h4>
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            <p>Choose the adding option most appropriate for you. You only have {{object.uploads}} available upload/s.</p>
+            <p>Choose the promo option most appropriate for you.</p>
           </div>
           <div class="row">
+            {% for result in object_list %}
             <div class="col-lg-6">
               <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'image' %}">Upload an Image</a></h4>
-                <p>Upload PNG, JPEG, etc.</p>
+                {% if result.uploads == 1 %}
+                <h4><a href="{% url 'PaymentMethod' type result.pk %}">{{  result.uploads }} Upload</a></h4>
+                {% else %}
+                <h4><a href="{% url 'PaymentMethod' type result.pk %}">{{  result.uploads }} Uploads</a></h4>
+                {% endif %}
+                <p><span>&#8369;</span>{{  result.price }}</p>
               </div>
             </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'picture' %}">Capture an Image</a></h4>
-                <p>Take a picture using camera.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'pdf' %}">Upload PDF</a></h4>
-                <p>Upload a PDF file.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'docx' %}">Upload DocX</a></h4>
-                <p>Upload a document.</p>
-              </div>
-            </div>
+            {% endfor %}
             <div class="col-lg-12">
               <p>Not finding what you need?</p>
               <div class="gradient-button">
-                <a href="{% url 'DisplayAllCBCTestResult' %}">Go Back</a>
+                <a href="{% url 'DisplayAddingOptions' %}">Go Back</a>
               </div>
             </div>
           </div>

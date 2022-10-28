@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+# from traitlets import default
 # Create your models here.
 
 class UserManager(BaseUserManager):
@@ -57,6 +58,8 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
+    uploads = models.IntegerField(blank=False, null=False, default=5)
+
     USERNAME_FIELD="username"
 
     REQUIRED_FIELDS = [
@@ -75,7 +78,9 @@ class User(AbstractBaseUser):
         return True
 
 # class Client
-    
+
+
+# Marc John Corral
 
 class CBCTestResultImage(models.Model):
     testImage = models.ImageField(upload_to='images/', blank=False, null=False)
@@ -95,15 +100,27 @@ class CBCTestResultDocx(models.Model):
     def get_absolute_url(self):
         return reverse('CreateCBCTestResult', kwargs={'pk': str(self.pk), 'type': 'docx'})
 
+class PromoOptions(models.Model):
+    uploads = models.IntegerField(blank=False, null=False)
+    price = models.FloatField(blank=False, null=False)
+
+    def get_absolute_url(self):
+        return reverse('PaymentMethod', kwargs={'pk': str(self.pk)})
+
+class Payments(models.Model):
+    promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    
 class CBCTestResult(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     testImage = models.OneToOneField(CBCTestResultImage, on_delete=models.CASCADE, blank=True, null=True)
     testPDF = models.OneToOneField(CBCTestResultPDF, on_delete=models.CASCADE, blank=True, null=True)
     testDocx = models.OneToOneField(CBCTestResultDocx, on_delete=models.CASCADE, blank=True, null=True)
     source = models.CharField(max_length=50, blank=False, null=False)
     labNumber = models.CharField(max_length=50, blank=False, null=False)
     pid = models.CharField(max_length=50, blank=False, null=False)
-    dateRequested = models.DateTimeField(blank=False, null=False)
-    dateReceived = models.DateTimeField(blank=False, null=False)
+    dateRequested = models.DateTimeField(blank=True, null=True)
+    dateReceived = models.DateTimeField(blank=True, null=True)
     whiteBloodCells = models.FloatField(blank=False, null=False)
     redBloodCells = models.FloatField(blank=False, null=False)
     hemoglobin = models.FloatField(blank=False, null=False)
@@ -128,3 +145,5 @@ class CBCTestResult(models.Model):
 
     def get_absolute_url(self):
         return reverse('DisplayCBCTestResult', kwargs={'pk': str(self.pk)})
+
+# Marc John Corral

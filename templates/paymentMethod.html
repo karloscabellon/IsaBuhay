@@ -98,43 +98,35 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-      {% include 'messages.html' %}
       <div class="row">
         <div class="col-lg-6 align-self-center wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.5s">
           <div class="section-heading show-up header-text">
-            <h4>CBC Test Result <em>Adding Options</em></h4>
+            <h4>CBC Test Result <em>Payment Methods</em></h4>
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            <p>Choose the adding option most appropriate for you. You only have {{object.uploads}} available upload/s.</p>
+            <p>Choose the payment method most appropriate for you.</p>
           </div>
           <div class="row">
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'image' %}">Upload an Image</a></h4>
-                <p>Upload PNG, JPEG, etc.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'picture' %}">Capture an Image</a></h4>
-                <p>Take a picture using camera.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'pdf' %}">Upload PDF</a></h4>
-                <p>Upload a PDF file.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'docx' %}">Upload DocX</a></h4>
-                <p>Upload a document.</p>
-              </div>
-            </div>
+            <div class="col-lg-10">
+				<br>
+				<div class="box-item">
+          <br>
+          {% if object.uploads == 1 %}
+          <h4>{{ object.uploads }} Upload</h4>
+          {% else %}
+          <h4>{{ object.uploads }} Uploads</h4>
+          {% endif %}
+					<hr>
+					<p>Total: <span>&#8369;</span>{{object.price }}</p>
+					<hr>
+
+					<div id="paypal-button-container"></div>
+
+				</div>
+			</div>
             <div class="col-lg-12">
               <p>Not finding what you need?</p>
               <div class="gradient-button">
-                <a href="{% url 'DisplayAllCBCTestResult' %}">Go Back</a>
+                <a href="{% url 'DisplayAllPromoOptions' type %}">Go Back</a>
               </div>
             </div>
           </div>
@@ -148,7 +140,8 @@ https://templatemo.com/tm-570-chain-app-dev
     </div>
   </div>
 
-  <!-- Scripts -->
+ 
+    <!-- Scripts -->
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -156,5 +149,100 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
+
+	<script src="https://www.paypal.com/sdk/js?client-id=AURbFapWaO4d7Kq4nc416VamBaa_47woOx5cAz1_wZxJ4roOWcQifvZvRO2v6MrEPoVPtXhfoB3ZK-qH&currency=PHP"></script>
+
+	 <script>
+
+function getCookie(name) {
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie !== '') {
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) {
+		            var cookie = cookies[i].trim();
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+		}
+		var csrftoken = getCookie('csrftoken');
+
+	 	var price = '{{object.price}}'
+	 	var uploads = '{{object.uploads}}'
+    var promoId = '{{object.pk}}'
+
+     function completeOrder(){
+	 		var url = "{% url 'complete' %}"
+
+	 		fetch(url, {
+	 			method:'POST',
+	 			headers:{
+	 				'Content-type':'application/json',
+	 				'X-CSRFToken':csrftoken,
+	 			},
+	 			body:JSON.stringify({'promoId':promoId})
+	 		}).then((response) => response.json())
+	    	.then((data) => {
+				console.log('Success:', data);
+				alert('Transaction completed');  
+
+        if ('{{type}}' === 'image') {
+          window.location.href = "{% url 'UploadImage' %}"
+        } else if ('{{type}}' === 'picture') {
+          window.location.href = "{% url 'CaptureImage' %}"
+        } else if ('{{type}}' === 'pdf') {
+          window.location.href = "{% url 'UploadPDF' %}"
+        } else if ('{{type}}' === 'docx') {
+          window.location.href = "{% url 'UploadDocx' %}"
+        }
+				
+
+				})
+	 	}
+
+        // Render the PayPal button into #paypal-button-container
+        paypal.Buttons({
+            style: {
+                color:  'blue',
+                shape:  'pill',
+                label:  'pay',
+                height: 40
+            },
+            // Set up the transaction
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: parseFloat(price).toFixed(2)
+                        }
+                    }]
+                });
+            },
+
+            // Finalize the transaction
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(orderData) {
+                    // Successful capture! For demo purposes:
+                    // console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+                    completeOrder()
+                    // var transaction = orderData.purchase_units[0].payments.captures[0];
+                    // alert('Transaction '+ transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
+
+                    // Replace the above to show a success message within this page, e.g.
+                    // const element = document.getElementById('paypal-button-container');
+                    // element.innerHTML = '';
+                    // element.innerHTML = '<h3>Thank you for your payment!</h3>';
+                    // Or go to another URL:  actions.redirect('thank_you.html');
+                });
+            }
+
+
+        }).render('#paypal-button-container');
+    </script>
+
 </body>
 </html>

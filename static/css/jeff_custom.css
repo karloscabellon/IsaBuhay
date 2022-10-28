@@ -40,7 +40,7 @@
     font-size: 13px;
 }
 
-#msform input:focus, #msform textarea:focus {
+#msform input:focus, #msform textarea:focus, #msform a:focus  {
     -moz-box-shadow: none !important;
     -webkit-box-shadow: none !important;
     box-shadow: none !important;
