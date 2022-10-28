@@ -6,6 +6,7 @@ import PyPDF4
 import docx2txt as d2t
 from urllib.request import urlopen
 from django.contrib.auth import logout
+from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from django.views.generic import *
 from isabuhaywebapp.models import *
@@ -77,6 +78,9 @@ class UpdateAccountPage(LoginRequiredMixin, UpdateView):
         userObject.birthdate = None if self.request.user.birthdate is None else datetime.strftime(self.request.user.birthdate, "%Y-%m-%d")
         return userObject
 
+class UpdatePasswordPage(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'updatePasswordPage.html'
+    success_url = reverse_lazy('UpdateAccountPage')
 
 class DeleteAccountPage(LoginRequiredMixin, DeleteView):
     model = User
