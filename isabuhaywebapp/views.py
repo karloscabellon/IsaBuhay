@@ -78,8 +78,12 @@ class UpdateAccountPage(LoginRequiredMixin, UpdateView):
         return userObject
 
 
-class DeleteAccountPage(DeleteView):
-    pass
+class DeleteAccountPage(LoginRequiredMixin, DeleteView):
+    model = User
+    success_url = reverse_lazy('DisplayLoginPage')
+
+    def get_object(self, queryset = None):
+        return self.request.user
     
 
 # Marc John Corral
