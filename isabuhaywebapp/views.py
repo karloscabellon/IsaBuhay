@@ -82,6 +82,9 @@ class DeleteAccountPage(LoginRequiredMixin, DeleteView):
     model = User
     success_url = reverse_lazy('DisplayLoginPage')
 
+    def get(self, request, *args, **kwargs):
+        return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
+
     def get_object(self, queryset = None):
         return self.request.user
     
