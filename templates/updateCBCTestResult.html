@@ -144,7 +144,7 @@ https://templatemo.com/tm-570-chain-app-dev
                   <tr>
                     <td colspan="1">
                       <label>WBC:</label>
-                          <input type="number"  name="whiteBloodCells" min=0 step="any" min=0 step="any" required  value="{{object.whiteBloodCells}}" >
+                          <input type="number"  name="whiteBloodCells" min=0 step="any" required  value="{{object.whiteBloodCells}}" >
                     </td>
                     <td colspan="1">
                       <label>RBC:</label>
@@ -240,7 +240,7 @@ https://templatemo.com/tm-570-chain-app-dev
                     </td>
                   </tr>
                 </table>
-                <a href="{% url 'DisplayCBCTestResult' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
                 <input type="submit" class="action-button"  value="Update"/>
             </fieldset>
           </form>
@@ -275,6 +275,25 @@ https://templatemo.com/tm-570-chain-app-dev
         $('#msg').remove();
       }
     }, 3000)
-  </script> 
+    
+    function redirectBack(){
+      window.location.href = "{% url 'DisplayCBCTestResult' object.pk %}"
+    }
+
+    const beforeUnloadListener = (event) => {
+      event.preventDefault();
+      return event.returnValue = "Are you sure you want to exit?";
+    };
+
+    const nameInput = document.querySelector("#msform");
+
+    nameInput.addEventListener("input", (event) => {
+      if (event.target.value !== "") {
+        addEventListener("beforeunload", beforeUnloadListener, {capture: true});
+      } else {
+        removeEventListener("beforeunload", beforeUnloadListener, {capture: true});
+      }
+    });
+</script>
 </body>
 </html>

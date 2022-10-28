@@ -132,13 +132,13 @@ https://templatemo.com/tm-570-chain-app-dev
           <form id="msform" action="" method="POST">
             {% csrf_token %}
                   {% if type == 'docx' %}
-                  <a href="{% url 'CreateCBCTestResult' 'docx' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  <a href="{% url 'CreateCBCTestResult' 'docx' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
                   {% elif type == 'pdf' %}
-                  <a href="{% url 'CreateCBCTestResult' 'pdf' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  <a href="{% url 'CreateCBCTestResult' 'pdf' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
                   {% elif type == 'image' %}
-                  <a href="{% url 'CreateCBCTestResult' 'image' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  <a href="{% url 'CreateCBCTestResult' 'image' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
                   {% elif type == 'picture' %}
-                  <a href="{% url 'CreateCBCTestResult' 'picture' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  <a href="{% url 'CreateCBCTestResult' 'picture' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
                   {% elif type == 'record' %}
                   <a href="{% url 'DisplayCBCTestResult' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
                   {% endif %}

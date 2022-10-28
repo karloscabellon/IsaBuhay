@@ -241,13 +241,13 @@ https://templatemo.com/tm-570-chain-app-dev
                   </tr>
                 </table>
                 {% if type == 'docx' %}
-                <a href="{% url 'DeleteDocx' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                <a href="{% url 'DeleteDocx' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
                 {% elif type == 'pdf' %}
-                <a href="{% url 'DeletePDF' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                <a href="{% url 'DeletePDF' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
                 {% elif type == 'image' %}
-                <a href="{% url 'DeleteUploadedImage' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                <a href="{% url 'DeleteUploadedImage' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
                 {% elif type == 'picture' %}
-                <a href="{% url 'DeleteCapturedImage' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                <a href="{% url 'DeleteCapturedImage' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
                 {% endif %}
                 <input type="submit" class="action-button"  value="Add"/>
             </fieldset>
