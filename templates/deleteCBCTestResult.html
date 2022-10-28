@@ -117,21 +117,23 @@ https://templatemo.com/tm-570-chain-app-dev
               <h4>Delete <em>Record</em></h4>
             {% endif %}
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            {% if type == 'docx' %}
-            <p>Want to delete a Docx?</p>
-            {% elif type ==  'pdf' %}
-            <p>Want to delete a PDF?</p>
-            {% elif type == 'image' %}
-            <p>Want to delete an Uploaded Image?</p>
-            {% elif type == 'picture' %}
-            <p>Want to delete a Captured Image?</p>
-            {% elif type == 'record' %}
-            <p>Want to delete a Record?</p>
-            {% endif %}
           </div>
           <form id="msform" action="" method="POST">
             {% csrf_token %}
-                  {% if type == 'docx' %}
+            <fieldset>
+              <h2 class="fs-title">Data to Delete</h2>
+              {% if type == 'docx' %}
+              <h3 class="fs-subtitle">Want to delete a Docx?</h3>
+            {% elif type ==  'pdf' %}
+            <h3 class="fs-subtitle">Want to delete a PDF?</h3>
+            {% elif type == 'image' %}
+            <h3 class="fs-subtitle">Want to delete a Image?</h3>
+            {% elif type == 'picture' %}
+            <h3 class="fs-subtitle">Want to delete a Picture?</h3>
+            {% elif type == 'record' %}
+            <h3 class="fs-subtitle">Want to delete a Record?</h3>
+            {% endif %}
+            {% if type == 'docx' %}
                   <a href="{% url 'CreateCBCTestResult' 'docx' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
                   {% elif type == 'pdf' %}
                   <a href="{% url 'CreateCBCTestResult' 'pdf' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
@@ -143,6 +145,8 @@ https://templatemo.com/tm-570-chain-app-dev
                   <a href="{% url 'DisplayCBCTestResult' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
                   {% endif %}
                   <input type="submit" class="action-button"  value="Delete"/>
+            </fieldset>
+                  
         </form>
         </div>
         <div class="col-lg-6">
