@@ -1,166 +1,160 @@
-
-
 {% load static %}
 <!DOCTYPE html>
-    <html lang="en">
-    
-      <head>
-    
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
-    
-        <title>Isabuhay - Delete CBC Test Result</title>
-    
-        <!-- Bootstrap core CSS -->
+<html lang="en">
+
+  <head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <title>Isabuhay - Adding Options</title>
+
+    <!-- Bootstrap core CSS -->
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
-    <!--
+<!--
+
+TemplateMo 570 Chain App Dev
+
+https://templatemo.com/tm-570-chain-app-dev
+
+-->
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
     
-    TemplateMo 570 Chain App Dev
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/jeff_custom.css' %}">
+    <!-- Buttonsss -->
     
-    https://templatemo.com/tm-570-chain-app-dev
-    
-    -->
-    
-         <!-- Additional CSS Files -->
-         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-         <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
-         <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
-         <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
-     
-        <!-- Buttonsss -->
-        
-        <style>
-          button{
-            border-radius: 25px;
-            padding: 10px;
-            width: 125px;
-            color: white;
-            border: none;
-            background-image: linear-gradient(to right, rgb(88,110,236), rgb(43,217,252));
-          }
-          .Input{
-            margin: auto;
-            max-width: 400px;
-            padding: 10px;
-            border-radius: 4px;
-          }
-        </style>
-    
-      </head>
-    
-    <body>
-    
-      <!-- ***** Preloader Start ***** -->
-      <div id="js-preloader" class="js-preloader">
-        <div class="preloader-inner">
-          <span class="dot"></span>
-          <div class="dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
+    <style>
+      button{
+        position: relative;
+        left: 50%;
+        transform: translate(-50%, 0);
+        border-radius: 25px;
+        padding: 10px;
+        width: 125px;
+        color: white;
+        border: none;
+        background-image: linear-gradient(to right, rgb(88,110,236), rgb(43,217,252));
+      }
+    </style>
+
+  </head>
+
+<body>
+
+  <!-- ***** Preloader Start ***** -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+  <!-- ***** Preloader End ***** -->
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <nav class="main-nav">
+            <!-- ***** Logo Start ***** -->
+            <a href="#" class="logo">
+              <img src="{% static 'assets/images/logo.png' %}" alt="Chain App Dev">
+            </a>
+            <!-- ***** Logo End ***** -->
+            <!-- ***** Menu Start ***** -->
+            <ul class="nav">
+              <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
+                <li class="scroll-to-section"><a href="#">Analytics</a></li>
+                <li class="scroll-to-section"><a href="#">Log in</a></li>
+                <li class="scroll-to-section"><a href="#">Sign in</a></li>
+              <!-- <li class="scroll-to-section"><a href="#">Newsletter</a></li> -->
+              <!-- <li><div class="gradient-button"><a id="modal_trigger" href="#"><i class="fa fa-sign-in-alt"></i> Sign In Now</a></div></li>  -->
+              <li></li>
+            </ul>        
+            <a class='menu-trigger'>
+                <span>Menu</span>
+            </a>
+            <!-- ***** Menu End ***** -->
+          </nav>
         </div>
       </div>
-      <!-- ***** Preloader End ***** -->
-    
-      <!-- ***** Header Area Start ***** -->
-      <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
-        <div class="container">
-          <div class="row">
-            <div class="col-12">
-              <nav class="main-nav">
-                <!-- ***** Logo Start ***** -->
-                <a href="#" class="logo">
-                  <img src="{% static 'assets/images/logo.png' %}" alt="Chain App Dev">
-                </a>
-                <!-- ***** Logo End ***** -->
-                <!-- ***** Menu Start ***** -->
-                <ul class="nav">
-                    <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-                    <li class="scroll-to-section"><a href="#">Analytics</a></li>
-                    <li class="scroll-to-section"><a href="#">Account</a></li>
-                    <li class="scroll-to-section"><a href="#">Sign Out</a></li>
-                  <!-- <li class="scroll-to-section"><a href="#">Newsletter</a></li> -->
-                  <!-- <li><div class="gradient-button"><a id="modal_trigger" href="#"><i class="fa fa-sign-in-alt"></i> Sign In Now</a></div></li>  -->
-                  <li></li>
-                </ul>        
-                <a class='menu-trigger'>
-                    <span>Menu</span>
-                </a>
-                <!-- ***** Menu End ***** -->
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-      <!-- ***** Header Area End ***** -->
-    
-      <div id="services" class="services section">
-        <div class="container">
-          
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
+
+  <div id="about" class="about-us section">
+    <div class="container">
       {% include 'messages.html' %}
-          <div class="row">
-            <div class="col-lg-8 offset-lg-2">
-              <div class="section-heading show-up header-text  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
-                {% if type == 'docx' %}
-                  <h4>Delete <em>Docx</em></h4>  
-                {% elif type ==  'pdf' %}
-                  <h4>Delete <em>PDF</em></h4>
-                {% elif type == 'image' %}
-                  <h4>Delete <em>Uploaded Image</em></h4>
-                {% elif type == 'picture' %}
-                  <h4>Delete <em>Captured Image</em></h4>
-                {% elif type == 'record' %}
-                  <h4>Delete <em>Record</em></h4>
-                {% endif %}
-                <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-                {% if type == 'docx' %}
-                <p>Want to delete a Docx?</p>
-                {% elif type ==  'pdf' %}
-                <p>Want to delete a PDF?</p>
-                {% elif type == 'image' %}
-                <p>Want to delete an Uploaded Image?</p>
-                {% elif type == 'picture' %}
-                <p>Want to delete a Captured Image?</p>
-                {% elif type == 'record' %}
-                <p>Want to delete a Record?</p>
-                {% endif %}
-                
-                {% if type == 'docx' %}
-                <p><a href="{% url 'CreateCBCTestResult' 'docx' object.pk %}">Go Back to Previous Page</a></p>
-                {% elif type == 'pdf' %}
-                <p><a href="{% url 'CreateCBCTestResult' 'pdf' object.pk %}">Go Back to Previous Page</a></p>
-                {% elif type == 'image' %}
-                <p><a href="{% url 'CreateCBCTestResult' 'image' object.pk %}">Go Back to Previous Page</a></p>
-                {% elif type == 'picture' %}
-                <p><a href="{% url 'CreateCBCTestResult' 'picture' object.pk %}">Go Back to Previous Page</a></p>
-                {% elif type == 'record' %}
-                <p><a href="{% url 'DisplayCBCTestResult' object.pk %}">Go Back to Previous Page</a></p>
-                {% endif %}
-              </div>
-            </div>
+      <div class="row">
+        <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
+
+          <div class="section-heading" data-wow-duration="1s" data-wow-delay="0.5s" style="text-align: center;">
+            {% if type == 'docx' %}
+              <h4>Delete <em>Docx</em></h4>  
+            {% elif type ==  'pdf' %}
+              <h4>Delete <em>PDF</em></h4>
+            {% elif type == 'image' %}
+              <h4>Delete <em>Uploaded Image</em></h4>
+            {% elif type == 'picture' %}
+              <h4>Delete <em>Captured Image</em></h4>
+            {% elif type == 'record' %}
+              <h4>Delete <em>Record</em></h4>
+            {% endif %}
+            <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
+            {% if type == 'docx' %}
+            <p>Want to delete a Docx?</p>
+            {% elif type ==  'pdf' %}
+            <p>Want to delete a PDF?</p>
+            {% elif type == 'image' %}
+            <p>Want to delete an Uploaded Image?</p>
+            {% elif type == 'picture' %}
+            <p>Want to delete a Captured Image?</p>
+            {% elif type == 'record' %}
+            <p>Want to delete a Record?</p>
+            {% endif %}
           </div>
+          <form id="msform" action="" method="POST">
+            {% csrf_token %}
+                  {% if type == 'docx' %}
+                  <a href="{% url 'CreateCBCTestResult' 'docx' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  {% elif type == 'pdf' %}
+                  <a href="{% url 'CreateCBCTestResult' 'pdf' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  {% elif type == 'image' %}
+                  <a href="{% url 'CreateCBCTestResult' 'image' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  {% elif type == 'picture' %}
+                  <a href="{% url 'CreateCBCTestResult' 'picture' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  {% elif type == 'record' %}
+                  <a href="{% url 'DisplayCBCTestResult' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
+                  {% endif %}
+                  <input type="submit" class="action-button"  value="Delete"/>
+        </form>
         </div>
-        <div class="contentarea wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
-          <div class="Input">
-            <form method="POST" name="inputForm" enctype='multipart/form-data'>
-              {% csrf_token %}
-              <button>Delete</button>
-          </form>
+        <div class="col-lg-6">
+          <div class="right-image">
+            <img src="{% static 'assets/images/about-right-dec.png' %}" alt="">
           </div>
         </div>
       </div>
-    
-    
-       
-    
-      <!-- Scripts -->
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -168,13 +162,5 @@
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
-  
-  <script>
-    setTimeout(function(){
-      if ($('#msg').length > 0) {
-        $('#msg').remove();
-      }
-    }, 3000)
-  </script> 
-    </body>
-    </html>
+</body>
+</html>
