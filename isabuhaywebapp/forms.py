@@ -95,11 +95,11 @@ class UpdateAccountForm(forms.ModelForm):
             'username',
         ]
 
-class UpdatePasswordForm(forms.ModelForm):
+class UpdatePhotoForm(forms.ModelForm):
     class Meta:
         model = User
         fields = [
-            'password'
+            'profile_picture'
         ]
 
 class CBCTestResultForm(forms.ModelForm):

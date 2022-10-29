@@ -82,6 +82,15 @@ class UpdatePasswordPage(LoginRequiredMixin, PasswordChangeView):
     template_name = 'updatePasswordPage.html'
     success_url = reverse_lazy('UpdateAccountPage')
 
+class UpdatePhotoPage(LoginRequiredMixin, UpdateView):
+    template_name = 'updatePhotoPage.html'
+    model = User
+    form_class = UpdatePhotoForm
+    success_url = reverse_lazy('UpdateAccountPage')
+
+    def get_object(self, queryset = None):
+        return self.request.user
+
 class DeleteAccountPage(LoginRequiredMixin, DeleteView):
     model = User
     success_url = reverse_lazy('DisplayLoginPage')

@@ -10,6 +10,7 @@ urlpatterns = [
     path('account/', DisplayAccountPage.as_view(), name='DisplayAccountPage'),
     path('account/update', UpdateAccountPage.as_view(), name='UpdateAccountPage'),
     path('account/update/change_password', UpdatePasswordPage.as_view(), name='UpdatePasswordPage'),
+    path('account/update/change_photo', UpdatePhotoPage.as_view(), name='UpdatePhotoPage'),
     path('account/delete', DeleteAccountPage.as_view(), name='DeleteAccountPage'),
     path('reports/', DisplayAllCBCTestResult.as_view(), name='DisplayAllCBCTestResult'),
     path('CBCTestResults/<str:pk>/', DisplayCBCTestResult.as_view(), name='DisplayCBCTestResult'),
