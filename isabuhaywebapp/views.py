@@ -450,27 +450,6 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         else:
             messages.error(request, 'There was something wrong!')
             return redirect('DisplayAddingOptions')
- 
-        if data['source'] == None or data['labNumber'] == None or data['pid'] == None or (data['source'].find('WEBCARE') == -1 and data['source'].find('INTELLICARE') == -1): 
-            if type == 'pdf':
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)) 
-            if type == 'docx':
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)) 
-            elif type == 'image' or type == 'picture':
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url)) 
-
-            messages.error(request, 'Make sure that the SOURCE, LAB NUMBER, AND PID is clear. Please try another one!')
-            user.uploads = user.uploads + 1
-            user.save()
-
-            if type == 'pdf':
-                return redirect('UploadPDF')
-            if type == 'docx':
-                return redirect('UploadDocx')
-            if type == 'image':
-                return redirect('UploadImage')
-            elif type == 'picture':
-                return redirect('CaptureImage')
 
         return render(request, 'createCBCTestResult.html', data)
 
