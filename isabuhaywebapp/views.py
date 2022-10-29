@@ -95,7 +95,7 @@ class PaymentMethod(LoginRequiredMixin, View):
 class DisplayAllPromoOptions(LoginRequiredMixin, View):
     def get(self, request, type, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        if user.uploads == 0:
+        if user.uploads <= 0:
             object_list = PromoOptions.objects.all()
             context = {'type': type, 'object_list': object_list}
             return render(request, 'promoOptions.html', context)
@@ -112,8 +112,9 @@ class DisplayAllPromoOptions(LoginRequiredMixin, View):
 class UploadPDF(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        user.uploads = user.uploads - 1
-        user.save()
+        if user.uploads != 0:
+            user.uploads = user.uploads - 1
+            user.save()
         object = CBCTestResultPDF()
         object.testPDF = request.FILES.get('testPDF')
         object.save()
@@ -123,14 +124,20 @@ class UploadPDF(LoginRequiredMixin, View):
         return redirect('CreateCBCTestResult', type = 'pdf', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        if user.uploads <= 0:
+            messages.error(request, 'You have no more uploads!')
+            return redirect('DisplayAllPromoOptions', type='pdf')
+            
         context = {'type': 'pdf'}
         return render(request, 'uploadCBCTestResult.html', context)
 
 class UploadDocx(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        user.uploads = user.uploads - 1
-        user.save()
+        if user.uploads != 0:
+            user.uploads = user.uploads - 1
+            user.save()
         object = CBCTestResultDocx()
         object.testDocx = request.FILES.get('testDocx')
         object.save()
@@ -140,14 +147,20 @@ class UploadDocx(LoginRequiredMixin, View):
         return redirect('CreateCBCTestResult', type = 'docx', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        if user.uploads <= 0:
+            messages.error(request, 'You have no more uploads!')
+            return redirect('DisplayAllPromoOptions', type='docx')
+
         context = {'type': 'docx'}
         return render(request, 'uploadCBCTestResult.html', context)
 
 class UploadImage(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        user.uploads = user.uploads - 1
-        user.save()
+        if user.uploads != 0:
+            user.uploads = user.uploads - 1
+            user.save()
         object = CBCTestResultImage()
         object.testImage = request.FILES.get('testImage')
         object.save()
@@ -157,16 +170,20 @@ class UploadImage(LoginRequiredMixin, View):
         return redirect('CreateCBCTestResult', type = 'image', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        if user.uploads <= 0:
+            messages.error(request, 'You have no more uploads!')
+            return redirect('DisplayAllPromoOptions', type='image')
+
         context = {'type': 'image'}
         return render(request, 'uploadCBCTestResult.html', context)
 
-class CaptureImage(LoginRequiredMixin, TemplateView):
-    template_name = 'captureImage.html'
-
+class CaptureImage(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        user.uploads = user.uploads - 1
-        user.save()
+        if user.uploads != 0:
+            user.uploads = user.uploads - 1
+            user.save()
         image_path = request.POST["src"] 
         image = NamedTemporaryFile()
         image.write(urlopen(image_path).read())
@@ -178,6 +195,15 @@ class CaptureImage(LoginRequiredMixin, TemplateView):
         obj = CBCTestResultImage.objects.create(testImage=image) 
         obj.save()
         return redirect('CreateCBCTestResult', pk = obj.pk, type = 'picture')
+    
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        if user.uploads <= 0:
+            messages.error(request, 'You have no more uploads!')
+            return redirect('DisplayAllPromoOptions', type='picture')
+
+        return render(request, 'captureImage.html')
+
 
 
 class CreateCBCTestResult(LoginRequiredMixin, View):
@@ -189,6 +215,9 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             object.testPDF = CBCTestResultPDF.objects.get(id=pk)
         elif type == 'image' or type == 'picture':
             object.testImage = CBCTestResultImage.objects.get(id=pk)
+        else:
+            messages.error(request, 'There was something wrong. Please try another one!')
+            return redirect('DisplayAddingOptions')
 
         date_time_str = request.POST.get('dateRequested')
         try:
@@ -236,77 +265,85 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
     def get(self, request, type, pk, *args, **kwargs):
         data = {'type': type}
         if type == 'docx':
-            docxObject = CBCTestResultDocx.objects.get(id=pk)
-            data['object'] = docxObject
-            FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)
-            txt = d2t.process(FILE_PATH)
+            try:
+                docxObject = CBCTestResultDocx.objects.get(id=pk)
+                data['object'] = docxObject
+                FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)
+                txt = d2t.process(FILE_PATH)
 
-            numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
-            values = re.split('\s+',txt)
-            data['source'] = values[15] + " " + values[16] + " " + values[17] 
-            data['labNumber'] = values[29] 
-            data['pid'] = values[7]
-            data['dateRequested'] = values[23] + " " + values[24] + " " + values[25]
-            data['dateReceived'] = values[43] + " " + values[44] + " " + values[45] 
-            data['whiteBloodCells'] = numericalValues[18] 
-            data['redBloodCells'] = numericalValues[23] 
-            data['hemoglobin'] = numericalValues[28] 
-            data['hematocrit'] = numericalValues[31] 
-            data['meanCorpuscularVolume'] = numericalValues[34] 
-            data['meanCorpuscularHb'] = numericalValues[37] 
-            data['meanCorpuscularHbConc'] = numericalValues[40] 
-            data['rbcDistributionWidth'] = numericalValues[43] 
-            data['plateletCount'] = numericalValues[46] 
-            data['segmenters'] = numericalValues[51] 
-            data['lymphocytes'] = numericalValues[54] 
-            data['monocytes'] = numericalValues[57] 
-            data['eosinophils'] = numericalValues[60] 
-            data['basophils'] = numericalValues[63] 
-            data['bands'] = numericalValues[66] 
-            data['absoluteSeg'] = numericalValues[69] 
-            data['absoluteLymphocyteCount'] = numericalValues[74] 
-            data['absoluteMonocyteCount'] = numericalValues[79] 
-            data['absoluteEosinophilCount'] = numericalValues[83] 
-            data['absoluteBasophilCount'] = numericalValues[87] 
-            data['absoluteBandCount'] = numericalValues[91]
+                numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
+                values = re.split('\s+',txt)
+                data['source'] = values[15] + " " + values[16] + " " + values[17] 
+                data['labNumber'] = values[29] 
+                data['pid'] = values[7]
+                data['dateRequested'] = values[23] + " " + values[24] + " " + values[25]
+                data['dateReceived'] = values[43] + " " + values[44] + " " + values[45] 
+                data['whiteBloodCells'] = numericalValues[18] 
+                data['redBloodCells'] = numericalValues[23] 
+                data['hemoglobin'] = numericalValues[28] 
+                data['hematocrit'] = numericalValues[31] 
+                data['meanCorpuscularVolume'] = numericalValues[34] 
+                data['meanCorpuscularHb'] = numericalValues[37] 
+                data['meanCorpuscularHbConc'] = numericalValues[40] 
+                data['rbcDistributionWidth'] = numericalValues[43] 
+                data['plateletCount'] = numericalValues[46] 
+                data['segmenters'] = numericalValues[51] 
+                data['lymphocytes'] = numericalValues[54] 
+                data['monocytes'] = numericalValues[57] 
+                data['eosinophils'] = numericalValues[60] 
+                data['basophils'] = numericalValues[63] 
+                data['bands'] = numericalValues[66] 
+                data['absoluteSeg'] = numericalValues[69] 
+                data['absoluteLymphocyteCount'] = numericalValues[74] 
+                data['absoluteMonocyteCount'] = numericalValues[79] 
+                data['absoluteEosinophilCount'] = numericalValues[83] 
+                data['absoluteBasophilCount'] = numericalValues[87] 
+                data['absoluteBandCount'] = numericalValues[91]
+            except:
+                messages.error(request, 'There was something wrong with your document. Please try another one!')
+                return redirect('UploadDocx')
         elif type == 'pdf':
-            pdfObject = CBCTestResultPDF.objects.get(id=pk)
-            data['object'] = pdfObject
-            FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)
+            try:
+                pdfObject = CBCTestResultPDF.objects.get(id=pk)
+                data['object'] = pdfObject
+                FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)
 
-            with open(FILE_PATH, mode='rb') as f:
-                reader = PyPDF4.PdfFileReader(f)
-                page = reader.getPage(0)
-                txt = page.extractText()
+                with open(FILE_PATH, mode='rb') as f:
+                    reader = PyPDF4.PdfFileReader(f)
+                    page = reader.getPage(0)
+                    txt = page.extractText()
 
-            numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
-            values = re.split("\n",txt)
-            data['source'] = values[35] + values[36] + values[37]
-            data['labNumber'] = numericalValues[7] 
-            data['pid'] = values[16] + values[17]
-            data['dateRequested'] = values[47] + values[48] + values[49] + values[50] + values[51]
-            data['dateReceived'] = values[85] + values[86] + values[87] + values[88] + values[89]
-            data['whiteBloodCells'] = numericalValues[18] 
-            data['redBloodCells'] = numericalValues[23] 
-            data['hemoglobin'] = numericalValues[28] 
-            data['hematocrit'] = numericalValues[31] 
-            data['meanCorpuscularVolume'] = numericalValues[34] 
-            data['meanCorpuscularHb'] = numericalValues[37] 
-            data['meanCorpuscularHbConc'] = numericalValues[40] 
-            data['rbcDistributionWidth'] = numericalValues[43] 
-            data['plateletCount'] = numericalValues[46] 
-            data['segmenters'] = numericalValues[51] 
-            data['lymphocytes'] = numericalValues[54] 
-            data['monocytes'] = numericalValues[57] 
-            data['eosinophils'] = numericalValues[60] 
-            data['basophils'] = numericalValues[63] 
-            data['bands'] = numericalValues[66] 
-            data['absoluteSeg'] = numericalValues[69] 
-            data['absoluteLymphocyteCount'] = numericalValues[74] 
-            data['absoluteMonocyteCount'] = numericalValues[79] 
-            data['absoluteEosinophilCount'] = numericalValues[83] 
-            data['absoluteBasophilCount'] = numericalValues[87] 
-            data['absoluteBandCount'] = numericalValues[91]
+                numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
+                values = re.split("\n",txt)
+                data['source'] = values[35] + values[36] + values[37]
+                data['labNumber'] = numericalValues[7] 
+                data['pid'] = values[16] + values[17]
+                data['dateRequested'] = values[47] + values[48] + values[49] + values[50] + values[51]
+                data['dateReceived'] = values[85] + values[86] + values[87] + values[88] + values[89]
+                data['whiteBloodCells'] = numericalValues[18] 
+                data['redBloodCells'] = numericalValues[23] 
+                data['hemoglobin'] = numericalValues[28] 
+                data['hematocrit'] = numericalValues[31] 
+                data['meanCorpuscularVolume'] = numericalValues[34] 
+                data['meanCorpuscularHb'] = numericalValues[37] 
+                data['meanCorpuscularHbConc'] = numericalValues[40] 
+                data['rbcDistributionWidth'] = numericalValues[43] 
+                data['plateletCount'] = numericalValues[46] 
+                data['segmenters'] = numericalValues[51] 
+                data['lymphocytes'] = numericalValues[54] 
+                data['monocytes'] = numericalValues[57] 
+                data['eosinophils'] = numericalValues[60] 
+                data['basophils'] = numericalValues[63] 
+                data['bands'] = numericalValues[66] 
+                data['absoluteSeg'] = numericalValues[69] 
+                data['absoluteLymphocyteCount'] = numericalValues[74] 
+                data['absoluteMonocyteCount'] = numericalValues[79] 
+                data['absoluteEosinophilCount'] = numericalValues[83] 
+                data['absoluteBasophilCount'] = numericalValues[87] 
+                data['absoluteBandCount'] = numericalValues[91]
+            except:
+                messages.error(request, 'There was something wrong with your pdf. Please try another one!')
+                return redirect('UploadPDF')
         elif type == 'image' or type == 'picture':
             try:
                 roi = [ [(250, 235), (837, 293), 'text', 'source'],
@@ -390,7 +427,14 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                         else:
                             data[r[3]] = None
             except:
-                data['source'] = "wala"
+                messages.error(request, 'There was something wrong with your image. Please try another one!')
+                if type == 'image':
+                    return redirect('UploadImage')
+                elif type == 'picture':
+                    return redirect('CaptureImage')
+        else:
+            messages.error(request, 'There was something wrong. Please try another one!')
+            return redirect('DisplayAddingOptions')
 
         return render(request, 'createCBCTestResult.html', data)
 
@@ -398,7 +442,12 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
 class UpdateCBCTestResult(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        object = CBCTestResult.objects.get(id=pk)
+        try:
+            object = CBCTestResult.objects.get(id=pk)
+        except:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+
         if object != None:
             object.whiteBloodCells = request.POST.get('whiteBloodCells')
             object.redBloodCells = request.POST.get('redBloodCells')
@@ -424,19 +473,36 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
             object.save()
 
             messages.success(request, 'Update CBC Test Result Successful!')
-
             return redirect('DisplayCBCTestResult', pk=pk)
+        elif object == None:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+            
+
         context = {'object': object}
         return render(request, 'updateCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
-        object = CBCTestResult.objects.get(id=pk)
+        try:
+            object = CBCTestResult.objects.get(id=pk)
+        except:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+        
+        if object == None:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
         context = {'object': object}
         return render(request, 'updateCBCTestResult.html', context)
 
 class DeleteCBCTestResult(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        object = CBCTestResult.objects.get(id=pk)
+        try:
+            object = CBCTestResult.objects.get(id=pk)
+        except:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+
         if object != None:
             object.delete()
 
@@ -450,18 +516,35 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
             messages.success(request, 'Delete CBC Test Result Successful!')
 
             return redirect('DisplayAllCBCTestResult')
+        elif object == None:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
 
         context = {'object': object, 'type': 'record'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
-        object = CBCTestResult.objects.get(id=pk)
+        try:
+            object = CBCTestResult.objects.get(id=pk)
+        except:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+
+        if object == None:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+
         context = {'object': object, 'type': 'record'}
         return render(request, 'deleteCBCTestResult.html', context)
 
 class DeleteUploadedImage(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        object = CBCTestResultImage.objects.get(id=pk)
+        try:
+            object = CBCTestResultImage.objects.get(id=pk)
+        except:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
+        
         if object != None:
             object.delete()
             os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
@@ -472,18 +555,34 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
             messages.success(request, 'Delete Image Successful!')
 
             return redirect('UploadImage')
+        elif object == None:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
         
         context = {'object': object, 'type': 'image'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
-        object = CBCTestResultImage.objects.get(id=pk)
+        try:
+            object = CBCTestResultImage.objects.get(id=pk)
+        except:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
+
+        if object == None:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
         context = {'object': object, 'type': 'image'}
         return render(request, 'deleteCBCTestResult.html', context)
     
 class DeleteCapturedImage(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        object = CBCTestResultImage.objects.get(id=pk)
+        try:
+            object = CBCTestResultImage.objects.get(id=pk)
+        except:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
+
         if object != None:
             object.delete()
             os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
@@ -494,18 +593,34 @@ class DeleteCapturedImage(LoginRequiredMixin, View):
             messages.success(request, 'Delete Image Successful!')
 
             return redirect('CaptureImage')
+        elif object == None:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
         
         context = {'object': object, 'type': 'picture'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
-        object = CBCTestResultImage.objects.get(id=pk)
+        try:
+            object = CBCTestResultImage.objects.get(id=pk)
+        except:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
+
+        if object == None:
+            messages.error(request, 'The image was not found.')
+            return redirect('DisplayAddingOptions')
         context = {'object': object, 'type': 'picture'}
         return render(request, 'deleteCBCTestResult.html', context)
 
 class DeletePDF(LoginRequiredMixin, DeleteView):
     def post(self, request, pk, *args, **kwargs):
-        object = CBCTestResultPDF.objects.get(id=pk)
+        try:
+            object = CBCTestResultPDF.objects.get(id=pk)
+        except:
+            messages.error(request, 'The pdf was not found.')
+            return redirect('DisplayAddingOptions')
+
         if object != None:
             object.delete()
             os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.url)) 
@@ -516,18 +631,29 @@ class DeletePDF(LoginRequiredMixin, DeleteView):
             messages.success(request, 'Delete PDF Successful!')
 
             return redirect('UploadPDF')
-        
+        elif object == None:
+            messages.error(request, 'The pdf was not found.')
+            return redirect('DisplayAddingOptions')
+
         context = {'object': object, 'type': 'pdf'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
         object = CBCTestResultPDF.objects.get(id=pk)
+        if object == None:
+            messages.error(request, 'The pdf was not found.')
+            return redirect('DisplayAddingOptions')
         context = {'object': object, 'type': 'pdf'}
         return render(request, 'deleteCBCTestResult.html', context)
 
 class DeleteDocx(LoginRequiredMixin, DeleteView):
     def post(self, request, pk, *args, **kwargs):
-        object = CBCTestResultDocx.objects.get(id=pk)
+        try:
+            object = CBCTestResultDocx.objects.get(id=pk)
+        except:
+            messages.error(request, 'The document was not found.')
+            return redirect('DisplayAddingOptions')
+
         if object != None:
             object.delete()
             os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.url)) 
@@ -538,12 +664,23 @@ class DeleteDocx(LoginRequiredMixin, DeleteView):
             messages.success(request, 'Delete Docx Successful!')
 
             return redirect('UploadDocx')
+        elif object == None:
+            messages.error(request, 'The document was not found.')
+            return redirect('DisplayAddingOptions')
         
         context = {'object': object, 'type': 'docx'}
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
-        object = CBCTestResultDocx.objects.get(id=pk)
+        try:
+            object = CBCTestResultDocx.objects.get(id=pk)
+        except:
+            messages.error(request, 'The document was not found.')
+            return redirect('DisplayAddingOptions')
+
+        if object == None:
+            messages.error(request, 'The document was not found.')
+            return redirect('DisplayAddingOptions')
         context = {'object': object, 'type': 'docx'}
         return render(request, 'deleteCBCTestResult.html', context)
 
