@@ -436,6 +436,10 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             messages.error(request, 'There was something wrong. Please try another one!')
             return redirect('DisplayAddingOptions')
 
+        if data['source'] == None or data['labNumber'] == None or data['pid'] == None:
+            messages.error(request, 'Make sure that the SOURCE, LAB NUMBER, AND PID is clear. Please try another one!')
+            return redirect('DisplayAddingOptions')
+
         return render(request, 'createCBCTestResult.html', data)
 
 
