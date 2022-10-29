@@ -135,7 +135,7 @@ https://templatemo.com/tm-570-chain-app-dev
                   <canvas id="canvas" width="640" height="480" style="background-color: green; border-radius: 25px;"></canvas>
                 </div>
                 <br>
-                <form method="POST" name="inputForm" id="msform" enctype='multipart/form-data'>
+                <form method="POST" action="." id="msform" enctype='multipart/form-data'>
                   {% csrf_token %}
                   <input id="webimg" name="src" type="text" style="display: none;">
                 <button type="submit" class="button" id="submit">Submit</button>
@@ -148,6 +148,7 @@ https://templatemo.com/tm-570-chain-app-dev
   </div>
 
   <!-- Scripts -->
+  <script src="{% static 'jquery/jquery.js' %}"></script>
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -163,21 +164,25 @@ https://templatemo.com/tm-570-chain-app-dev
       }
     }, 3000)
 
-    const beforeUnloadListener = (event) => {
-      event.preventDefault();
-      return event.returnValue = "Are you sure you want to exit?";
-    };
+    var isSubmitting = false
+    var hasValues = false
+    $(document).ready(function () {
+        $('#msform').submit(function(){
+            isSubmitting = true
+        })
 
-    const nameInput = document.querySelector("#msform");
+        $('#msform input').each(function(){
+            if( $(this).val() ) {
+              hasValues = true
+            }
+        });
 
-    nameInput.addEventListener("input", (event) => {
-      if (event.target.value !== "") {
-        addEventListener("beforeunload", beforeUnloadListener, {capture: true});
-      } else {
-        removeEventListener("beforeunload", beforeUnloadListener, {capture: true});
-      }
-    });
-
+        $(window).on('beforeunload', function() {
+            if (!isSubmitting &&  hasValues){
+                return 'You have unsaved changes which will not be saved.'
+            }
+        });
+    })
      
     const video = document.getElementById('video');
     const canvas = document.querySelector("#canvas");
