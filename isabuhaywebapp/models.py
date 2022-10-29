@@ -58,7 +58,7 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    uploads = models.IntegerField(blank=False, null=False, default=5)
+    uploads = models.IntegerField(verbose_name="uploads",blank=False, null=False, default=5)
 
     USERNAME_FIELD="username"
 
