@@ -240,15 +240,7 @@ https://templatemo.com/tm-570-chain-app-dev
                     </td>
                   </tr>
                 </table>
-                {% if type == 'docx' %}
-                <a href="{% url 'DeleteDocx' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% elif type == 'pdf' %}
-                <a href="{% url 'DeletePDF' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% elif type == 'image' %}
-                <a href="{% url 'DeleteUploadedImage' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% elif type == 'picture' %}
-                <a href="{% url 'DeleteCapturedImage' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% endif %}
+                <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
                 <input type="submit" class="action-button"  value="Add"/>
             </fieldset>
           </form>
@@ -283,6 +275,34 @@ https://templatemo.com/tm-570-chain-app-dev
         $('#msg').remove();
       }
     }, 3000)
+
+    function redirectBack(){
+      if ('{{type}}' === 'image') {
+          window.location.href = "{% url 'DeleteUploadedImage' object.pk %}"
+        } else if ('{{type}}' === 'picture') {
+          window.location.href = "{% url 'DeleteCapturedImage' object.pk %}"
+        } else if ('{{type}}' === 'pdf') {
+          window.location.href = "{% url 'DeletePDF' object.pk %}"
+        } else if ('{{type}}' === 'docx') {
+          window.location.href = "{% url 'DeleteDocx' object.pk %}"
+        } 
+    }
+
+
+    const beforeUnloadListener = (event) => {
+      event.preventDefault();
+      return event.returnValue = "Are you sure you want to exit?";
+    };
+
+    const nameInput = document.querySelector("#msform");
+
+    nameInput.addEventListener("input", (event) => {
+      if (event.target.value !== "") {
+        addEventListener("beforeunload", beforeUnloadListener, {capture: true});
+      } else {
+        removeEventListener("beforeunload", beforeUnloadListener, {capture: true});
+      }
+    });
   </script> 
 </body>
 </html>

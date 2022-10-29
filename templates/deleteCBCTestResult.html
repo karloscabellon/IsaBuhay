@@ -132,18 +132,8 @@ https://templatemo.com/tm-570-chain-app-dev
             {% elif type == 'record' %}
             <h3 class="fs-subtitle">Want to delete a Record?</h3>
             {% endif %}
-            {% if type == 'docx' %}
-                  <a href="{% url 'CreateCBCTestResult' 'docx' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
-                  {% elif type == 'pdf' %}
-                  <a href="{% url 'CreateCBCTestResult' 'pdf' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
-                  {% elif type == 'image' %}
-                  <a href="{% url 'CreateCBCTestResult' 'image' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
-                  {% elif type == 'picture' %}
-                  <a href="{% url 'CreateCBCTestResult' 'picture' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
-                  {% elif type == 'record' %}
-                  <a href="{% url 'DisplayCBCTestResult' object.pk %}" role="button" name="previous" class="previous action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>      
-                  {% endif %}
-                  <input type="submit" class="action-button"  value="Delete"/>
+            <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
+            <input type="submit" class="action-button"  value="Delete"/>
             </fieldset>
                   
         </form>
@@ -165,5 +155,36 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
+
+  <script>
+    function redirectBack(){
+      if ('{{type}}' === 'image') {
+          window.location.href = "{% url 'CreateCBCTestResult' 'image' object.pk %}"
+        } else if ('{{type}}' === 'picture') {
+          window.location.href = "{% url 'CreateCBCTestResult' 'picture' object.pk %}"
+        } else if ('{{type}}' === 'pdf') {
+          window.location.href = "{% url 'CreateCBCTestResult' 'pdf' object.pk %}"
+        } else if ('{{type}}' === 'docx') {
+          window.location.href = "{% url 'CreateCBCTestResult' 'docx' object.pk %}"
+        } else if ('{{type}}' === 'record') {
+          window.location.href = "{% url 'DisplayCBCTestResult' object.pk %}"
+        } 
+      }
+
+    const beforeUnloadListener = (event) => {
+      event.preventDefault();
+      return event.returnValue = "Are you sure you want to exit?";
+    };
+
+    const nameInput = document.querySelector("#msform");
+
+    nameInput.addEventListener("input", (event) => {
+      if (event.target.value !== "") {
+        addEventListener("beforeunload", beforeUnloadListener, {capture: true});
+      } else {
+        removeEventListener("beforeunload", beforeUnloadListener, {capture: true});
+      }
+    });
+</script>
 </body>
 </html>
