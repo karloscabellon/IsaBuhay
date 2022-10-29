@@ -164,6 +164,9 @@ class CaptureImage(LoginRequiredMixin, TemplateView):
     template_name = 'captureImage.html'
 
     def post(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        user.uploads = user.uploads - 1
+        user.save()
         image_path = request.POST["src"] 
         image = NamedTemporaryFile()
         image.write(urlopen(image_path).read())
@@ -305,7 +308,8 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             data['absoluteBasophilCount'] = numericalValues[87] 
             data['absoluteBandCount'] = numericalValues[91]
         elif type == 'image' or type == 'picture':
-            roi = [ [(250, 235), (837, 293), 'text', 'source'],
+            try:
+                roi = [ [(250, 235), (837, 293), 'text', 'source'],
                 [(1193, 89), (1500, 144), 'text', 'labNumber'], 
                 [(253, 143), (590, 190), 'text', 'pid'], 
                 [(376, 374), (739, 425), 'text', 'dateRequested'],
@@ -331,60 +335,62 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 [(645, 1860), (803, 1919), 'float', 'absoluteEosinophilCount'], 
                 [(645, 1920), (803, 1978), 'float', 'absoluteBasophilCount'], 
                 [(645, 1978), (803, 2036), 'float', 'absoluteBandCount']
-            ]
+                ]
 
-            def grayscale(image):
-                return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                def grayscale(image):
+                    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-            per = 25
-            pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
-            
-            imgQ = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay\\imageQuery\\sample.png')
-            h,w,c = imgQ.shape
-            gray_image = grayscale(imgQ)
-            thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
+                per = 25
+                pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+                
+                imgQ = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay\\imageQuery\\sample.png')
+                h,w,c = imgQ.shape
+                gray_image = grayscale(imgQ)
+                thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
 
-            orb = cv2.ORB_create(1000)
-            kp1, des1 = orb.detectAndCompute(im_bw, None)
+                orb = cv2.ORB_create(1000)
+                kp1, des1 = orb.detectAndCompute(im_bw, None)
 
-            imgObject = CBCTestResultImage.objects.get(id=pk)
-            data['object'] = imgObject
-            img = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url))
-            gray_image = grayscale(img)
-            thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
-            kp2, des2 = orb.detectAndCompute(im_bw, None)
-            bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-            matches = bf.match(des2, des1)
-            list(matches).sort(key= lambda x: x.distance)
-            good = matches[:int(len(matches) * (per/100))]
+                imgObject = CBCTestResultImage.objects.get(id=pk)
+                data['object'] = imgObject
+                img = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url))
+                gray_image = grayscale(img)
+                thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
+                kp2, des2 = orb.detectAndCompute(im_bw, None)
+                bf = cv2.BFMatcher(cv2.NORM_HAMMING)
+                matches = bf.match(des2, des1)
+                list(matches).sort(key= lambda x: x.distance)
+                good = matches[:int(len(matches) * (per/100))]
 
-            srcPoints = np.float32([kp2[m.queryIdx].pt for m in good]).reshape(-1,1,2)
-            dstPoints = np.float32([kp1[m.trainIdx].pt for m in good]).reshape(-1,1,2)
+                srcPoints = np.float32([kp2[m.queryIdx].pt for m in good]).reshape(-1,1,2)
+                dstPoints = np.float32([kp1[m.trainIdx].pt for m in good]).reshape(-1,1,2)
 
-            M, _ = cv2.findHomography(srcPoints, dstPoints, cv2.RANSAC, 5.0)
-            imgScan = cv2.warpPerspective(img, M, (w,h))
-            imgShow = imgScan.copy()
-            imgMask = np.zeros_like(imgShow)
+                M, _ = cv2.findHomography(srcPoints, dstPoints, cv2.RANSAC, 5.0)
+                imgScan = cv2.warpPerspective(img, M, (w,h))
+                imgShow = imgScan.copy()
+                imgMask = np.zeros_like(imgShow)
 
-            for x, r in enumerate(roi):
-                cv2.rectangle(imgMask, (r[0][0], r[0][1]), (r[1][0], r[1][1]), (0, 255, 0), cv2.FILLED)
-                imgShow = cv2.addWeighted(imgShow, 0.99, imgMask, 0.1, 0)
-                imgCrop = imgScan[r[0][1]:r[1][1], r[0][0]:r[1][0]]
+                for x, r in enumerate(roi):
+                    cv2.rectangle(imgMask, (r[0][0], r[0][1]), (r[1][0], r[1][1]), (0, 255, 0), cv2.FILLED)
+                    imgShow = cv2.addWeighted(imgShow, 0.99, imgMask, 0.1, 0)
+                    imgCrop = imgScan[r[0][1]:r[1][1], r[0][0]:r[1][0]]
 
-                if r[2] == 'float':
-                    text = pytesseract.image_to_string(imgCrop)
-                    value = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", text)
-                    if len(value) != 0:
-                        data[r[3]] = float(value[0])
-                    else:
-                        data[r[3]] = None
-                elif r[2] == 'text':
-                    text = pytesseract.image_to_string(imgCrop)
-                    newText = re.sub(r"[^a-zA-Z0-9-(): ]","",text)
-                    if newText != '':
-                        data[r[3]] = newText
-                    else:
-                        data[r[3]] = None
+                    if r[2] == 'float':
+                        text = pytesseract.image_to_string(imgCrop)
+                        value = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", text)
+                        if len(value) != 0:
+                            data[r[3]] = float(value[0])
+                        else:
+                            data[r[3]] = None
+                    elif r[2] == 'text':
+                        text = pytesseract.image_to_string(imgCrop)
+                        newText = re.sub(r"[^a-zA-Z0-9-(): ]","",text)
+                        if newText != '':
+                            data[r[3]] = newText
+                        else:
+                            data[r[3]] = None
+            except:
+                data['source'] = "wala"
 
         return render(request, 'createCBCTestResult.html', data)
 
@@ -475,15 +481,27 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
         context = {'object': object, 'type': 'image'}
         return render(request, 'deleteCBCTestResult.html', context)
     
-class DeleteCapturedImage(LoginRequiredMixin, DeleteView):
-    model = CBCTestResultImage
-    template_name = 'deleteCBCTestResult.html'
-    success_url = reverse_lazy('CaptureImage')
+class DeleteCapturedImage(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        object = CBCTestResultImage.objects.get(id=pk)
+        if object != None:
+            object.delete()
+            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
+            user = User.objects.get(id=request.user.id)
+            user.uploads = user.uploads + 1
+            user.save()
 
-    def get_context_data(self, **kwargs):
-        context = super(DeleteCapturedImage, self).get_context_data(**kwargs)
-        context['type'] = 'picture'
-        return context
+            messages.success(request, 'Delete Image Successful!')
+
+            return redirect('CaptureImage')
+        
+        context = {'object': object, 'type': 'picture'}
+        return render(request, 'deleteCBCTestResult.html', context)
+
+    def get(self, request, pk, *args, **kwargs):
+        object = CBCTestResultImage.objects.get(id=pk)
+        context = {'object': object, 'type': 'picture'}
+        return render(request, 'deleteCBCTestResult.html', context)
 
 class DeletePDF(LoginRequiredMixin, DeleteView):
     def post(self, request, pk, *args, **kwargs):
