@@ -271,7 +271,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             try:
                 docxObject = CBCTestResultDocx.objects.get(id=pk)
                 data['object'] = docxObject
-                FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)
+                FILE_PATH = str(docxObject.testDocx.url[1:])
                 txt = d2t.process(FILE_PATH)
 
                 numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
@@ -304,7 +304,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteBandCount'] = numericalValues[91]
             except:
                 if docxObject != None: 
-                    os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)) 
+                    os.remove(str(docxObject.testDocx.url)[1:]) 
                 messages.error(request, 'There was something wrong with your document. Please try another one!')
                 user.uploads = user.uploads + 1
                 user.save()
@@ -313,7 +313,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             try:
                 pdfObject = CBCTestResultPDF.objects.get(id=pk)
                 data['object'] = pdfObject
-                FILE_PATH = 'D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)
+                FILE_PATH = str(pdfObject.testPDF.url[1:])
 
                 with open(FILE_PATH, mode='rb') as f:
                     reader = PyPDF4.PdfFileReader(f)
@@ -350,7 +350,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteBandCount'] = numericalValues[91]
             except:
                 if pdfObject != None: 
-                    os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)) 
+                    os.remove(str(pdfObject.testPDF.url)[1:]) 
                 messages.error(request, 'There was something wrong with your pdf. Please try another one!')
                 user.uploads = user.uploads + 1
                 user.save()
@@ -391,7 +391,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 per = 25
                 pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
                 
-                imgQ = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay\\imageQuery\\sample.png')
+                imgQ = cv2.imread('imageQuery\sample.png')
                 h,w,c = imgQ.shape
                 gray_image = grayscale(imgQ)
                 thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
@@ -401,7 +401,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
                 imgObject = CBCTestResultImage.objects.get(id=pk)
                 data['object'] = imgObject
-                img = cv2.imread('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url))
+                img = cv2.imread(str(imgObject.testImage.url)[1:])
                 gray_image = grayscale(img)
                 thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
                 kp2, des2 = orb.detectAndCompute(im_bw, None)
@@ -439,8 +439,8 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                             data[r[3]] = None
             except:
                 if imgObject != None: 
-                    os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url)) 
-                messages.error(request, 'There was something wrong with your image. Please try another one!')
+                    os.remove(str(imgObject.testImage.url)[1:]) 
+                messages.error(request, 'There was something wrong with your image. Please try another oimreadne!')
                 user.uploads = user.uploads + 1
                 user.save()
                 if type == 'image':
@@ -522,11 +522,11 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
             object.delete()
 
             if object.testPDF != None:
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.testPDF.url)) 
+                os.remove(str(object.testPDF.testPDF.url)[1:]) 
             elif object.testDocx != None:
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.testDocx.url)) 
+                os.remove(str(object.testDocx.testDocx.url)[1:]) 
             elif object.testImage != None:
-                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.testImage.url)) 
+                os.remove(str(object.testImage.testImage.url)[1:]) 
 
             messages.success(request, 'Delete CBC Test Result Successful!')
 
@@ -562,7 +562,7 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
         
         if object != None:
             object.delete()
-            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
+            os.remove(str(object.testImage.url)[1:]) 
             user = User.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
@@ -600,7 +600,7 @@ class DeleteCapturedImage(LoginRequiredMixin, View):
 
         if object != None:
             object.delete()
-            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testImage.url)) 
+            os.remove(str(object.testImage.url)[1:]) 
             user = User.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
@@ -638,7 +638,7 @@ class DeletePDF(LoginRequiredMixin, DeleteView):
 
         if object != None:
             object.delete()
-            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testPDF.url)) 
+            os.remove(str(object.testPDF.url)[1:]) 
             user = User.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
@@ -671,7 +671,7 @@ class DeleteDocx(LoginRequiredMixin, DeleteView):
 
         if object != None:
             object.delete()
-            os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(object.testDocx.url)) 
+            os.remove(str(object.testDocx.url)[1:]) 
             user = User.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
