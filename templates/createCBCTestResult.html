@@ -85,13 +85,13 @@ https://templatemo.com/tm-570-chain-app-dev
             <!-- ***** Logo End ***** -->
             <!-- ***** Menu Start ***** -->
             <ul class="nav">
-              <li class="scroll-to-section"><a href="#" class="active">Client Page</a></li>
+              <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
               <li class="scroll-to-section"><a href="#">Analytics</a></li>
+              <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-              <li></li>
-            </ul>              
+            </ul>        
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -240,15 +240,7 @@ https://templatemo.com/tm-570-chain-app-dev
                     </td>
                   </tr>
                 </table>
-                {% if type == 'docx' %}
-                <a href="{% url 'DeleteDocx' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% elif type == 'pdf' %}
-                <a href="{% url 'DeletePDF' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% elif type == 'image' %}
-                <a href="{% url 'DeleteUploadedImage' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% elif type == 'picture' %}
-                <a href="{% url 'DeleteCapturedImage' object.pk %}" role="button" name="previous" class="action-button-previous">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                {% endif %}
+                <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
                 <input type="submit" class="action-button"  value="Add"/>
             </fieldset>
           </form>
@@ -267,6 +259,7 @@ https://templatemo.com/tm-570-chain-app-dev
   <!-- Custom Scripts -->
 
   <!-- Scripts -->
+  <script src="{% static 'jquery/jquery.js' %}"></script>
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -283,6 +276,38 @@ https://templatemo.com/tm-570-chain-app-dev
         $('#msg').remove();
       }
     }, 3000)
+
+    function redirectBack(){
+      if ('{{type}}' === 'image') {
+          window.location.href = "{% url 'DeleteUploadedImage' object.pk %}"
+        } else if ('{{type}}' === 'picture') {
+          window.location.href = "{% url 'DeleteCapturedImage' object.pk %}"
+        } else if ('{{type}}' === 'pdf') {
+          window.location.href = "{% url 'DeletePDF' object.pk %}"
+        } else if ('{{type}}' === 'docx') {
+          window.location.href = "{% url 'DeleteDocx' object.pk %}"
+        } 
+    }
+
+    var isSubmitting = false
+    var hasValues = false
+    $(document).ready(function () {
+        $('#msform').submit(function(){
+            isSubmitting = true
+        })
+
+        $('#msform input').each(function(){
+            if( $(this).val() ) {
+              hasValues = true
+            }
+        });
+
+        $(window).on('beforeunload', function() {
+            if (!isSubmitting &&  hasValues){
+                return 'You have unsaved changes which will not be saved.'
+            }
+        });
+    })
   </script> 
 </body>
 </html>
