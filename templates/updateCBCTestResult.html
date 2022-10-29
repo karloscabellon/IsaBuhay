@@ -259,6 +259,7 @@ https://templatemo.com/tm-570-chain-app-dev
   <!-- Custom Scripts -->
 
   <!-- Scripts -->
+  <script src="{% static 'jquery/jquery.js' %}"></script>
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -268,6 +269,7 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/custom.js' %}"></script>
   <script src="{% static 'js/jeff_custom.js' %}"></script>
   <script src="{% static 'js/form_animation.js' %}"></script>
+
 
   <script>
     setTimeout(function(){
@@ -280,20 +282,21 @@ https://templatemo.com/tm-570-chain-app-dev
       window.location.href = "{% url 'DisplayCBCTestResult' object.pk %}"
     }
 
-    const beforeUnloadListener = (event) => {
-      event.preventDefault();
-      return event.returnValue = "Are you sure you want to exit?";
-    };
+    var isSubmitting = false
 
-    const nameInput = document.querySelector("#msform");
+    $(document).ready(function () {
+        $('#msform').submit(function(){
+            isSubmitting = true
+        })
 
-    nameInput.addEventListener("input", (event) => {
-      if (event.target.value !== "") {
-        addEventListener("beforeunload", beforeUnloadListener, {capture: true});
-      } else {
-        removeEventListener("beforeunload", beforeUnloadListener, {capture: true});
-      }
-    });
+        $('#msform').data('initial-state', $('#msform').serialize());
+
+        $(window).on('beforeunload', function() {
+            if (!isSubmitting && $('#msform').serialize() != $('#msform').data('initial-state')){
+                return 'You have unsaved changes which will not be saved.'
+            }
+        });
+    })
 </script>
 </body>
 </html>

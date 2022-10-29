@@ -157,6 +157,7 @@ https://templatemo.com/tm-570-chain-app-dev
   </div>
 
   <!-- Scripts -->
+  <script src="{% static 'jquery/jquery.js' %}"></script>
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -173,9 +174,28 @@ https://templatemo.com/tm-570-chain-app-dev
     }, 3000)
     
     function redirectBack(){
-      
       window.location.href = "{% url 'DisplayAddingOptions' %}"
     }
+
+    var isSubmitting = false
+    var hasValues = false
+    $(document).ready(function () {
+        $('#msform').submit(function(){
+            isSubmitting = true
+        })
+
+        $('#msform input').each(function(){
+            if( $(this).val() ) {
+              hasValues = true
+            }
+        });
+
+        $(window).on('beforeunload', function() {
+            if (!isSubmitting &&  hasValues){
+                return 'You have unsaved changes which will not be saved.'
+            }
+        });
+    })
   </script> 
 </body>
 </html>
