@@ -126,12 +126,11 @@ class PaymentMethod(LoginRequiredMixin, View):
 class DisplayAllPromoOptions(LoginRequiredMixin, View):
     def get(self, request, type, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        if user.uploads <= 0:
+        if user.uploads <= 0 or type == 'pay':
             object_list = PromoOptions.objects.all()
             context = {'type': type, 'object_list': object_list}
             return render(request, 'promoOptions.html', context)
-        
-        if type == 'pdf':
+        elif type == 'pdf':
             return redirect('UploadPDF')
         elif type == 'docx':
             return redirect('UploadDocx')
@@ -139,6 +138,9 @@ class DisplayAllPromoOptions(LoginRequiredMixin, View):
             return redirect('CaptureImage')
         elif type == 'image':
             return redirect('UploadImage')
+        else:
+            messages.error(request, 'There was something wrong!')
+            return redirect('DisplayAllCBCTestResult')
 
 class UploadPDF(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
@@ -331,6 +333,8 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteBasophilCount'] = numericalValues[87] 
                 data['absoluteBandCount'] = numericalValues[91]
             except:
+                if docxObject != None: 
+                    os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)) 
                 messages.error(request, 'There was something wrong with your document. Please try another one!')
                 return redirect('UploadDocx')
         elif type == 'pdf':
@@ -373,6 +377,8 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteBasophilCount'] = numericalValues[87] 
                 data['absoluteBandCount'] = numericalValues[91]
             except:
+                if pdfObject != None: 
+                    os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)) 
                 messages.error(request, 'There was something wrong with your pdf. Please try another one!')
                 return redirect('UploadPDF')
         elif type == 'image' or type == 'picture':
@@ -458,6 +464,8 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                         else:
                             data[r[3]] = None
             except:
+                if imgObject != None: 
+                    os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url)) 
                 messages.error(request, 'There was something wrong with your image. Please try another one!')
                 if type == 'image':
                     return redirect('UploadImage')
@@ -466,8 +474,14 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         else:
             messages.error(request, 'There was something wrong. Please try another one!')
             return redirect('DisplayAddingOptions')
-
-        if data['source'] == None or data['labNumber'] == None or data['pid'] == None or data['source'].find('WEBCARE') == -1:
+ 
+        if data['source'] == None or data['labNumber'] == None or data['pid'] == None or (data['source'].find('WEBCARE') == -1 and data['source'].find('INTELLICARE') == -1): 
+            if type == 'pdf':
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(pdfObject.testPDF.url)) 
+            if type == 'docx':
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(docxObject.testDocx.url)) 
+            elif type == 'image' or type == 'picture':
+                os.remove('D:\\WEB Development Projects\\DJANGO PROJECTS\\repo\\IsaBuhay'+str(imgObject.testImage.url)) 
             messages.error(request, 'Make sure that the SOURCE, LAB NUMBER, AND PID is clear. Please try another one!')
             return redirect('DisplayAddingOptions')
 
