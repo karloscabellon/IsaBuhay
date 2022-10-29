@@ -216,7 +216,9 @@ https://templatemo.com/tm-570-chain-app-dev
             </p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary">Delete My Account</button>
+            <form method="POST" action="{% url 'DeleteAccountPage' %}">
+              {% csrf_token %}<input type="submit" class="btn btn-primary" value="Delete My Account">
+            </form>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
           </div>
         </div>
