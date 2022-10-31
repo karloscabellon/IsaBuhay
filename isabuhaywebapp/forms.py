@@ -42,8 +42,8 @@ class CustomUserCreationForm(cforms.UserCreationForm):
         self.fields['lastname'].widget.attrs.update({'placeholder' : 'Lastname'})
         self.fields['phone_number'].widget.attrs.update({'placeholder' : 'Phone Number'})
         self.fields['blood_type'].widget.attrs.update({'placeholder' : 'Blood Type'})
-        self.fields['height'].widget.attrs.update({'placeholder' : 'Height'})
-        self.fields['weight'].widget.attrs.update({'placeholder' : 'Weight'})
+        self.fields['height'].widget.attrs.update({'placeholder' : 'Height in cm'})
+        self.fields['weight'].widget.attrs.update({'placeholder' : 'Weight in kg'})
         self.fields['password1'].widget.attrs.update({'placeholder' : 'Password',})
         self.fields['password2'].widget.attrs.update({'placeholder' : 'Confirm Password'})
         self.fields['birthdate'].widget.attrs.update({
