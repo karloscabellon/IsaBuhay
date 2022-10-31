@@ -140,7 +140,21 @@ https://templatemo.com/tm-570-chain-app-dev
                           </tr>
                           <tr>
                             <td>Blood Type: </td>
-                            <td><input type="text" name="blood_type" value="{{user.blood_type}}"></td>
+                            <td>
+                                {{form.blood_type.errors}}
+                                <select id="{{form.blood_type.id}}" name="{{form.blood_type.name}}">
+                                  <option value="{{user.blood_type}}" selected hidden>{{user.blood_type}}</option>
+                                  <option value="A+">A+</option>
+                                  <option value="A-">A-</option>
+                                  <option value="B+">B+</option>
+                                  <option value="B-">B-</option>
+                                  <option value="O+">O+</option>
+                                  <option value="O-">O-</option>
+                                  <option value="AB+">AB+</option>
+                                  <option value="AB-">AB-</option>
+                                  <option value="UNK">UNK</option>
+                                </select>
+                            </td>
                           </tr>
                           <tr>
                             <td>Weight: </td>
