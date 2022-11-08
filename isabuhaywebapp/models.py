@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from datetime import datetime
 # from traitlets import default
 # Create your models here.
 
@@ -145,5 +146,15 @@ class CBCTestResult(models.Model):
 
     def get_absolute_url(self):
         return reverse('DisplayCBCTestResult', kwargs={'pk': str(self.pk)})
+
+class Room(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+
+class Message(models.Model):
+    value = models.CharField(max_length=1000000)
+    date = models.DateTimeField(default=datetime.now, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, blank=True, null=True)
+    read = models.BooleanField(default=False)
 
 # Marc John Corral

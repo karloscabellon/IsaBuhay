@@ -22,6 +22,7 @@ import json
 import os
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db.models import Q
 
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
@@ -104,19 +105,6 @@ class DeleteAccountPage(LoginRequiredMixin, DeleteView):
 
 # Marc John Corral
 
-class PaymentComplete(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        body = json.loads(request.body)
-        promo = PromoOptions.objects.get(id=body['promoId'])
-        
-        user = User.objects.get(id=request.user.id)
-        user.uploads = user.uploads + promo.uploads
-        user.save()
-        Payments.objects.create( promo=promo, user=user)
-
-        messages.success(request, 'Payment Successful!')
-        return JsonResponse('Payment completed!', safe=False)
-
 class DisplayAllCBCTestResult(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
@@ -127,7 +115,15 @@ class DisplayAllCBCTestResult(LoginRequiredMixin, View):
 class DisplayCBCTestResult(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        object = user.cbctestresult_set.get(id=pk)
+        try:
+            object = user.cbctestresult_set.get(id=pk)
+        except:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+        
+        if object == None:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
         context = {'object': object}
         return render(request, 'displayCBCTestResult.html', context)
 
@@ -137,9 +133,41 @@ class DisplayAddingOptions(LoginRequiredMixin, View):
         context = {'object': object}
         return render(request, 'displayAddingOptions.html', context)
 
+
+class PaymentComplete(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        body = json.loads(request.body)
+        
+        try:
+            promo = PromoOptions.objects.get(id=body['promoId'])
+        except:
+            messages.error(request, 'Their something went wrong.')
+            return redirect('PaymentMethod')
+        
+        if object == None:
+            messages.error(request, 'Their something went wrong.')
+            return redirect('PaymentMethod')
+        
+        user = User.objects.get(id=request.user.id)
+        user.uploads = user.uploads + promo.uploads
+        user.save()
+        Payments.objects.create( promo=promo, user=user)
+
+        messages.success(request, 'Payment Successful!')
+        return JsonResponse('Payment completed!', safe=False)
+
 class PaymentMethod(LoginRequiredMixin, View):
     def get(self, request, type, pk, *args, **kwargs):
-        object = PromoOptions.objects.get(id=pk)
+        try:
+            object = PromoOptions.objects.get(id=pk)
+        except:
+            messages.error(request, 'The record was not found.')
+            return redirect('DisplayAllCBCTestResult')
+
+        if type != 'pdf' and type != 'docx' and type != 'picture' and type != 'image' and type != 'pay':
+            messages.error(request, 'There was something wrong!')
+            return redirect('DisplayAllCBCTestResult')
+
         context = {'type': type, 'object': object}
         return render(request, 'paymentMethod.html', context)
 
@@ -247,6 +275,8 @@ class CaptureImage(LoginRequiredMixin, View):
         image.name = name
         obj = CBCTestResultImage.objects.create(testImage=image) 
         obj.save()
+
+        messages.success(request, 'Capture Image Successful!')
         return redirect('CreateCBCTestResult', pk = obj.pk, type = 'picture')
     
     def get(self, request, *args, **kwargs):
@@ -263,11 +293,23 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
     def post(self, request, type, pk, *args, **kwargs):
         object = CBCTestResult()
         if type == 'docx':
-            object.testDocx = CBCTestResultDocx.objects.get(id=pk)
+            try:
+                object.testDocx = CBCTestResultDocx.objects.get(id=pk)
+            except:
+                messages.error(request, 'Their something went wrong.')
+                return redirect('DisplayAddingOptions')
         elif type == 'pdf':
-            object.testPDF = CBCTestResultPDF.objects.get(id=pk)
+            try: 
+                object.testPDF = CBCTestResultPDF.objects.get(id=pk)
+            except:
+                messages.error(request, 'Their something went wrong.')
+                return redirect('DisplayAddingOptions')
         elif type == 'image' or type == 'picture':
-            object.testImage = CBCTestResultImage.objects.get(id=pk)
+            try:
+                object.testImage = CBCTestResultImage.objects.get(id=pk)
+            except:
+                messages.error(request, 'Their something went wrong.')
+                return redirect('DisplayAddingOptions')
         else:
             messages.error(request, 'There was something wrong!')
             return redirect('DisplayAddingOptions')
@@ -317,7 +359,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
     def get(self, request, type, pk, *args, **kwargs):
         user = User.objects.get(id=request.user.id)
-        data = {'type': type}
+        data = {}
         if type == 'docx':
             try:
                 docxObject = CBCTestResultDocx.objects.get(id=pk)
@@ -353,6 +395,15 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteEosinophilCount'] = numericalValues[83] 
                 data['absoluteBasophilCount'] = numericalValues[87] 
                 data['absoluteBandCount'] = numericalValues[91]
+
+                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
+                    os.remove(str(docxObject.testDocx.url)[1:]) 
+
+                    messages.error(request, 'There was something wrong with your document or you uploaded the wrong document. Please try another one!')
+                    user.uploads = user.uploads + 1
+                    user.save()
+                    
+                    return redirect('UploadPDF')
             except:
                 if docxObject != None: 
                     os.remove(str(docxObject.testDocx.url)[1:]) 
@@ -399,6 +450,15 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteEosinophilCount'] = numericalValues[83] 
                 data['absoluteBasophilCount'] = numericalValues[87] 
                 data['absoluteBandCount'] = numericalValues[91]
+
+                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
+                    os.remove(str(pdfObject.testPDF.url)[1:]) 
+
+                    messages.error(request, 'There was something wrong with your pdf or you uploaded the wrong pdf. Please try another one!')
+                    user.uploads = user.uploads + 1
+                    user.save()
+                    
+                    return redirect('UploadPDF')
             except:
                 if pdfObject != None: 
                     os.remove(str(pdfObject.testPDF.url)[1:]) 
@@ -488,10 +548,22 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                             data[r[3]] = newText
                         else:
                             data[r[3]] = None
+                
+                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
+                    os.remove(str(imgObject.testImage.url)[1:]) 
+
+                    messages.error(request, 'There was something wrong with your image or the image was blurry. Please try another one!')
+                    user.uploads = user.uploads + 1
+                    user.save()
+
+                    if type == 'image':
+                        return redirect('UploadImage')
+                    elif type == 'picture':
+                        return redirect('CaptureImage')
             except:
                 if imgObject != None: 
                     os.remove(str(imgObject.testImage.url)[1:]) 
-                messages.error(request, 'There was something wrong with your image. Please try another oimreadne!')
+                messages.error(request, 'There was something wrong with your image. Please try another one!')
                 user.uploads = user.uploads + 1
                 user.save()
                 if type == 'image':
@@ -501,6 +573,8 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         else:
             messages.error(request, 'There was something wrong!')
             return redirect('DisplayAddingOptions')
+
+        data['type'] = type
 
         return render(request, 'createCBCTestResult.html', data)
 
@@ -679,7 +753,7 @@ class DeleteCapturedImage(LoginRequiredMixin, View):
         context = {'object': object, 'type': 'picture'}
         return render(request, 'deleteCBCTestResult.html', context)
 
-class DeletePDF(LoginRequiredMixin, DeleteView):
+class DeletePDF(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         try:
             object = CBCTestResultPDF.objects.get(id=pk)
@@ -705,14 +779,19 @@ class DeletePDF(LoginRequiredMixin, DeleteView):
         return render(request, 'deleteCBCTestResult.html', context)
 
     def get(self, request, pk, *args, **kwargs):
-        object = CBCTestResultPDF.objects.get(id=pk)
+        try:
+            object = CBCTestResultPDF.objects.get(id=pk)
+        except:
+            messages.error(request, 'The document was not found.')
+            return redirect('DisplayAddingOptions')
+
         if object == None:
             messages.error(request, 'The pdf was not found.')
             return redirect('DisplayAddingOptions')
         context = {'object': object, 'type': 'pdf'}
         return render(request, 'deleteCBCTestResult.html', context)
 
-class DeleteDocx(LoginRequiredMixin, DeleteView):
+class DeleteDocx(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         try:
             object = CBCTestResultDocx.objects.get(id=pk)
@@ -750,5 +829,103 @@ class DeleteDocx(LoginRequiredMixin, DeleteView):
         context = {'object': object, 'type': 'docx'}
         return render(request, 'deleteCBCTestResult.html', context)
 
+class ShowRoom(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        if user.is_superuser:
+            return redirect('contacts')
+        else:
+            return redirect('newChat')
+
+class NewChat(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'newChat.html')
+
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        if user.room_set.first():
+            room = user.room_set.first()
+            return redirect('chatbox', pk =room.id)
+        else:
+            new_room = Room.objects.create(owner=user)
+            new_room.save()
+            return redirect('chatbox', pk =new_room.id)
+
+class ChatBox(LoginRequiredMixin, View):
+    def get(self, request, pk,  *args, **kwargs):
+        try:
+            room_details = Room.objects.get(id=pk)
+            user = User.objects.get(id=request.user.id)
+            room_details.message_set.filter(~Q(user__username=user.username)&Q(read=False)).update(read=True)
+            return render(request, 'chatbox.html', {
+                'room_details': room_details
+            })
+        except:
+            messages.error(request, 'Something went wrong.')
+            return redirect('showRoom')
+
+class Contacts(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        rooms = Room.objects.filter(~Q(owner__username=user.username))
+        return render(request, 'contacts.html', {'rooms': rooms})
+
+class GetContactNotifications(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = {}
+        user = User.objects.get(id=request.user.id)
+        if user.is_superuser:
+            rooms = Room.objects.filter(~Q(owner__username=user.username))
+            i = 0
+            for room in rooms:
+                count = room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).count()
+                i += 1
+                context[str(i)] = [room.owner.username, count, room.id]
+        else:
+            if user.room_set.first():
+                room = user.room_set.first()
+                count = room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).count()
+                context['0'] = ['admin', count]
+
+        return JsonResponse({"messages":context})      
+
+class Send(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        message = request.POST.get('message')
+        user = User.objects.get(id=request.user.id)
+        room_id = request.POST.get('room_id')
+        room = Room.objects.get(id=room_id)
+        new_message = Message.objects.create(value=message, user=user, room=room)
+        new_message.save()
+        
+        return HttpResponse('Message sent successfully')
+
+class GetMessages(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        try:
+            room = Room.objects.get(id=pk)
+            messages = room.message_set.all()
+            user = User.objects.get(id=request.user.id)
+            room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).update(read=True)
+            username = user.username
+        except:
+            messages.error(request, 'Something went wrong.')
+            return redirect('showRoom')
+        return JsonResponse({"messages":list(messages.values('user__username', 'value', 'date', 'read', 'id')), "username": username})
+
+class DeleteMessage(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        try:
+            message = Message.objects.get(id=pk)
+
+            if message.user.id == request.user.id:
+                message.delete()
+            
+            return redirect('chatbox', pk =message.room.id)
+        except:
+            messages.error(request, 'Something went wrong.')
+            return redirect('showRoom')
+        
+        
 
 # Marc John Corral

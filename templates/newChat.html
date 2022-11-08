@@ -84,9 +84,9 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
-              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}" class="active">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>             
+            </ul>               
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -104,36 +104,16 @@ https://templatemo.com/tm-570-chain-app-dev
         <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
 
           <div class="section-heading" data-wow-duration="1s" data-wow-delay="0.5s" style="text-align: center;">
-            {% if type == 'docx' %}
-              <h4>Delete <em>Docx</em></h4>  
-            {% elif type ==  'pdf' %}
-              <h4>Delete <em>PDF</em></h4>
-            {% elif type == 'image' %}
-              <h4>Delete <em>Uploaded Image</em></h4>
-            {% elif type == 'picture' %}
-              <h4>Delete <em>Captured Image</em></h4>
-            {% elif type == 'record' %}
-              <h4>Delete <em>Record</em></h4>
-            {% endif %}
+              <h4>Isabuhay <em>ChatBox</em></h4>
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
           </div>
           <form id="msform" action="" method="POST">
             {% csrf_token %}
             <fieldset>
-              <h2 class="fs-title">Data to Delete</h2>
-              {% if type == 'docx' %}
-              <h3 class="fs-subtitle">Want to delete a Docx?</h3>
-            {% elif type ==  'pdf' %}
-            <h3 class="fs-subtitle">Want to delete a PDF?</h3>
-            {% elif type == 'image' %}
-            <h3 class="fs-subtitle">Want to delete a Image?</h3>
-            {% elif type == 'picture' %}
-            <h3 class="fs-subtitle">Want to delete a Picture?</h3>
-            {% elif type == 'record' %}
-            <h3 class="fs-subtitle">Want to delete a Record?</h3>
-            {% endif %}
+              <h2 class="fs-title">Messages</h2>
+            <h3 class="fs-subtitle" id="display"></h3>
             <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
-            <input type="submit" class="action-button"  value="Delete"/>
+            <input type="submit" class="action-button"  value="Enter"/>
             </fieldset>
                   
         </form>
@@ -156,20 +136,38 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
 
+  
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
   <script>
     function redirectBack(){
-      if ('{{type}}' === 'image') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'image' object.pk %}"
-        } else if ('{{type}}' === 'picture') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'picture' object.pk %}"
-        } else if ('{{type}}' === 'pdf') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'pdf' object.pk %}"
-        } else if ('{{type}}' === 'docx') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'docx' object.pk %}"
-        } else if ('{{type}}' === 'record') {
-          window.location.href = "{% url 'DisplayCBCTestResult' object.pk %}"
-        } 
+      window.history.back();
       }
+
+      $(document).ready(function(){
+  
+  setInterval(function(){
+      $.ajax({
+          type: 'GET',
+          url : "/getContactNotifications",
+          success: function(response){
+              console.log(response);
+              $("#display").empty();
+              for (var key in response.messages)
+              {
+                str1 = "<span>You have"
+                str2 = str1.concat(' ', response.messages[key][1])
+                str3 = str2.concat(' ', "unseen messages from")
+                str4 = str3.concat(' ', response.messages[key][0])
+                temp = str4.concat(' ', "</span>")
+                $("#display").append(temp);
+              }
+          },
+          error: function(response){
+              alert('An error occured')
+          }
+      });
+  },1000);
+  })
 </script>
 </body>
 </html>

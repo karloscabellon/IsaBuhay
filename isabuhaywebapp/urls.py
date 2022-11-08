@@ -29,4 +29,12 @@ urlpatterns = [
     path('pdf/delete/<str:pk>/', DeletePDF.as_view(), name='DeletePDF'),
     path('docx/delete/<str:pk>/', DeleteDocx.as_view(), name='DeleteDocx'),
     path('complete/', PaymentComplete.as_view(), name="complete"),
+    path('showRoom', ShowRoom.as_view(), name='showRoom'),
+    path('newChat', NewChat.as_view(), name='newChat'),
+    path('chatbox/<str:pk>', ChatBox.as_view(), name='chatbox'),
+    path('send', Send.as_view(), name='send'),
+    path('contacts', Contacts.as_view(), name='contacts'),
+    path('getContactNotifications', GetContactNotifications.as_view(), name='getContactNotifications'),
+    path('getMessages/<str:pk>', GetMessages.as_view(), name='getMessages'),
+    path('deleteMessage/<str:pk>', DeleteMessage.as_view(), name='deleteMessage'),
 ]

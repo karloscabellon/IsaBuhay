@@ -27,7 +27,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
     <!-- Additional CSS Files -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
 
@@ -82,8 +82,9 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>        
+            </ul>               
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -97,6 +98,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
+      {% include 'messages.html' %}
       <div class="row">
         <div class="col-lg-6 align-self-center wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.5s">
           <div class="section-heading show-up header-text">
@@ -152,6 +154,11 @@ https://templatemo.com/tm-570-chain-app-dev
 	<script src="https://www.paypal.com/sdk/js?client-id=AURbFapWaO4d7Kq4nc416VamBaa_47woOx5cAz1_wZxJ4roOWcQifvZvRO2v6MrEPoVPtXhfoB3ZK-qH&currency=PHP"></script>
 
 	 <script>
+    setTimeout(function(){
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
+      }
+    }, 3000)
 
 function getCookie(name) {
 		    var cookieValue = null;
@@ -186,22 +193,17 @@ function getCookie(name) {
 	 			body:JSON.stringify({'promoId':promoId})
 	 		}).then((response) => response.json())
 	    	.then((data) => {
-				console.log('Success:', data);
-				alert('Transaction completed');  
-
-        if ('{{type}}' === 'image') {
-          window.location.href = "{% url 'UploadImage' %}"
-        } else if ('{{type}}' === 'picture') {
-          window.location.href = "{% url 'CaptureImage' %}"
-        } else if ('{{type}}' === 'pdf') {
-          window.location.href = "{% url 'UploadPDF' %}"
-        } else if ('{{type}}' === 'docx') {
-          window.location.href = "{% url 'UploadDocx' %}"
-        } else if ('{{type}}' === 'pay') {
-          window.location.href = "{% url 'DisplayAddingOptions' %}"
-        }
-				
-
+          if ('{{type}}' === 'image') {
+            window.location.href = "{% url 'UploadImage' %}"
+          } else if ('{{type}}' === 'picture') {
+            window.location.href = "{% url 'CaptureImage' %}"
+          } else if ('{{type}}' === 'pdf') {
+            window.location.href = "{% url 'UploadPDF' %}"
+          } else if ('{{type}}' === 'docx') {
+            window.location.href = "{% url 'UploadDocx' %}"
+          } else if ('{{type}}' === 'pay') {
+            window.location.href = "{% url 'DisplayAddingOptions' %}"
+          }
 				})
 	 	}
 
@@ -227,17 +229,7 @@ function getCookie(name) {
             // Finalize the transaction
             onApprove: function(data, actions) {
                 return actions.order.capture().then(function(orderData) {
-                    // Successful capture! For demo purposes:
-                    // console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
                     completeOrder()
-                    // var transaction = orderData.purchase_units[0].payments.captures[0];
-                    // alert('Transaction '+ transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
-
-                    // Replace the above to show a success message within this page, e.g.
-                    // const element = document.getElementById('paypal-button-container');
-                    // element.innerHTML = '';
-                    // element.innerHTML = '<h3>Thank you for your payment!</h3>';
-                    // Or go to another URL:  actions.redirect('thank_you.html');
                 });
             }
 
