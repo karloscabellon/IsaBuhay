@@ -766,3 +766,11 @@ class DeleteDocx(LoginRequiredMixin, DeleteView):
 
 
 # Marc John Corral
+
+
+class DisplayAnalytics(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        object_list = user.cbctestresult_set.all()
+        context = {'object_list': object_list}
+        return render(request, 'displayAnalytics.html', context)
