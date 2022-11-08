@@ -6,6 +6,7 @@ import PyPDF4
 import docx2txt as d2t
 from urllib.request import urlopen
 from django.contrib.auth import logout
+from django.contrib.auth import views as aviews
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from django.views.generic import *
@@ -50,11 +51,24 @@ class DisplayLoginPage(LoginView):
             return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
         return super().get(request, *args, **kwargs)
 
-class LogoutView(View):
+class LogoutView(LoginRequiredMixin, View):
+    redirect_url = settings.LOGIN_URL
     def get(self, request):
         logout(request)
-        return HttpResponseRedirect(settings.LOGIN_URL)
+        return HttpResponseRedirect(self.redirect_url)
 
+class PasswordResetPage(aviews.PasswordResetView):
+    template_name = 'resetPassword.html'
+
+class PasswordResetEmailSentPage(aviews.PasswordResetDoneView):
+    template_name = 'resetPasswordSent.html'
+
+class PasswordResetConfirmPage(aviews.PasswordResetConfirmView):
+    template_name = 'resetPasswordConfirm.html'
+
+class PasswordResetCompleteView(aviews.PasswordResetCompleteView):
+    template_name = 'resetPasswordComplete.html'
+ 
 class DisplayClientSide(LoginRequiredMixin, TemplateView):
     template_name = 'displayClientSide.html'
 

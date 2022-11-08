@@ -6,7 +6,11 @@ urlpatterns = [
     path('clientSide/', DisplayClientSide.as_view(), name='DisplayClientSide'),
     path('register/', CreateAccountPage.as_view(), name='CreateAccountPage'),
     path('login/', DisplayLoginPage.as_view(), name='DisplayLoginPage'),
-    path('logout/', LogoutView.as_view(), name="LogoutView"),
+    path('logout/', LogoutView.as_view(), name='LogoutView'),
+    path('reset_password/', PasswordResetPage.as_view(), name='reset_password'),
+    path('reset_password_sent/', PasswordResetEmailSentPage.as_view(), name='password_reset_done'),
+    path('reset_password/<uidb64>/<token>/', PasswordResetConfirmPage.as_view(), name='password_reset_confirm'),
+    path('reset_password_complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('account/', DisplayAccountPage.as_view(), name='DisplayAccountPage'),
     path('account/update', UpdateAccountPage.as_view(), name='UpdateAccountPage'),
     path('account/update/change_password', UpdatePasswordPage.as_view(), name='UpdatePasswordPage'),
@@ -30,3 +34,14 @@ urlpatterns = [
     path('docx/delete/<str:pk>/', DeleteDocx.as_view(), name='DeleteDocx'),
     path('complete/', PaymentComplete.as_view(), name="complete"),
 ]
+
+# class PasswordResetPage(aviews.PasswordResetView):
+#     pass
+
+# class PasswordResetEmailSentPage(aviews.PasswordResetDoneView):
+#     pass
+
+# class PasswordResetConfirmPage(aviews.PasswordResetConfirmView):
+#     pass
+
+# class PasswordResetCompleteView(aviews.PasswordResetCompleteView):
