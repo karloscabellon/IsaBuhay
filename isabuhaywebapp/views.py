@@ -50,11 +50,12 @@ class DisplayLoginPage(LoginView):
             return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
         return super().get(request, *args, **kwargs)
 
-class LogoutView(View):
+class LogoutView(LoginRequiredMixin, View):
+    redirect_url = settings.LOGIN_URL
     def get(self, request):
         logout(request)
-        return HttpResponseRedirect(settings.LOGIN_URL)
-
+        return HttpResponseRedirect(self.redirect_url)
+ 
 class DisplayClientSide(LoginRequiredMixin, TemplateView):
     template_name = 'displayClientSide.html'
 
