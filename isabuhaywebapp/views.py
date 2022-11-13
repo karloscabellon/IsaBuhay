@@ -237,7 +237,7 @@ class UploadPDF(LoginRequiredMixin, View):
             user.uploads = user.uploads - 1
             user.save()
         object = self.pdf_model()
-        object.testPDF = request.FILES.get('testPDF')
+        object.set_testPDF(request.FILES.get('testPDF'))
         object.save()
 
         messages.success(request, self.success_message)
@@ -268,7 +268,7 @@ class UploadDocx(LoginRequiredMixin, View):
             user.uploads = user.uploads - 1
             user.save()
         object = self.docx_model()
-        object.testDocx = request.FILES.get('testDocx')
+        object.set_testDocx(request.FILES.get('testDocx'))
         object.save()
 
         messages.success(request, self.success_message)
@@ -299,7 +299,7 @@ class UploadImage(LoginRequiredMixin, View):
             user.uploads = user.uploads - 1
             user.save()
         object = self.image_model()
-        object.testImage = request.FILES.get('testImage')
+        object.set_testImage(request.FILES.get('testImage'))
         object.save()
 
         messages.success(request, self.success_message)
@@ -337,7 +337,8 @@ class CaptureImage(LoginRequiredMixin, View):
         name = str(image.name).split('\\')[-1]
         name += '.png' 
         image.name = name
-        obj = self.image_model.objects.create(testImage=image) 
+        obj = self.image_model.objects.create() 
+        obj.set_testImage(image)
         obj.save()
 
         messages.success(request, self.success_message)
@@ -356,19 +357,19 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         object = CBCTestResult()
         if type == 'docx':
             try:
-                object.testDocx = CBCTestResultDocx.objects.get(id=pk)
+                object.set_testDocx(CBCTestResultDocx.objects.get(id=pk)) 
             except:
                 messages.error(request, 'Their something went wrong.')
                 return redirect('DisplayAddingOptions')
         elif type == 'pdf':
             try: 
-                object.testPDF = CBCTestResultPDF.objects.get(id=pk)
+                object.set_testPDF(CBCTestResultPDF.objects.get(id=pk))
             except:
                 messages.error(request, 'Their something went wrong.')
                 return redirect('DisplayAddingOptions')
         elif type == 'image' or type == 'picture':
             try:
-                object.testImage = CBCTestResultImage.objects.get(id=pk)
+                object.set_testImage(CBCTestResultImage.objects.get(id=pk))
             except:
                 messages.error(request, 'Their something went wrong.')
                 return redirect('DisplayAddingOptions')
@@ -378,41 +379,41 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
         date_time_str = request.POST.get('dateRequested')
         try:
-            object.dateRequested = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            object.set_dateRequested(datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')) 
         except:
-            object.dateRequested = None
+            object.set_dateRequested(None)
         
         date_time_str = request.POST.get('dateReceived')
         try:
-            object.dateReceived = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            object.set_dateReceived(datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p'))
         except:
-            object.dateReceived = None
+            object.set_dateReceived(None)
 
-        object.user = User.objects.get(id=request.user.id)
-        object.source = request.POST.get('source')
-        object.labNumber = request.POST.get('labNumber')
-        object.pid = request.POST.get('pid')
-        object.whiteBloodCells = request.POST.get('whiteBloodCells')
-        object.redBloodCells = request.POST.get('redBloodCells')
-        object.hemoglobin = request.POST.get('hemoglobin')
-        object.hematocrit = request.POST.get('hematocrit')
-        object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
-        object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
-        object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
-        object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
-        object.plateletCount = request.POST.get('plateletCount')
-        object.segmenters = request.POST.get('segmenters')
-        object.lymphocytes = request.POST.get('lymphocytes')
-        object.monocytes = request.POST.get('monocytes')
-        object.eosinophils = request.POST.get('eosinophils')
-        object.basophils = request.POST.get('basophils')
-        object.bands = request.POST.get('bands')
-        object.absoluteSeg = request.POST.get('absoluteSeg')
-        object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
-        object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
-        object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
-        object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
-        object.absoluteBandCount = request.POST.get('absoluteBandCount')
+        object.set_user(User.objects.get(id=request.user.id))
+        object.set_source(request.POST.get('source')) 
+        object.set_labNumber(request.POST.get('labNumber')) 
+        object.set_pid(request.POST.get('pid')) 
+        object.set_whiteBloodCells(request.POST.get('whiteBloodCells')) 
+        object.set_redBloodCells(request.POST.get('redBloodCells')) 
+        object.set_hemoglobin(request.POST.get('hemoglobin')) 
+        object.set_hematocrit( request.POST.get('hematocrit')) 
+        object.set_meanCorpuscularVolume(request.POST.get('meanCorpuscularVolume')) 
+        object.set_meanCorpuscularHb(request.POST.get('meanCorpuscularHb')) 
+        object.set_meanCorpuscularHbConc(request.POST.get('meanCorpuscularHbConc')) 
+        object.set_rbcDistributionWidth(request.POST.get('rbcDistributionWidth')) 
+        object.set_plateletCount(request.POST.get('plateletCount')) 
+        object.set_segmenters(request.POST.get('segmenters')) 
+        object.set_lymphocytes(request.POST.get('lymphocytes')) 
+        object.set_monocytes(request.POST.get('monocytes')) 
+        object.set_eosinophils(request.POST.get('eosinophils')) 
+        object.set_basophils(request.POST.get('basophils')) 
+        object.set_bands(request.POST.get('bands')) 
+        object.set_absoluteSeg(request.POST.get('absoluteSeg')) 
+        object.set_absoluteLymphocyteCount(request.POST.get('absoluteLymphocyteCount')) 
+        object.set_absoluteMonocyteCount(request.POST.get('absoluteMonocyteCount')) 
+        object.set_absoluteEosinophilCount(request.POST.get('absoluteEosinophilCount')) 
+        object.set_absoluteBasophilCount(request.POST.get('absoluteBasophilCount')) 
+        object.set_absoluteBandCount(request.POST.get('absoluteBandCount')) 
         object.save()
 
         messages.success(request, 'Create CBC Test Result Successful!')
@@ -426,7 +427,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             try:
                 docxObject = CBCTestResultDocx.objects.get(id=pk)
                 data['object'] = docxObject
-                FILE_PATH = str(docxObject.testDocx.url[1:])
+                FILE_PATH = str(docxObject.get_testDocx().url[1:])
                 txt = d2t.process(FILE_PATH)
 
                 numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
@@ -459,7 +460,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteBandCount'] = numericalValues[91]
 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
-                    os.remove(str(docxObject.testDocx.url)[1:]) 
+                    os.remove(str(docxObject.get_testDocx().url)[1:]) 
 
                     messages.error(request, 'There was something wrong with your document or you uploaded the wrong document. Please try another one!')
                     user.uploads = user.uploads + 1
@@ -468,7 +469,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                     return redirect('UploadPDF')
             except:
                 if docxObject != None: 
-                    os.remove(str(docxObject.testDocx.url)[1:]) 
+                    os.remove(str(docxObject.get_testDocx().url)[1:]) 
                 messages.error(request, 'There was something wrong with your document. Please try another one!')
                 user.uploads = user.uploads + 1
                 user.save()
@@ -477,7 +478,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             try:
                 pdfObject = CBCTestResultPDF.objects.get(id=pk)
                 data['object'] = pdfObject
-                FILE_PATH = str(pdfObject.testPDF.url[1:])
+                FILE_PATH = str(pdfObject.get_testPDF().url[1:])
 
                 with open(FILE_PATH, mode='rb') as f:
                     reader = PyPDF4.PdfFileReader(f)
@@ -514,7 +515,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteBandCount'] = numericalValues[91]
 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
-                    os.remove(str(pdfObject.testPDF.url)[1:]) 
+                    os.remove(str(pdfObject.get_testPDF().url)[1:]) 
 
                     messages.error(request, 'There was something wrong with your pdf or you uploaded the wrong pdf. Please try another one!')
                     user.uploads = user.uploads + 1
@@ -523,7 +524,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                     return redirect('UploadPDF')
             except:
                 if pdfObject != None: 
-                    os.remove(str(pdfObject.testPDF.url)[1:]) 
+                    os.remove(str(pdfObject.get_testPDF().url)[1:]) 
                 messages.error(request, 'There was something wrong with your pdf. Please try another one!')
                 user.uploads = user.uploads + 1
                 user.save()
@@ -574,7 +575,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
                 imgObject = CBCTestResultImage.objects.get(id=pk)
                 data['object'] = imgObject
-                img = cv2.imread(str(imgObject.testImage.url)[1:])
+                img = cv2.imread(str(imgObject.get_testImage().url)[1:])
                 gray_image = grayscale(img)
                 thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
                 kp2, des2 = orb.detectAndCompute(im_bw, None)
@@ -612,7 +613,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                             data[r[3]] = None
                 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
-                    os.remove(str(imgObject.testImage.url)[1:]) 
+                    os.remove(str(imgObject.get_testImage().url)[1:]) 
 
                     messages.error(request, 'There was something wrong with your image or the image was blurry. Please try another one!')
                     user.uploads = user.uploads + 1
@@ -624,7 +625,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                         return redirect('CaptureImage')
             except:
                 if imgObject != None: 
-                    os.remove(str(imgObject.testImage.url)[1:]) 
+                    os.remove(str(imgObject.get_testImage().url)[1:]) 
                 messages.error(request, 'There was something wrong with your image. Please try another one!')
                 user.uploads = user.uploads + 1
                 user.save()
@@ -658,27 +659,27 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
             return redirect(self.redirect_results_template_name)
 
         if object != None:
-            object.whiteBloodCells = request.POST.get('whiteBloodCells')
-            object.redBloodCells = request.POST.get('redBloodCells')
-            object.hemoglobin = request.POST.get('hemoglobin')
-            object.hematocrit = request.POST.get('hematocrit')
-            object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
-            object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
-            object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
-            object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
-            object.plateletCount = request.POST.get('plateletCount')
-            object.segmenters = request.POST.get('segmenters')
-            object.lymphocytes = request.POST.get('lymphocytes')
-            object.monocytes = request.POST.get('monocytes')
-            object.eosinophils = request.POST.get('eosinophils')
-            object.basophils = request.POST.get('basophils')
-            object.bands = request.POST.get('bands')
-            object.absoluteSeg = request.POST.get('absoluteSeg')
-            object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
-            object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
-            object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
-            object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
-            object.absoluteBandCount = request.POST.get('absoluteBandCount')
+            object.set_whiteBloodCells(request.POST.get('whiteBloodCells')) 
+            object.set_redBloodCells(request.POST.get('redBloodCells')) 
+            object.set_hemoglobin(request.POST.get('hemoglobin')) 
+            object.set_hematocrit( request.POST.get('hematocrit')) 
+            object.set_meanCorpuscularVolume(request.POST.get('meanCorpuscularVolume')) 
+            object.set_meanCorpuscularHb(request.POST.get('meanCorpuscularHb')) 
+            object.set_meanCorpuscularHbConc(request.POST.get('meanCorpuscularHbConc')) 
+            object.set_rbcDistributionWidth(request.POST.get('rbcDistributionWidth')) 
+            object.set_plateletCount(request.POST.get('plateletCount')) 
+            object.set_segmenters(request.POST.get('segmenters')) 
+            object.set_lymphocytes(request.POST.get('lymphocytes')) 
+            object.set_monocytes(request.POST.get('monocytes')) 
+            object.set_eosinophils(request.POST.get('eosinophils')) 
+            object.set_basophils(request.POST.get('basophils')) 
+            object.set_bands(request.POST.get('bands')) 
+            object.set_absoluteSeg(request.POST.get('absoluteSeg')) 
+            object.set_absoluteLymphocyteCount(request.POST.get('absoluteLymphocyteCount')) 
+            object.set_absoluteMonocyteCount(request.POST.get('absoluteMonocyteCount')) 
+            object.set_absoluteEosinophilCount(request.POST.get('absoluteEosinophilCount')) 
+            object.set_absoluteBasophilCount(request.POST.get('absoluteBasophilCount')) 
+            object.set_absoluteBandCount(request.POST.get('absoluteBandCount')) 
             object.save()
 
             messages.success(request, self.succes_message)
@@ -721,12 +722,12 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
         if object != None:
             object.delete()
 
-            if object.testPDF != None:
-                os.remove(str(object.testPDF.testPDF.url)[1:]) 
-            elif object.testDocx != None:
-                os.remove(str(object.testDocx.testDocx.url)[1:]) 
-            elif object.testImage != None:
-                os.remove(str(object.testImage.testImage.url)[1:]) 
+            if object.get_testPDF() != None:
+                os.remove(str(object.get_testPDF().get_testPDF().url)[1:]) 
+            elif object.get_testDocx() != None:
+                os.remove(str(object.get_testDocx().get_testDocx().url)[1:]) 
+            elif object.get_testImage() != None:
+                os.remove(str(object.get_testImage().get_testImage().url)[1:]) 
 
             messages.success(request, self.success_message)
 
@@ -770,7 +771,7 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
         
         if object != None:
             object.delete()
-            os.remove(str(object.testImage.url)[1:]) 
+            os.remove(str(object.get_testImage().url)[1:]) 
             user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
@@ -817,7 +818,7 @@ class DeleteCapturedImage(LoginRequiredMixin, View):
 
         if object != None:
             object.delete()
-            os.remove(str(object.testImage.url)[1:]) 
+            os.remove(str(object.get_testImage().url)[1:]) 
             user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
@@ -864,7 +865,7 @@ class DeletePDF(LoginRequiredMixin, View):
 
         if object != None:
             object.delete()
-            os.remove(str(object.testPDF.url)[1:]) 
+            os.remove(str(object.get_testPDF().url)[1:]) 
             user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
@@ -911,7 +912,7 @@ class DeleteDocx(LoginRequiredMixin, View):
 
         if object != None:
             object.delete()
-            os.remove(str(object.testDocx.url)[1:]) 
+            os.remove(str(object.get_testDocx().url)[1:]) 
             user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
@@ -965,11 +966,12 @@ class NewChat(LoginRequiredMixin, View):
         user = self.user_model.objects.get(id=request.user.id)
         if user.room_set.first():
             room = user.room_set.first()
-            return redirect(self.redirect_template_name, pk =room.id)
+            return redirect(self.redirect_template_name, pk = room.get_id())
         else:
-            new_room = self.room_model.objects.create(owner=user)
+            new_room = self.room_model.objects.create()
+            new_room.set_owner(user)
             new_room.save()
-            return redirect(self.redirect_template_name, pk =new_room.id)
+            return redirect(self.redirect_template_name, pk =new_room.get_id())
 
 class ChatBox(LoginRequiredMixin, View):
     template_name = 'chatbox.html'
@@ -1014,7 +1016,7 @@ class GetContactNotifications(LoginRequiredMixin, View):
             for room in rooms:
                 count = room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).count()
                 i += 1
-                context[str(i)] = [room.owner.username, count, room.id]
+                context[str(i)] = [room.get_owner().username, count, room.get_id()]
         else:
             if user.room_set.first():
                 room = user.room_set.first()
@@ -1069,7 +1071,7 @@ class DeleteMessage(LoginRequiredMixin, View):
             if message.user.id == request.user.id:
                 message.delete()
             
-            return redirect(self.redirect_chat_template_name, pk =message.room.id)
+            return redirect(self.redirect_chat_template_name, pk =message.room.get_id())
         except:
             messages.error(request, self.error_message)
             return redirect(self.redirect_room_template_name)

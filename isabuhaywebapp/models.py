@@ -84,39 +84,94 @@ class User(AbstractBaseUser):
 # Marc John Corral
 
 class CBCTestResultImage(models.Model):
+    id = models.BigAutoField(primary_key=True)
     testImage = models.ImageField(upload_to='images/', blank=False, null=False)
+
+    def get_id(self):
+        return self.id
     
-    def get_absolute_url(self):
-        return reverse('CreateCBCTestResult', kwargs={'pk': str(self.pk), 'type': 'image'})
+    def get_testImage(self):
+        return self.testImage
+    
+    def set_testImage(self, value):
+        self.testImage = value
 
 class CBCTestResultPDF(models.Model):
+    id = models.BigAutoField(primary_key=True)
     testPDF = models.FileField(upload_to='pdfs/', blank=False, null=False)
+
+    def get_id(self):
+        return self.id
     
-    def get_absolute_url(self):
-        return reverse('CreateCBCTestResult', kwargs={'pk': str(self.pk), 'type': 'pdf'})
+    def get_testPDF(self):
+        return self.testPDF
+    
+    def set_testPDF(self, value):
+        self.testPDF = value
 
 class CBCTestResultDocx(models.Model):
+    id = models.BigAutoField(primary_key=True)
     testDocx = models.FileField(upload_to='docs/', blank=False, null=False)
+
+    def get_id(self):
+        return self.id
     
-    def get_absolute_url(self):
-        return reverse('CreateCBCTestResult', kwargs={'pk': str(self.pk), 'type': 'docx'})
+    def get_testDocx(self):
+        return self.testDocx
+    
+    def set_testDocx(self, value):
+        self.testDocx = value
 
 class PromoOptions(models.Model):
+    id = models.BigAutoField(primary_key=True)
     uploads = models.IntegerField(blank=False, null=False)
     price = models.FloatField(blank=False, null=False)
 
-    def get_absolute_url(self):
-        return reverse('PaymentMethod', kwargs={'pk': str(self.pk)})
+    def get_id(self):
+        return self.id
+
+    def get_uploads(self):
+        return self.uploads
+    
+    def set_uploads(self, value):
+        self.uploads = value
+    
+    def get_price(self):
+        return self.price
+    
+    def set_price(self, value):
+        self.price = value
+
 
 class Payments(models.Model):
+    id = models.BigAutoField(primary_key=True)
     promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     date = models.DateTimeField(default=datetime.now, blank=True)
 
-    def get_absolute_url(self):
-        return reverse('DisplayAllCBCTestResult')
+    def get_id(self):
+        return self.id
+
+    def get_promo(self):
+        return self.promo
+    
+    def set_promo(self, value):
+        self.promo = value
+    
+    def get_user(self):
+        return self.user
+    
+    def set_user(self, value):
+        self.user = value
+    
+    def get_date(self):
+        return self.date
+    
+    def set_date(self, value):
+        self.date = value
     
 class CBCTestResult(models.Model):
+    id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     testImage = models.OneToOneField(CBCTestResultImage, on_delete=models.CASCADE, blank=True, null=True)
     testPDF = models.OneToOneField(CBCTestResultPDF, on_delete=models.CASCADE, blank=True, null=True)
@@ -148,23 +203,243 @@ class CBCTestResult(models.Model):
     absoluteBasophilCount = models.FloatField(blank=False, null=False)
     absoluteBandCount = models.FloatField(blank=False, null=False)
 
-    def get_absolute_url(self):
-        return reverse('DisplayCBCTestResult', kwargs={'pk': str(self.pk)})
+    def get_id(self):
+        return self.id
+
+    def get_user(self):
+        return self.user
+    
+    def set_user(self, value):
+        self.user = value
+    
+    def get_testImage(self):
+        return self.testImage
+    
+    def set_testImage(self, value):
+        self.testImage = value
+    
+    def get_testPDF(self):
+        return self.testPDF
+    
+    def set_testPDF(self, value):
+        self.testPDF = value
+    
+    def get_source(self):
+        return self.source
+    
+    def set_source(self, value):
+        self.source = value
+    
+    def get_testDocx(self):
+        return self.testDocx
+    
+    def set_testDocx(self, value):
+        self.testDocx = value
+    
+    def get_labNumber(self):
+        return self.labNumber
+    
+    def set_labNumber(self, value):
+        self.labNumber = value
+    
+    def get_pid(self):
+        return self.pid
+    
+    def set_pid(self, value):
+        self.pid = value
+    
+    def get_dateRequested(self):
+        return self.dateRequested
+    
+    def set_dateRequested(self, value):
+        self.dateRequested = value
+    
+    def get_dateReceived(self):
+        return self.dateReceived
+    
+    def set_dateReceived(self, value):
+        self.dateReceived = value
+    
+    def get_whiteBloodCells(self):
+        return self.whiteBloodCells
+    
+    def set_whiteBloodCells(self, value):
+        self.whiteBloodCells = value
+    
+    def get_redBloodCells(self):
+        return self.redBloodCells
+    
+    def set_redBloodCells(self, value):
+        self.redBloodCells = value
+    
+    def get_hemoglobin(self):
+        return self.hemoglobin
+    
+    def set_hemoglobin(self, value):
+        self.hemoglobin = value
+    
+    def get_hematocrit(self):
+        return self.hematocrit
+    
+    def set_hematocrit(self, value):
+        self.hematocrit = value
+    
+    def get_meanCorpuscularVolume(self):
+        return self.meanCorpuscularVolume
+    
+    def set_meanCorpuscularVolume(self, value):
+        self.meanCorpuscularVolume = value
+    
+    def get_meanCorpuscularHb(self):
+        return self.meanCorpuscularHb
+    
+    def set_meanCorpuscularHb(self, value):
+        self.meanCorpuscularHb = value
+    
+    def get_meanCorpuscularHbConc(self):
+        return self.meanCorpuscularHbConc
+    
+    def set_meanCorpuscularHbConc(self, value):
+        self.meanCorpuscularHbConc = value
+    
+    def get_rbcDistributionWidth(self):
+        return self.rbcDistributionWidth
+    
+    def set_rbcDistributionWidth(self, value):
+        self.rbcDistributionWidth = value
+    
+    def get_plateletCount(self):
+        return self.plateletCount
+    
+    def set_plateletCount(self, value):
+        self.plateletCount = value
+    
+    def get_segmenters(self):
+        return self.segmenters
+    
+    def set_segmenters(self, value):
+        self.segmenters = value
+    
+    def get_lymphocytes(self):
+        return self.lymphocytes
+    
+    def set_lymphocytes(self, value):
+        self.lymphocytes = value
+    
+    def get_monocytes(self):
+        return self.monocytes
+    
+    def set_monocytes(self, value):
+        self.monocytes = value
+    
+    def get_eosinophils(self):
+        return self.eosinophils
+    
+    def set_eosinophils(self, value):
+        self.eosinophils = value
+    
+    def get_basophils(self):
+        return self.basophils
+    
+    def set_basophils(self, value):
+        self.basophils = value
+    
+    def get_bands(self):
+        return self.bands
+    
+    def set_bands(self, value):
+        self.bands = value
+    
+    def get_absoluteSeg(self):
+        return self.absoluteSeg
+    
+    def set_absoluteSeg(self, value):
+        self.absoluteSeg = value
+    
+    def get_absoluteLymphocyteCount(self):
+        return self.absoluteLymphocyteCount
+    
+    def set_absoluteLymphocyteCount(self, value):
+        self.absoluteLymphocyteCount = value
+    
+    def get_absoluteMonocyteCount(self):
+        return self.absoluteMonocyteCount
+    
+    def set_absoluteMonocyteCount(self, value):
+        self.absoluteMonocyteCount = value
+    
+    def get_absoluteEosinophilCount(self):
+        return self.absoluteEosinophilCount
+    
+    def set_absoluteEosinophilCount(self, value):
+        self.absoluteEosinophilCount = value
+    
+    def get_absoluteBasophilCount(self):
+        return self.absoluteBasophilCount
+    
+    def set_absoluteBasophilCount(self, value):
+        self.absoluteBasophilCount = value
+    
+    def get_absoluteBandCount(self):
+        return self.absoluteBandCount
+    
+    def set_absoluteBandCount(self, value):
+        self.absoluteBandCount = value
 
 class Room(models.Model):
+    id = models.BigAutoField(primary_key=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
-    def get_absolute_url(self):
-        return reverse('DisplayAllCBCTestResult')
+    def get_id(self):
+        return self.id
+    
+    def get_owner(self):
+        return self.owner
+    
+    def set_owner(self, value):
+        self.owner = value
 
 class Message(models.Model):
+    id = models.BigAutoField(primary_key=True)
     value = models.CharField(max_length=1000000)
     date = models.DateTimeField(default=datetime.now, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, blank=True, null=True)
     read = models.BooleanField(default=False)
 
-    def get_absolute_url(self):
-        return reverse('chatbox', kwargs={'pk': str(self.room.id)})
+    def get_id(self):
+        return self.id
+
+    def get_value(self):
+        return self.value
+    
+    def set_value(self, value):
+        self.value = value
+    
+    def get_date(self):
+        return self.date
+    
+    def set_date(self, value):
+        self.date = value
+    
+    def get_user(self):
+        return self.user
+    
+    def set_user(self, value):
+        self.user = value
+    
+    def get_room(self):
+        return self.room
+    
+    def set_room(self, value):
+        self.room = value
+    
+    def get_read(self):
+        return self.read
+    
+    def set_read(self, value):
+        self.read = value
+    
+
 
 # Marc John Corral

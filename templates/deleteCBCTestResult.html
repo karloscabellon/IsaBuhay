@@ -158,17 +158,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <script>
     function redirectBack(){
-      if ('{{type}}' === 'image') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'image' object.pk %}"
-        } else if ('{{type}}' === 'picture') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'picture' object.pk %}"
-        } else if ('{{type}}' === 'pdf') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'pdf' object.pk %}"
-        } else if ('{{type}}' === 'docx') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'docx' object.pk %}"
-        } else if ('{{type}}' === 'record') {
-          window.location.href = "{% url 'DisplayCBCTestResult' object.pk %}"
-        } 
+        history.back()
       }
 </script>
 </body>
