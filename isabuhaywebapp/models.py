@@ -224,17 +224,17 @@ class CBCTestResult(models.Model):
     def set_testPDF(self, value):
         self.testPDF = value
     
-    def get_source(self):
-        return self.source
-    
-    def set_source(self, value):
-        self.source = value
-    
     def get_testDocx(self):
         return self.testDocx
     
     def set_testDocx(self, value):
         self.testDocx = value
+        
+    def get_source(self):
+        return self.source
+    
+    def set_source(self, value):
+        self.source = value
     
     def get_labNumber(self):
         return self.labNumber
