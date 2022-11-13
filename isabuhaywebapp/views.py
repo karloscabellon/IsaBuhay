@@ -106,162 +106,226 @@ class DeleteAccountPage(LoginRequiredMixin, DeleteView):
 # Marc John Corral
 
 class DisplayAllCBCTestResult(LoginRequiredMixin, View):
+    template_name = 'displayAllCBCTestResult.html'
+    model = User
+
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.model.objects.get(id=request.user.id)
         object_list = user.cbctestresult_set.all()
         context = {'object_list': object_list}
-        return render(request, 'displayAllCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class DisplayCBCTestResult(LoginRequiredMixin, View):
+    template_name = 'displayCBCTestResult.html'
+    redirect_template_name = 'DisplayAllCBCTestResult'
+    error_message = 'The record was not found.'
+    model = User
+
     def get(self, request, pk, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.model.objects.get(id=request.user.id)
         try:
             object = user.cbctestresult_set.get(id=pk)
         except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
         
         if object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
         context = {'object': object}
-        return render(request, 'displayCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class DisplayAddingOptions(LoginRequiredMixin, View):
+    template_name = 'displayAddingOptions.html'
+    model = User
+    
     def get(self, request,  *args, **kwargs):
-        object = User.objects.get(id=request.user.id)
+        object = self.model.objects.get(id=request.user.id)
         context = {'object': object}
-        return render(request, 'displayAddingOptions.html', context)
+        return render(request, self.template_name, context)
 
 
 class PaymentComplete(LoginRequiredMixin, View):
+    redirect_template_name = 'PaymentMethod'
+    error_message = 'Their something went wrong.'
+    success_message = 'Payment Successful!'
+    user_model = User
+    promo_model = PromoOptions
+    payment_model = Payments
+
     def post(self, request, *args, **kwargs):
         body = json.loads(request.body)
         
         try:
-            promo = PromoOptions.objects.get(id=body['promoId'])
+            promo = self.promo_model.objects.get(id=body['promoId'])
         except:
-            messages.error(request, 'Their something went wrong.')
-            return redirect('PaymentMethod')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
         
         if object == None:
-            messages.error(request, 'Their something went wrong.')
-            return redirect('PaymentMethod')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
         
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         user.uploads = user.uploads + promo.uploads
         user.save()
-        Payments.objects.create( promo=promo, user=user)
+        self.payment_model.objects.create( promo=promo, user=user)
 
-        messages.success(request, 'Payment Successful!')
+        messages.success(request, self.success_message)
         return JsonResponse('Payment completed!', safe=False)
 
 class PaymentMethod(LoginRequiredMixin, View):
+    template_name = 'paymentMethod.html'
+    redirect_template_name = 'DisplayAllCBCTestResult'
+    error_message = 'The record was not found.'
+    model = PromoOptions
+
     def get(self, request, type, pk, *args, **kwargs):
         try:
-            object = PromoOptions.objects.get(id=pk)
+            object = self.model.objects.get(id=pk)
         except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
 
         if type != 'pdf' and type != 'docx' and type != 'picture' and type != 'image' and type != 'pay':
-            messages.error(request, 'There was something wrong!')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
 
         context = {'type': type, 'object': object}
-        return render(request, 'paymentMethod.html', context)
+        return render(request, self.template_name, context)
 
 class DisplayAllPromoOptions(LoginRequiredMixin, View):
+    template_name = 'promoOptions.html'
+    redirect_results_template_name = 'DisplayAllCBCTestResult'
+    redirect_pdf_template_name = 'UploadPDF'
+    redirect_docx_template_name = 'UploadDocx'
+    redirect_image_template_name = 'UploadImage'
+    redirect_picture_template_name = 'CaptureImage'
+    user_model = User
+    promo_model = PromoOptions
+
     def get(self, request, type, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads <= 0 or type == 'pay':
-            object_list = PromoOptions.objects.all()
+            object_list = self.promo_model.objects.all()
             context = {'type': type, 'object_list': object_list}
-            return render(request, 'promoOptions.html', context)
+            return render(request, self.template_name, context)
         elif type == 'pdf':
-            return redirect('UploadPDF')
+            return redirect(self.redirect_pdf_template_name)
         elif type == 'docx':
-            return redirect('UploadDocx')
+            return redirect(self.redirect_docx_template_name)
         elif type == 'picture':
-            return redirect('CaptureImage')
+            return redirect(self.redirect_picture_template_name)
         elif type == 'image':
-            return redirect('UploadImage')
+            return redirect(self.redirect_image_template_name)
         else:
             messages.error(request, 'There was something wrong!')
-            return redirect('DisplayAllCBCTestResult')
+            return redirect(self.redirect_results_template_name)
 
 class UploadPDF(LoginRequiredMixin, View):
+    template_name = 'uploadCBCTestResult.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'DisplayAllPromoOptions'
+    error_message = 'You have no more uploads!'
+    success_message = 'Upload PDF Successful!'
+    user_model = User
+    pdf_model = CBCTestResultPDF
+
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads != 0:
             user.uploads = user.uploads - 1
             user.save()
-        object = CBCTestResultPDF()
+        object = self.pdf_model()
         object.testPDF = request.FILES.get('testPDF')
         object.save()
 
-        messages.success(request, 'Upload PDF Successful!')
+        messages.success(request, self.success_message)
 
-        return redirect('CreateCBCTestResult', type = 'pdf', pk = object.pk)
+        return redirect(self.redirect_create_template_name, type = 'pdf', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='pdf')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_promo_template_name, type='pdf')
             
         context = {'type': 'pdf'}
-        return render(request, 'uploadCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class UploadDocx(LoginRequiredMixin, View):
+    template_name = 'uploadCBCTestResult.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'DisplayAllPromoOptions'
+    error_message = 'You have no more uploads!'
+    success_message = 'Upload Docx Successful!'
+    user_model = User
+    docx_model = CBCTestResultDocx
+
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads != 0:
             user.uploads = user.uploads - 1
             user.save()
-        object = CBCTestResultDocx()
+        object = self.docx_model()
         object.testDocx = request.FILES.get('testDocx')
         object.save()
 
-        messages.success(request, 'Upload Docx Successful!')
+        messages.success(request, self.success_message)
 
-        return redirect('CreateCBCTestResult', type = 'docx', pk = object.pk)
+        return redirect(self.redirect_create_template_name, type = 'docx', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='docx')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_promo_template_name, type='docx')
 
         context = {'type': 'docx'}
-        return render(request, 'uploadCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class UploadImage(LoginRequiredMixin, View):
+    template_name = 'uploadCBCTestResult.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'DisplayAllPromoOptions'
+    error_message = 'You have no more uploads!'
+    success_message = 'Upload Image Successful!'
+    user_model = User
+    image_model = CBCTestResultImage
+
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads != 0:
             user.uploads = user.uploads - 1
             user.save()
-        object = CBCTestResultImage()
+        object = self.image_model()
         object.testImage = request.FILES.get('testImage')
         object.save()
 
-        messages.success(request, 'Upload Image Successful!')
+        messages.success(request, self.success_message)
 
-        return redirect('CreateCBCTestResult', type = 'image', pk = object.pk)
+        return redirect(self.redirect_create_template_name, type = 'image', pk = object.pk)
 
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='image')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_promo_template_name, type='image')
 
         context = {'type': 'image'}
-        return render(request, 'uploadCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class CaptureImage(LoginRequiredMixin, View):
+    template_name = 'captureImage.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'DisplayAllPromoOptions'
+    error_message = 'You have no more uploads!'
+    success_message = 'Capture Image Successful!'
+    user_model = User
+    image_model = CBCTestResultImage
+
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads != 0:
             user.uploads = user.uploads - 1
             user.save()
@@ -273,21 +337,19 @@ class CaptureImage(LoginRequiredMixin, View):
         name = str(image.name).split('\\')[-1]
         name += '.png' 
         image.name = name
-        obj = CBCTestResultImage.objects.create(testImage=image) 
+        obj = self.image_model.objects.create(testImage=image) 
         obj.save()
 
-        messages.success(request, 'Capture Image Successful!')
-        return redirect('CreateCBCTestResult', pk = obj.pk, type = 'picture')
+        messages.success(request, self.success_message)
+        return redirect(self.redirect_create_template_name, pk = obj.pk, type = 'picture')
     
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='picture')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_promo_template_name, type='picture')
 
-        return render(request, 'captureImage.html')
-
-
+        return render(request, self.template_name)
 
 class CreateCBCTestResult(LoginRequiredMixin, View):
     def post(self, request, type, pk, *args, **kwargs):
@@ -581,12 +643,19 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
 
 class UpdateCBCTestResult(LoginRequiredMixin, View):
+    template_name = 'updateCBCTestResult.html'
+    redirect_results_template_name = 'DisplayAllCBCTestResult'
+    redirect_result_template_name = 'DisplayCBCTestResult'
+    error_message = 'The record was not found.'
+    succes_message = 'Update CBC Test Result Successful!'
+    model = CBCTestResult
+
     def post(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResult.objects.get(id=pk)
+            object = self.model.objects.get(id=pk)
         except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_results_template_name)
 
         if object != None:
             object.whiteBloodCells = request.POST.get('whiteBloodCells')
@@ -612,36 +681,42 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
             object.absoluteBandCount = request.POST.get('absoluteBandCount')
             object.save()
 
-            messages.success(request, 'Update CBC Test Result Successful!')
-            return redirect('DisplayCBCTestResult', pk=pk)
+            messages.success(request, self.succes_message)
+            return redirect(self.redirect_result_template_name, pk=pk)
         elif object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_results_template_name)
             
 
         context = {'object': object}
-        return render(request, 'updateCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
     def get(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResult.objects.get(id=pk)
+            object = self.model.objects.get(id=pk)
         except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_results_template_name)
         
         if object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_results_template_name)
         context = {'object': object}
-        return render(request, 'updateCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class DeleteCBCTestResult(LoginRequiredMixin, View):
+    template_name = 'deleteCBCTestResult.html'
+    redirect_template_name = 'DisplayAllCBCTestResult'
+    error_message = 'The record was not found.'
+    success_message = 'Delete CBC Test Result Successful!'
+    model = CBCTestResult
+
     def post(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResult.objects.get(id=pk)
+            object = self.model.objects.get(id=pk)
         except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
 
         if object != None:
             object.delete()
@@ -653,229 +728,288 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
             elif object.testImage != None:
                 os.remove(str(object.testImage.testImage.url)[1:]) 
 
-            messages.success(request, 'Delete CBC Test Result Successful!')
+            messages.success(request, self.success_message)
 
-            return redirect('DisplayAllCBCTestResult')
+            return redirect(self.redirect_template_name)
         elif object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
 
         context = {'object': object, 'type': 'record'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
     def get(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResult.objects.get(id=pk)
+            object = self.model.objects.get(id=pk)
         except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
 
         if object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
 
         context = {'object': object, 'type': 'record'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class DeleteUploadedImage(LoginRequiredMixin, View):
+    template_name = 'deleteCBCTestResult.html'
+    redirect_adding_template_name = 'DisplayAddingOptions'
+    redirect_upload_template_name = 'UploadImage'
+    error_message = 'The image was not found.'
+    success_message = 'Delete Image Successful!'
+    image_model = CBCTestResultImage
+    user_model = User
+
     def post(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultImage.objects.get(id=pk)
+            object = self.image_model.objects.get(id=pk)
         except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
         
         if object != None:
             object.delete()
             os.remove(str(object.testImage.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
+            user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
 
-            messages.success(request, 'Delete Image Successful!')
+            messages.success(request, self.success_message)
 
-            return redirect('UploadImage')
+            return redirect(self.redirect_upload_template_name)
         elif object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
         
         context = {'object': object, 'type': 'image'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
     def get(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultImage.objects.get(id=pk)
+            object = self.image_model.objects.get(id=pk)
         except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         if object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
+
         context = {'object': object, 'type': 'image'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
     
 class DeleteCapturedImage(LoginRequiredMixin, View):
+    template_name = 'deleteCBCTestResult.html'
+    redirect_adding_template_name = 'DisplayAddingOptions'
+    redirect_upload_template_name = 'CaptureImage'
+    error_message = 'The image was not found.'
+    success_message = 'Delete Image Successful!'
+    image_model = CBCTestResultImage
+    user_model = User
+
     def post(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultImage.objects.get(id=pk)
+            object = self.image_model.objects.get(id=pk)
         except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         if object != None:
             object.delete()
             os.remove(str(object.testImage.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
+            user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
 
-            messages.success(request, 'Delete Image Successful!')
+            messages.success(request, self.success_message)
 
-            return redirect('CaptureImage')
+            return redirect(self.redirect_upload_template_name)
         elif object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
         
         context = {'object': object, 'type': 'picture'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
     def get(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultImage.objects.get(id=pk)
+            object = self.image_model.objects.get(id=pk)
         except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         if object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
+
         context = {'object': object, 'type': 'picture'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request,  self.template_name, context)
 
 class DeletePDF(LoginRequiredMixin, View):
+    template_name = 'deleteCBCTestResult.html'
+    redirect_adding_template_name = 'DisplayAddingOptions'
+    redirect_upload_template_name = 'UploadPDF'
+    error_message = 'The pdf was not found.'
+    success_message = 'Delete PDF Successful!'
+    pdf_model = CBCTestResultPDF
+    user_model = User
+
     def post(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultPDF.objects.get(id=pk)
+            object = self.pdf_model.objects.get(id=pk)
         except:
-            messages.error(request, 'The pdf was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         if object != None:
             object.delete()
             os.remove(str(object.testPDF.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
+            user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
 
-            messages.success(request, 'Delete PDF Successful!')
+            messages.success(request, self.success_message)
 
-            return redirect('UploadPDF')
+            return redirect(self.redirect_upload_template_name)
         elif object == None:
-            messages.error(request, 'The pdf was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         context = {'object': object, 'type': 'pdf'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
     def get(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultPDF.objects.get(id=pk)
+            object = self.pdf_model.objects.get(id=pk)
         except:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         if object == None:
-            messages.error(request, 'The pdf was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
+
         context = {'object': object, 'type': 'pdf'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class DeleteDocx(LoginRequiredMixin, View):
+    template_name = 'deleteCBCTestResult.html'
+    redirect_adding_template_name = 'DisplayAddingOptions'
+    redirect_upload_template_name = 'UploadDocx'
+    error_message = 'The document was not found.'
+    success_message = 'Delete Docx Successful!'
+    docx_model = CBCTestResultDocx
+    user_model = User
+
     def post(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultDocx.objects.get(id=pk)
+            object = self.docx_model.objects.get(id=pk)
         except:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         if object != None:
             object.delete()
             os.remove(str(object.testDocx.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
+            user = self.user_model.objects.get(id=request.user.id)
             user.uploads = user.uploads + 1
             user.save()
 
-            messages.success(request, 'Delete Docx Successful!')
+            messages.success(request, self.success_message)
 
-            return redirect('UploadDocx')
+            return redirect(self.redirect_upload_template_name)
         elif object == None:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
         
         context = {'object': object, 'type': 'docx'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
     def get(self, request, pk, *args, **kwargs):
         try:
             object = CBCTestResultDocx.objects.get(id=pk)
         except:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
 
         if object == None:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_adding_template_name)
+
         context = {'object': object, 'type': 'docx'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return render(request, self.template_name, context)
 
 class ShowRoom(LoginRequiredMixin, View):
+    redirect_contacts_template_name = 'contacts'
+    redirect_chat_template_name = 'newChat'
+    model = User
+
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.model.objects.get(id=request.user.id)
         if user.is_superuser:
-            return redirect('contacts')
+            return redirect(self.redirect_contacts_template_name)
         else:
-            return redirect('newChat')
+            return redirect(self.redirect_chat_template_name)
 
 class NewChat(LoginRequiredMixin, View):
+    template_name = 'newChat.html'
+    redirect_template_name = 'chatbox'
+    user_model = User
+    room_model = Room
+
     def get(self, request, *args, **kwargs):
-        return render(request, 'newChat.html')
+        return render(request, self.template_name)
 
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.room_set.first():
             room = user.room_set.first()
-            return redirect('chatbox', pk =room.id)
+            return redirect(self.redirect_template_name, pk =room.id)
         else:
-            new_room = Room.objects.create(owner=user)
+            new_room = self.room_model.objects.create(owner=user)
             new_room.save()
-            return redirect('chatbox', pk =new_room.id)
+            return redirect(self.redirect_template_name, pk =new_room.id)
 
 class ChatBox(LoginRequiredMixin, View):
+    template_name = 'chatbox.html'
+    redirect_template_name = 'showRoom'
+    error_message = 'Something went wrong.'
+    user_model = User
+    room_model = Room
+
     def get(self, request, pk,  *args, **kwargs):
         try:
-            room_details = Room.objects.get(id=pk)
-            user = User.objects.get(id=request.user.id)
+            room_details = self.room_model.objects.get(id=pk)
+            user = self.user_model.objects.get(id=request.user.id)
             room_details.message_set.filter(~Q(user__username=user.username)&Q(read=False)).update(read=True)
-            return render(request, 'chatbox.html', {
+            return render(request, self.template_name, {
                 'room_details': room_details
             })
         except:
-            messages.error(request, 'Something went wrong.')
-            return redirect('showRoom')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
 
 class Contacts(LoginRequiredMixin, View):
+    template_name = 'contacts.html'
+    user_model = User
+    room_model = Room
+
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        rooms = Room.objects.filter(~Q(owner__username=user.username))
-        return render(request, 'contacts.html', {'rooms': rooms})
+        user = self.user_model.objects.get(id=request.user.id)
+        rooms = self.room_model.objects.filter(~Q(owner__username=user.username))
+        return render(request, self.template_name, {'rooms': rooms})
 
 class GetContactNotifications(LoginRequiredMixin, View):
+    user_model = User
+    room_model = Room
+    admin_name = 'admin'
+
     def get(self, request, *args, **kwargs):
         context = {}
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         if user.is_superuser:
-            rooms = Room.objects.filter(~Q(owner__username=user.username))
+            rooms = self.room_model.objects.filter(~Q(owner__username=user.username))
             i = 0
             for room in rooms:
                 count = room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).count()
@@ -885,35 +1019,49 @@ class GetContactNotifications(LoginRequiredMixin, View):
             if user.room_set.first():
                 room = user.room_set.first()
                 count = room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).count()
-                context['0'] = ['admin', count]
+                context['0'] = [self.admin_name, count]
 
         return JsonResponse({"messages":context})      
 
 class Send(LoginRequiredMixin, View):
+    user_model = User
+    room_model = Room
+    message_model = Message
+
     def post(self, request, *args, **kwargs):
         message = request.POST.get('message')
-        user = User.objects.get(id=request.user.id)
+        user = self.user_model.objects.get(id=request.user.id)
         room_id = request.POST.get('room_id')
-        room = Room.objects.get(id=room_id)
-        new_message = Message.objects.create(value=message, user=user, room=room)
+        room = self.room_model.objects.get(id=room_id)
+        new_message = self.message_model.objects.create(value=message, user=user, room=room)
         new_message.save()
         
         return HttpResponse('Message sent successfully')
 
 class GetMessages(LoginRequiredMixin, View):
+    redirect_template_name = 'showRoom'
+    error_message = 'Something went wrong.'
+    user_model = User
+    room_model = Room
+
     def get(self, request, pk, *args, **kwargs):
         try:
-            room = Room.objects.get(id=pk)
+            room = self.room_model.objects.get(id=pk)
             messages = room.message_set.all()
-            user = User.objects.get(id=request.user.id)
+            user = self.user_model.objects.get(id=request.user.id)
             room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).update(read=True)
             username = user.username
         except:
-            messages.error(request, 'Something went wrong.')
-            return redirect('showRoom')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
         return JsonResponse({"messages":list(messages.values('user__username', 'value', 'date', 'read', 'id')), "username": username})
 
 class DeleteMessage(LoginRequiredMixin, View):
+    redirect_chat_template_name = 'chatbox'
+    redirect_room_template_name = 'showRoom'
+    error_message = 'Something went wrong.'
+    message_model = Message
+    
     def get(self, request, pk, *args, **kwargs):
         try:
             message = Message.objects.get(id=pk)
@@ -921,10 +1069,10 @@ class DeleteMessage(LoginRequiredMixin, View):
             if message.user.id == request.user.id:
                 message.delete()
             
-            return redirect('chatbox', pk =message.room.id)
+            return redirect(self.redirect_chat_template_name, pk =message.room.id)
         except:
-            messages.error(request, 'Something went wrong.')
-            return redirect('showRoom')
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_room_template_name)
         
         
 

@@ -111,6 +111,10 @@ class PromoOptions(models.Model):
 class Payments(models.Model):
     promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    date = models.DateTimeField(default=datetime.now, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('DisplayAllCBCTestResult')
     
 class CBCTestResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
@@ -150,11 +154,17 @@ class CBCTestResult(models.Model):
 class Room(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
+    def get_absolute_url(self):
+        return reverse('DisplayAllCBCTestResult')
+
 class Message(models.Model):
     value = models.CharField(max_length=1000000)
     date = models.DateTimeField(default=datetime.now, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, blank=True, null=True)
     read = models.BooleanField(default=False)
+
+    def get_absolute_url(self):
+        return reverse('chatbox', kwargs={'pk': str(self.room.id)})
 
 # Marc John Corral
