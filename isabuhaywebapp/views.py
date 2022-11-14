@@ -19,6 +19,7 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from IsabuhayWebsite import settings
+from datetime import date
 import json
 import os
 from django.http import JsonResponse
@@ -37,11 +38,18 @@ class CreateAccountPage(CreateView):
     template_name = 'createAccountPage.html'
     success_url = reverse_lazy('DisplayLoginPage')
 
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        # Add in a QuerySet of all the books
+        context['date_today'] = datetime.strftime(date.today(), "%Y-%m-%d")
+        return context
+
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
         return super().get(request, *args, **kwargs)
-
+        
 class DisplayLoginPage(LoginView):
     template_name = 'loginPage.html'
     next_page = 'DisplayClientSide'

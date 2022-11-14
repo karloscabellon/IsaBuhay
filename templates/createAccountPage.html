@@ -95,7 +95,6 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-
       <div class="row">
         <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
 
@@ -215,6 +214,8 @@ https://templatemo.com/tm-570-chain-app-dev
               {{form.is_admin}}
               {{form.is_active}}
               {{form.is_staff}}
+              {{form.is_superuser}}
+              <input type="date" name="{{form.date_created.name}}" value="{{date_today}}">
             </fieldset>
           </form>
         </div>
