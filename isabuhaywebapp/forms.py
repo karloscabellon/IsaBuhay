@@ -30,7 +30,8 @@ class CustomUserCreationForm(cforms.UserCreationForm):
             'is_admin',
             'is_active',
             'is_staff',
-            'is_superuser'
+            'is_superuser',
+            'date_created'
         ]
 
     def __init__(self, *args, **kwargs):
