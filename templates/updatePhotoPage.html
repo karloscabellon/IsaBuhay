@@ -97,11 +97,12 @@ https://templatemo.com/tm-570-chain-app-dev
                   <h4>{{user.firstname}} {{user.lastname}}</h4>
                   <br>
                   
-                  <form action="" method="POST">
+                  <form action="" method="POST" enctype='multipart/form-data'>
                     {% csrf_token %}
                     <table style="width: 100%; text-align: left;">
                         <td>
-                            <input type="file" name="testImage" accept="image/*" required>
+                          <input type="file" name="{{form.profile_picture.name}}" accept="image/*" required>
+                        </td>
                     </table>
                     <br>
                     <input type="submit" class="btn btn-outline-primary" name="changePhotoBtn" value="Change Photo">
