@@ -63,20 +63,6 @@ https://templatemo.com/tm-570-chain-app-dev
                 <img src="{% static 'assets/images/logo.png' %}" alt="Chain App Dev" w>
               </a>
               <!-- ***** Logo End ***** -->
-              <!-- ***** Menu Start ***** -->
-              <ul class="nav">
-                <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
-                <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-                <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
-                <li class="scroll-to-section"><a href="#">Pay</a></li>
-                <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}" class="active">Account</a></li>
-                <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-                <li></li>
-              </ul>        
-              <a class='menu-trigger'>
-                  <span>Menu</span>
-              </a>
-              <!-- ***** Menu End ***** -->
             </nav>
           </div>
         </div>
@@ -118,7 +104,7 @@ https://templatemo.com/tm-570-chain-app-dev
                             <input type="file" name="testImage" accept="image/*" required>
                     </table>
                     <br>
-                    <input type="submit" class="btn btn-outline-primary" value="Change Photo">
+                    <input type="submit" class="btn btn-outline-primary" name="changePhotoBtn" value="Change Photo">
                     <br>
                     <a href="{% url 'UpdateAccountPage' %}">Go Back</a>
                     {{form.errors}}

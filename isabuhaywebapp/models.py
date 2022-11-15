@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.urls import reverse
 from django.db import models
+from datetime import date
 from django.core.validators import MinValueValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from traitlets import default
@@ -21,6 +22,7 @@ class UserManager(BaseUserManager):
             lastname = lastname,
             phone_number = phone_number
         )
+        user.date_created = date.today()
         user.set_password(password)
         user.save()
         return user
@@ -36,6 +38,7 @@ class UserManager(BaseUserManager):
         user.is_admin = True
         user.is_superuser = True
         user.is_staff = True
+        user.date_created = date.today()
         user.set_password(password)
         user.save()
         return user
@@ -57,6 +60,7 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    date_created = models.DateTimeField(verbose_name="date created", blank=True, null=True)
 
     uploads = models.IntegerField(verbose_name="uploads",blank=False, null=False, default=5)
 
