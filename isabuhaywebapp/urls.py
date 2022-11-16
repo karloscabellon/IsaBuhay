@@ -8,6 +8,8 @@ urlpatterns = [
     path('adminuserlist/', DisplayAllUsers.as_view(), name='DisplayAllUsers'),
     path('adminmonthlyusers/', DisplayUsersMonthly.as_view(), name='DisplayUsersMonthly'),
     path('', DisplayLandingPage.as_view(), name='DisplayLandingPage'),
+    
+    path('analytics/', DisplayAnalytics.as_view(), name='DisplayAnalytics'),
     path('clientSide/', DisplayClientSide.as_view(), name='DisplayClientSide'),
     path('register/', CreateAccountPage.as_view(), name='CreateAccountPage'),
     path('login/', DisplayLoginPage.as_view(), name='DisplayLoginPage'),
