@@ -25,6 +25,32 @@ import os
 from django.http import JsonResponse
 from django.contrib import messages
 
+class DisplayAdminPage(LoginRequiredMixin, TemplateView):
+    template_name = 'displayAdminPage.html'
+
+class DisplayRevenueMonth(LoginRequiredMixin, View):
+    def get(self, request):
+        payments = User.objects.all()
+        return render(request, 'displayRevenueMonth.html',{'payments': payments} )
+
+class DisplayPaymentList(LoginRequiredMixin, View):
+    def get(self, request,):
+        object = Payments.objects.all()
+        context = {
+            'object': object,
+        }
+        return render(request, 'displayPaymentList.html', context)
+     
+class DisplayAllUsers(LoginRequiredMixin, View):
+    def get(self, request):
+        users = User.objects.all()
+        return render(request, 'displayAllUsers.html',{'users': users} )
+        
+class DisplayUsersMonthly(LoginRequiredMixin, View):
+    def get(self, request):
+        users = User.objects.all()
+        return render(request, 'displayUsersMonthly.html',{'users': users} )
+        
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
 
