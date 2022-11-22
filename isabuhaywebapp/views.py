@@ -19,6 +19,8 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from IsabuhayWebsite import settings
+from isabuhaywebapp.models import User
+from django.contrib import messages
 from datetime import date
 import json
 import os
@@ -56,7 +58,7 @@ class DisplayLandingPage(TemplateView):
 
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return HttpResponseRedirect(reverse_lazy('DisplayClientSide'))
+            return HttpResponseRedirect(reverse_lazy('DisplayClientSide'), )
         return super().get(request, *args, **kwargs)
 
 class CreateAccountPage(CreateView):
@@ -67,7 +69,6 @@ class CreateAccountPage(CreateView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
         context['date_today'] = datetime.strftime(date.today(), "%Y-%m-%d")
         return context
 
@@ -93,6 +94,13 @@ class LogoutView(LoginRequiredMixin, View):
 
 class PasswordResetPage(aviews.PasswordResetView):
     template_name = 'resetPassword.html'
+
+    def post(self, request, *args, **kwargs):
+        user = User.objects.all().filter(email=request.POST['email'])
+        if len(user) == 0:
+            messages.error(request, "The email you entered is not associated with any account.")
+            return HttpResponseRedirect(reverse_lazy('reset_password'))
+        return super().post(request, *args, **kwargs)
 
 class PasswordResetEmailSentPage(aviews.PasswordResetDoneView):
     template_name = 'resetPasswordSent.html'
