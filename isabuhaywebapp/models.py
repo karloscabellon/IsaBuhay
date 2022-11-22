@@ -114,6 +114,7 @@ class PromoOptions(models.Model):
 class Payments(models.Model):
     promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    date_created = models.DateTimeField(verbose_name="date created", blank=True, null=True)
     
 class CBCTestResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
