@@ -22,6 +22,7 @@ from IsabuhayWebsite import settings
 from isabuhaywebapp.models import User
 from django.contrib import messages
 from datetime import date
+from isabuhaywebapp.models import CBCTestResult
 import json
 import os
 from django.http import JsonResponse
@@ -119,6 +120,14 @@ class DisplayAccountPage(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+
+        CBCList = self.request.user.cbctestresult_set.all().order_by('dateRequested').values()
+        if len(CBCList) > 0:
+            latestCBC = CBCList[len(CBCList)-1]
+            context['latestCBC'] = datetime.strftime(latestCBC.get('dateRequested'), "%Y-%m-%d")
+        else:
+            context['latestCBC'] = 'None'
+            
         self.request.user.birthdate = None if self.request.user.birthdate is None else datetime.strftime(self.request.user.birthdate, "%Y-%m-%d")
         return self.render_to_response(context)
 
@@ -128,6 +137,18 @@ class UpdateAccountPage(LoginRequiredMixin, UpdateView):
     model = User
     form_class = UpdateAccountForm
     success_url = reverse_lazy('DisplayAccountPage')
+
+    def get_context_data(self, **kwargs):
+            # Call the base implementation first to get a context
+            context = super().get_context_data(**kwargs)
+            # Add in a QuerySet of all the books
+            CBCList = self.request.user.cbctestresult_set.all().order_by('dateRequested').values()
+            if len(CBCList) > 0:
+                latestCBC = CBCList[len(CBCList)-1]
+                context['latestCBC'] = datetime.strftime(latestCBC.get('dateRequested'), "%Y-%m-%d")
+            else:
+                context['latestCBC'] = 'None'
+            return context
 
     def get_object(self, queryset = None):
         userObject = self.request.user
