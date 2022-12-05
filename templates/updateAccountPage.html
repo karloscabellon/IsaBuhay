@@ -28,9 +28,10 @@ https://templatemo.com/tm-570-chain-app-dev
 
     <!-- Additional CSS Files -->
     <link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/jeff_custom.css' %}">
 
@@ -68,7 +69,8 @@ https://templatemo.com/tm-570-chain-app-dev
                 <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
                 <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
                 <li class="scroll-to-section"><a href="#">Pay</a></li>
-                <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}" class="active">Account</a></li>
+                <li class="scroll-to-section"><a href="#" class="active">Account</a></li>
+                <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
                 <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
                 <li></li>
               </ul>        
@@ -96,7 +98,7 @@ https://templatemo.com/tm-570-chain-app-dev
         <!-- SOMETHING HERE -->
         
         <div class="row">
-
+  
           <div class="col-lg-3 wow slideInLeft">
             <div class="card-body align-items-center text-center" style="background-color: white; box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.1); z-index: 10; border-top-left-radius: 50px; border-bottom-left-radius: 50px; height: 500px;">
               <br> 
@@ -169,7 +171,7 @@ https://templatemo.com/tm-570-chain-app-dev
                             <td>Last CBC: </td>
                             <td><input type="text" value="{{latestCBC}}" style="color:grey ;" readonly></td>
                           </tr>
-
+  
                         </table>
                   {{form.errors}}
                   </div>
@@ -200,11 +202,12 @@ https://templatemo.com/tm-570-chain-app-dev
               </div>
             </form> 
           </div>
-
+  
         </div>
-
+  
       </div>
     </div>
+
 
   <!-- Scripts -->
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
@@ -214,5 +217,8 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 </body>
 </html>
