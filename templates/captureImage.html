@@ -18,11 +18,8 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
 <!--
-
 TemplateMo 570 Chain App Dev
-
 https://templatemo.com/tm-570-chain-app-dev
-
 -->
 
     <!-- Additional CSS Files -->
@@ -48,6 +45,7 @@ https://templatemo.com/tm-570-chain-app-dev
     </style>
 
   </head>
+
 
 <body>
 
@@ -79,11 +77,12 @@ https://templatemo.com/tm-570-chain-app-dev
             <ul class="nav">
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
+              <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>          
+            </ul>             
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -104,9 +103,10 @@ https://templatemo.com/tm-570-chain-app-dev
           <div class="section-heading show-up header-text  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
             <h4>Capture <em>Image</em></h4>
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            <p><a href="{% url 'DisplayAddingOptions' %}">Go Back to Previous Page</a></p>
+            <p><a href="{% url 'DisplayAddingOptions' %}">Go Back To Adding Options</a></p>
             <p>Want to use your phone to take the picture? Click <a href="https://www.youtube.com/watch?v=J7iXt9fLI2U&t=222s" target="_blank">Here</a> To Know How</p>
             <br>
+            <h5>Choose Camera</h5>
             <select id="select">
               <option></option>
             </select>
@@ -123,7 +123,7 @@ https://templatemo.com/tm-570-chain-app-dev
             <div class="row">
               <div class="col-lg-6 wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.5s">
                 <div style="height: 480px; width: 640; background-color: grey; border-radius: 25px; position: relative; top: auto;">
-                    <video id="video" style="background-color: green; width: 100%; height: 100%; border-radius: 25px;" autoplay>Video stream not available.</video>
+                    <video id="video" style="background-color: #00abf0; width: 100%; height: 100%; border-radius: 25px;" autoplay>Video stream not available.</video>
                 </div>
                 <br>
                 <button id="takepicture">Take photo</button>
@@ -132,7 +132,7 @@ https://templatemo.com/tm-570-chain-app-dev
               </div>
               <div class="col-lg-6 wow fadeInRight" data-wow-duration="1s" data-wow-delay="0.5s">
                 <div>
-                  <canvas id="canvas" width="640" height="480" style="background-color: green; border-radius: 25px;"></canvas>
+                  <canvas id="canvas" width="640" height="480" style="background-color: #00abf0; border-radius: 25px;"></canvas>
                 </div>
                 <br>
                 <form method="POST" action="." id="msform" enctype='multipart/form-data'>
@@ -147,38 +147,46 @@ https://templatemo.com/tm-570-chain-app-dev
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="{% static 'jquery/jquery.js' %}"></script>
-  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
-  <script src="{% static 'assets/js/animation.js' %}"></script>
-  <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
-  <script src="{% static 'assets/js/popup.js' %}"></script>
-  <script src="{% static 'assets/js/custom.js' %}"></script>
+ <!-- Scripts -->
+ <script src="{% static 'jquery/jquery.js' %}"></script>
+ <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+ <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+ <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
+ <script src="{% static 'assets/js/animation.js' %}"></script>
+ <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
+ <script src="{% static 'assets/js/popup.js' %}"></script>
+ <script src="{% static 'assets/js/custom.js' %}"></script>
 
   <script>
     setTimeout(function(){
-      if ($('#msg').length > 0) {
-        $('#msg').remove();
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
       }
     }, 3000)
 
+    function preventBack() {
+        window.history.forward(); 
+    }
+      
+    setTimeout("preventBack()", 0);
+      
+    window.onunload = function () { null };
+
     var isSubmitting = false
-    var hasValues = false
     $(document).ready(function () {
-        $('#msform').submit(function(){
+        $('#msform').submit(function(e){
             isSubmitting = true
+
+            if (isSubmitting &&  $('#webimg').val() == ""){
+              e.preventDefault(); //Prevents the form to be sent
+              alert('Please take a picture.')
+            }
         })
 
-        $('#msform input').each(function(){
-            if( $(this).val() ) {
-              hasValues = true
-            }
-        });
+        
 
         $(window).on('beforeunload', function() {
-            if (!isSubmitting &&  hasValues){
+            if (!isSubmitting &&  $('#webimg').val() != ""){
                 return 'You have unsaved changes which will not be saved.'
             }
         });

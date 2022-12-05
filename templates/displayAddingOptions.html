@@ -18,11 +18,8 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
 <!--
-
 TemplateMo 570 Chain App Dev
-
 https://templatemo.com/tm-570-chain-app-dev
-
 -->
 
     <!-- Additional CSS Files -->
@@ -82,8 +79,9 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>          
+            </ul>             
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -103,7 +101,8 @@ https://templatemo.com/tm-570-chain-app-dev
           <div class="section-heading show-up header-text">
             <h4>CBC Test Result <em>Adding Options</em></h4>
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            <p>Choose the adding option most appropriate for you. You only have {{object.uploads}} available upload/s.</p>
+            <p>Choose the adding option most appropriate for you. You only have {{user.uploads}} available upload/s.</p>
+            <p>Click <a href="https://drive.google.com/file/d/1wfdNdMxwtBAJ524oAN5qjKAYRsYHb-gS/view?usp=sharing" target="_blank">Here</a> to see a sample of the CBC Test Result.</p>
           </div>
           <div class="row">
             <div class="col-lg-6">
@@ -132,7 +131,7 @@ https://templatemo.com/tm-570-chain-app-dev
             </div>
             <div class="col-lg-12">
               <p>Not finding what you need?</p>
-              <div class="gradient-button">
+              <div class="gradient-button" style="cursor: auto;">
                 <a href="{% url 'DisplayAllCBCTestResult' %}">Go Back</a>
               </div>
             </div>
@@ -155,7 +154,6 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
-
   <script>
     setTimeout(function(){
       if ($('#msg').length > 0) {

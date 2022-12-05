@@ -18,11 +18,8 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
 <!--
-
 TemplateMo 570 Chain App Dev
-
 https://templatemo.com/tm-570-chain-app-dev
-
 -->
 
     <!-- Additional CSS Files -->
@@ -81,11 +78,12 @@ https://templatemo.com/tm-570-chain-app-dev
             <ul class="nav">
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
+              <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>        
+            </ul>             
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -99,7 +97,6 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-      {% include 'messages.html' %}
       <div class="row">
         <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
 
@@ -158,17 +155,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <script>
     function redirectBack(){
-      if ('{{type}}' === 'image') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'image' object.pk %}"
-        } else if ('{{type}}' === 'picture') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'picture' object.pk %}"
-        } else if ('{{type}}' === 'pdf') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'pdf' object.pk %}"
-        } else if ('{{type}}' === 'docx') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'docx' object.pk %}"
-        } else if ('{{type}}' === 'record') {
-          window.location.href = "{% url 'DisplayCBCTestResult' object.pk %}"
-        } 
+        history.back()
       }
 </script>
 </body>

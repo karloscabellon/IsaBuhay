@@ -11,28 +11,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
-
-    {% if type == 'docx' %}
-    <title>Isabuhay - Upload Docx</title>
-    {% elif type ==  'pdf' %}
-    <title>Isabuhay - Upload PDF</title>
-    {% elif type == 'image' %}
-    <title>Isabuhay - Upload Image</title>
-    {% endif %}
+    <title>Isabuhay - Adding Options</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-
 <!--
+
 TemplateMo 570 Chain App Dev
+
 https://templatemo.com/tm-570-chain-app-dev
+
 -->
 
-    <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
+     <!-- Additional CSS Files -->
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+     <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
+     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
+     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
+ 
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/jeff_custom.css' %}">
@@ -87,9 +83,9 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
-              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}" class="active">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>             
+            </ul>               
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -103,47 +99,23 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-      {% include 'messages.html' %}
       <div class="row">
         <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
 
           <div class="section-heading" data-wow-duration="1s" data-wow-delay="0.5s" style="text-align: center;">
-            {% if type == 'docx' %}
-              <h4>Upload <em>Docx</em></h4>  
-            {% elif type ==  'pdf' %}
-              <h4>Upload <em>PDF</em></h4>
-            {% elif type == 'image' %}
-              <h4>Upload <em>Image</em></h4>
-            {% endif %}
+              <h4>Isabuhay <em>ChatBox</em></h4>
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            
           </div>
-          <form id="msform" action="." method="POST" enctype='multipart/form-data'>
+          <form id="msform" action="" method="POST">
             {% csrf_token %}
             <fieldset>
-              <h2 class="fs-title">Data to Extract</h2>
-              {% if type == 'docx' %}
-              <h3 class="fs-subtitle">Want to upload a Docx?</h3>
-            {% elif type ==  'pdf' %}
-            <h3 class="fs-subtitle">Want to upload a PDF?</h3>
-            {% elif type == 'image' %}
-            <h3 class="fs-subtitle">Want to upload a Image?</h3>
-            {% endif %}
-              <table style="width: 100%;">
-                <tr><td>
-                  {% if type == 'docx' %}
-                  <input type="file" id="newfile" name="testDocx" accept=".doc, .docx" required>
-                  {% elif type ==  'pdf' %}
-                  <input type="file" id="newfile" name="testPDF" accept=".pdf" required>
-                  {% elif type == 'image' %}
-                  <input type="file" id="newfile" name="testImage" accept="image/*" required>
-                  {% endif %}
-                </td></tr>
-              </table>
+              <h2 class="fs-title">Messages</h2>
+            <h3 class="fs-subtitle" id="display"></h3>
             <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
-                  <input type="submit" class="action-button"  value="Upload"/>
+            <input type="submit" class="action-button"  value="Enter"/>
             </fieldset>
-            </form>
+                  
+        </form>
         </div>
         <div class="col-lg-6">
           <div class="right-image">
@@ -155,7 +127,6 @@ https://templatemo.com/tm-570-chain-app-dev
   </div>
 
   <!-- Scripts -->
-  <script src="{% static 'jquery/jquery.js' %}"></script>
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -164,38 +135,38 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
 
-
+  
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
   <script>
-    setTimeout(function(){
-      if ($('.alert').length > 0) {
-        $('.alert').remove();
-      }
-    }, 3000)
-    
     function redirectBack(){
-      window.location.href = "{% url 'DisplayAddingOptions' %}"
-    }
+      window.history.back();
+      }
 
-    function preventBack() {
-        window.history.forward(); 
-    }
-      
-    setTimeout("preventBack()", 0);
-      
-    window.onunload = function () { null };
-
-    var isSubmitting = false
-    $(document).ready(function () {
-        $('#msform').submit(function(){
-            isSubmitting = true
-        })
-
-        $(window).on('beforeunload', function() {
-            if (!isSubmitting &&  $('#newfile')[0].files.length !== 0){
-                return 'You have unsaved changes which will not be saved.'
-            }
-        });
-    })
-  </script> 
+      $(document).ready(function(){
+  
+  setInterval(function(){
+      $.ajax({
+          type: 'GET',
+          url : "/getContactNotifications",
+          success: function(response){
+              console.log(response);
+              $("#display").empty();
+              for (var key in response.messages)
+              {
+                str1 = "<span>You have"
+                str2 = str1.concat(' ', response.messages[key][1])
+                str3 = str2.concat(' ', "unseen messages from")
+                str4 = str3.concat(' ', response.messages[key][0])
+                temp = str4.concat(' ', "</span>")
+                $("#display").append(temp);
+              }
+          },
+          error: function(response){
+              alert('An error occured')
+          }
+      });
+  },1000);
+  })
+</script>
 </body>
 </html>
