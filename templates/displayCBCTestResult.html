@@ -1,4 +1,3 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -20,15 +19,12 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
 <!--
-
 TemplateMo 570 Chain App Dev
-
 https://templatemo.com/tm-570-chain-app-dev
-
 -->
 
      <!-- Additional CSS Files -->
-     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+     <link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
      <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
      <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
      <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
@@ -65,11 +61,12 @@ https://templatemo.com/tm-570-chain-app-dev
             <ul class="nav">
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
+              <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>        
+            </ul>             
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -294,10 +291,10 @@ https://templatemo.com/tm-570-chain-app-dev
                       <div class="thumb">
                         <div class="row">
                           <div class="col-lg-4 col-sm-4 col-12">
-                            <h8>Segmenters/Neutrophils</h8>
+                            <h8>Neutrophils</h8>
                           </div>
                           <div class="col-lg-4 col-sm-4 d-none d-sm-block">
-                            <span class="category">{{ object.segmenters }}<br></span>
+                            <span class="category">{{ object.neutrophils }}<br></span>
                             <span class="date" style="font-size: 13px;">%</span>
                           </div>
                           <div class="col-lg-4 col-sm-4 col-12">
@@ -400,10 +397,10 @@ https://templatemo.com/tm-570-chain-app-dev
                       <div class="thumb">
                         <div class="row">
                           <div class="col-lg-4 col-sm-4 col-12">
-                            <h8>Absolute Seg/Neutro Count</h8>
+                            <h8>Absolute Neutrophils Count</h8>
                           </div>
                           <div class="col-lg-4 col-sm-4 d-none d-sm-block">
-                            <span class="category">{{ object.absoluteSeg }}<br></span>
+                            <span class="category">{{ object.absoluteNeutrophilsCount }}<br></span>
                             <span class="date" style="font-size: 13px;">10^9L</span>
                           </div>
                           <div class="col-lg-4 col-sm-4 col-12">
@@ -537,11 +534,11 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
-
+  
   <script>
     setTimeout(function(){
-      if ($('#msg').length > 0) {
-        $('#msg').remove();
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
       }
     }, 3000)
   </script> 

@@ -18,15 +18,12 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
 <!--
-
 TemplateMo 570 Chain App Dev
-
 https://templatemo.com/tm-570-chain-app-dev
-
 -->
 
     <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
@@ -87,11 +84,12 @@ https://templatemo.com/tm-570-chain-app-dev
             <ul class="nav">
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
+              <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>        
+            </ul>             
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -185,8 +183,8 @@ https://templatemo.com/tm-570-chain-app-dev
                   </tr>
                   <tr>
                     <td>
-                      <label>SEGMENTERS:</label>
-                      <input type="number"  name="segmenters" min=0 step="any" required  value="{{segmenters}}" >
+                      <label>NEUT:</label>
+                      <input type="number"  name="neutrophils" min=0 step="any" required  value="{{neutrophils}}" >
                     </td>
                     <td>
                       <label>LYMPH:</label>
@@ -213,8 +211,8 @@ https://templatemo.com/tm-570-chain-app-dev
                   </tr>
                   <tr>
                     <td>
-                      <label>ABS SEGMENTERS:</label>
-                      <input type="number"  name="absoluteSeg" min=0 step="any" required  value="{{absoluteSeg}}" >
+                      <label>ABS NEUT:</label>
+                      <input type="number"  name="absoluteNeutrophilsCount" min=0 step="any" required  value="{{absoluteNeutrophilsCount}}" >
                     </td>
                     <td>
                       <label>ABS LYMPH:</label>
@@ -258,30 +256,30 @@ https://templatemo.com/tm-570-chain-app-dev
   </div>
   <!-- Custom Scripts -->
 
-  <!-- Scripts -->
-  <script src="{% static 'jquery/jquery.js' %}"></script>
-  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
-  <script src="{% static 'assets/js/animation.js' %}"></script>
-  <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
-  <script src="{% static 'assets/js/popup.js' %}"></script>
-  <script src="{% static 'assets/js/custom.js' %}"></script>
-  <script src="{% static 'js/jeff_custom.js' %}"></script>
-  <script src="{% static 'js/form_animation.js' %}"></script>
+   <!-- Scripts -->
+   <script src="{% static 'jquery/jquery.js' %}"></script>
+   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
+   <script src="{% static 'assets/js/animation.js' %}"></script>
+   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
+   <script src="{% static 'assets/js/popup.js' %}"></script>
+   <script src="{% static 'assets/js/custom.js' %}"></script>
+   <script src="{% static 'js/jeff_custom.js' %}"></script>
+   <script src="{% static 'js/form_animation.js' %}"></script>
 
   <script>
     setTimeout(function(){
-      if ($('#msg').length > 0) {
-        $('#msg').remove();
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
       }
     }, 3000)
 
     function redirectBack(){
       if ('{{type}}' === 'image') {
-          window.location.href = "{% url 'DeleteUploadedImage' object.pk %}"
+          window.location.href = "{% url 'DeleteUploadedImage' 'image' object.pk %}"
         } else if ('{{type}}' === 'picture') {
-          window.location.href = "{% url 'DeleteCapturedImage' object.pk %}"
+          window.location.href = "{% url 'DeleteUploadedImage' 'picture' object.pk %}"
         } else if ('{{type}}' === 'pdf') {
           window.location.href = "{% url 'DeletePDF' object.pk %}"
         } else if ('{{type}}' === 'docx') {

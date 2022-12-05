@@ -24,15 +24,11 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
 <!--
-
 TemplateMo 570 Chain App Dev
-
 https://templatemo.com/tm-570-chain-app-dev
-
 -->
 
-    <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <!-- Additional CSS Files --><link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
@@ -87,11 +83,12 @@ https://templatemo.com/tm-570-chain-app-dev
             <ul class="nav">
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
+              <li class="scroll-to-section"><a href="#">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>         
+            </ul>             
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -134,11 +131,11 @@ https://templatemo.com/tm-570-chain-app-dev
               <table style="width: 100%;">
                 <tr><td>
                   {% if type == 'docx' %}
-                  <input type="file" name="testDocx" accept=".doc, .docx" required>
+                  <input type="file" id="newfile" name="testDocx" accept=".doc, .docx" required>
                   {% elif type ==  'pdf' %}
-                  <input type="file" name="testPDF" accept=".pdf" required>
+                  <input type="file" id="newfile" name="testPDF" accept=".pdf" required>
                   {% elif type == 'image' %}
-                  <input type="file" name="testImage" accept="image/*" required>
+                  <input type="file" id="newfile" name="testImage" accept="image/*" required>
                   {% endif %}
                 </td></tr>
               </table>
@@ -166,10 +163,11 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
 
+
   <script>
     setTimeout(function(){
-      if ($('#msg').length > 0) {
-        $('#msg').remove();
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
       }
     }, 3000)
     
@@ -177,21 +175,22 @@ https://templatemo.com/tm-570-chain-app-dev
       window.location.href = "{% url 'DisplayAddingOptions' %}"
     }
 
+    function preventBack() {
+        window.history.forward(); 
+    }
+      
+    setTimeout("preventBack()", 0);
+      
+    window.onunload = function () { null };
+
     var isSubmitting = false
-    var hasValues = false
     $(document).ready(function () {
         $('#msform').submit(function(){
             isSubmitting = true
         })
 
-        $('#msform input').each(function(){
-            if( $(this).val() ) {
-              hasValues = true
-            }
-        });
-
         $(window).on('beforeunload', function() {
-            if (!isSubmitting &&  hasValues){
+            if (!isSubmitting &&  $('#newfile')[0].files.length !== 0){
                 return 'You have unsaved changes which will not be saved.'
             }
         });
