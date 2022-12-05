@@ -1,11 +1,7 @@
-https://pypi.org/project/virtualenv/
-https://pypi.org/project/docx2txt/
-https://pypi.org/project/PyPDF4/
-https://pypi.org/project/opencv-python/
-
-https://pypi.org/project/pytz/
-https://pypi.org/project/Django/
-
-https://pypi.org/project/easyocr/
-
-links sa mga e install
+django
+opencv-python
+pytesseract
+PyPDF4
+docx2txt
+easyocr
+pytz
