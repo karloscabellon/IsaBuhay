@@ -95,6 +95,8 @@ class LogoutView(LoginRequiredMixin, View):
 
 class PasswordResetPage(aviews.PasswordResetView):
     template_name = 'resetPassword.html'
+    email_template_name = 'email_template.html'
+    subject_template_name = "email_subject.txt"
 
     def post(self, request, *args, **kwargs):
         user = User.objects.all().filter(email=request.POST['email'])
