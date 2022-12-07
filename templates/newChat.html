@@ -139,7 +139,7 @@ https://templatemo.com/tm-570-chain-app-dev
 <script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
   <script>
     function redirectBack(){
-      window.history.back();
+      window.location.href = "{% url 'DisplayClientSide' %}"
       }
 
       $(document).ready(function(){
