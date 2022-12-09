@@ -8,7 +8,6 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-<<<<<<< HEAD
       <div class="modal-body" style="text-align:justify;" >
         <p>
         Are you sure you want to delete this?
@@ -16,42 +15,6 @@
         <p>
           If you would still like your CBC Test Result deleted, click "Delete CBC Test Result".
         </p>
-=======
-    </div>
-  </div>
-  <!-- ***** Preloader End ***** -->
-
-  <!-- ***** Header Area Start ***** -->
-  <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <nav class="main-nav">
-            <!-- ***** Logo Start ***** -->
-            <a href="#" class="logo">
-              <img src="{% static 'assets/images/logo.png' %}" alt="Chain App Dev">
-            </a>
-            <!-- ***** Logo End ***** -->
-            <!-- ***** Menu Start ***** -->
-            <ul class="nav">
-              <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="#">Analytics</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
-              {% if user.is_admin == True %}
-                <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
-                {% endif %}
-              <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
-              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
-              <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>             
-            <a class='menu-trigger'>
-                <span>Menu</span>
-            </a>
-            <!-- ***** Menu End ***** -->
-          </nav>
-        </div>
->>>>>>> 517b837be8ca244753fc8f3c8d767c088f2e1c71
       </div>
       <div class="modal-footer">
         <form method="POST" action="{% url 'DeleteCBCTestResult' object.id %}">
