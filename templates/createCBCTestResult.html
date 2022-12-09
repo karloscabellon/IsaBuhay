@@ -39,18 +39,6 @@ https://templatemo.com/tm-570-chain-app-dev
       }
       
       td { width: 33%; }
-      
-      button{
-        position: relative;
-        left: 50%;
-        transform: translate(-50%, 0);
-        border-radius: 25px;
-        padding: 10px;
-        width: 125px;
-        color: white;
-        border: none;
-        background-image: linear-gradient(to right, rgb(88,110,236), rgb(43,217,252));
-      }
     </style>
 
   </head>
@@ -238,7 +226,7 @@ https://templatemo.com/tm-570-chain-app-dev
                     </td>
                   </tr>
                 </table>
-                <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
+                <input type="button" value="Cancel" name="previous" class="action-button-previous" data-bs-toggle="modal" data-bs-target="#deleteFileModal{{ object.id }}">
                 <input type="submit" class="action-button"  value="Add"/>
             </fieldset>
           </form>
@@ -254,6 +242,8 @@ https://templatemo.com/tm-570-chain-app-dev
       </div>
     </div>
   </div>
+
+  {% include 'deleteCBCTestResultFile.html' %}
   <!-- Custom Scripts -->
 
    <!-- Scripts -->
@@ -274,38 +264,6 @@ https://templatemo.com/tm-570-chain-app-dev
         $('.alert').remove();
       }
     }, 3000)
-
-    function redirectBack(){
-      if ('{{type}}' === 'image') {
-          window.location.href = "{% url 'DeleteUploadedImage' 'image' object.pk %}"
-        } else if ('{{type}}' === 'picture') {
-          window.location.href = "{% url 'DeleteUploadedImage' 'picture' object.pk %}"
-        } else if ('{{type}}' === 'pdf') {
-          window.location.href = "{% url 'DeletePDF' object.pk %}"
-        } else if ('{{type}}' === 'docx') {
-          window.location.href = "{% url 'DeleteDocx' object.pk %}"
-        } 
-    }
-
-    var isSubmitting = false
-    var hasValues = false
-    $(document).ready(function () {
-        $('#msform').submit(function(){
-            isSubmitting = true
-        })
-
-        $('#msform input').each(function(){
-            if( $(this).val() ) {
-              hasValues = true
-            }
-        });
-
-        $(window).on('beforeunload', function() {
-            if (!isSubmitting &&  hasValues){
-                return 'You have unsaved changes which will not be saved.'
-            }
-        });
-    })
   </script> 
 </body>
 </html>

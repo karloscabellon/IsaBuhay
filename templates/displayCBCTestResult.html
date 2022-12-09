@@ -504,11 +504,11 @@ https://templatemo.com/tm-570-chain-app-dev
                 <img src="{{ object.testImage.testImage.url }}" style="margin-bottom: 10px;"><br>
                 <div class="col-lg-12" style="width: 400px; display: flex; flex-wrap: nowrap;" >
                   <div class="white-button first-button scroll-to-section" style="padding: 10px">
-                    <a href="{% url 'UpdateCBCTestResult' object.pk %}">Update</a>
+                    <a href="{% url 'UpdateCBCTestResult' object.id %}">Update</a>
                   </div>
                   
                   <div class="white-button first-button scroll-to-section" style="padding: 10px">
-                    <a href="{% url 'DeleteCBCTestResult' object.pk %}">Delete</a>
+                    <a data-bs-toggle="modal" data-bs-target="#deleteModal{{ object.id }}">Delete</a>
                   </div>
               </div>
               </div>
@@ -525,6 +525,7 @@ https://templatemo.com/tm-570-chain-app-dev
     </div>
   </div>
 
+  {% include 'deleteCBCTestResult.html' %}
 
   <!-- Scripts -->
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>

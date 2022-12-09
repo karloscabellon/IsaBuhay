@@ -182,7 +182,7 @@ https://templatemo.com/tm-570-chain-app-dev
       
           </style>
       
-          <form id="post-form">
+          <form method="POST"  id="post-form">
               {% csrf_token %}
               <textarea name="message" id="message" rows="2" form="post-form" placeholder="Enter Message Here..." required></textarea>
               <input id="btn" type="submit" value="Send">

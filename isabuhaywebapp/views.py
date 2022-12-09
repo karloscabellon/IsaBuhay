@@ -1899,6 +1899,7 @@ class DeleteMessage(LoginRequiredMixin, View):
     def get(self, request, id):
         try:
             message = self.getMessage(id)
+            room_id = message.room.get_id()
         except:
             self.sendErrorMessage(request, self.room_error_message)
             return self.redirectTemplate(self.redirect_room_template_name)
@@ -1906,9 +1907,7 @@ class DeleteMessage(LoginRequiredMixin, View):
         if message.user.id == request.user.id:
             self.deleteMessage(message)
 
-        
-        return self.redirectTemplate(self.redirect_chat_template_name, id =message.room.get_id())
-        
+        return self.redirectTemplate(self.redirect_chat_template_name, id =room_id)
         
 
 # Marc John Corral

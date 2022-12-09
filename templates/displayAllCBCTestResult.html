@@ -100,25 +100,29 @@ https://templatemo.com/tm-570-chain-app-dev
             </div>
         </div>
         <div class="row">
-          {% for result in object_list %}
+          {% for object in object_list %}
             <div class="col-lg-3" style="margin-top: 20px;">
               <div class="service-item first-service">
-                <a href="{% url 'DeleteCBCTestResult' result.pk %}"><i class="fa-solid fa-xmark xmark" style=" float: right; color: blue;"></i></a>
+                <a data-bs-toggle="modal" data-bs-target="#deleteModal{{ object.id }}"><i class="fa-solid fa-xmark xmark" style=" float: right; color: blue;"></i></a>
                 <div class="icon"></div>
                 <h4>CBC Test Result</h4>
-                <p>Lab Number: {{  result.labNumber }}<br>PID:{{ result.pid }}<br>Request Date:{{ result.dateRequested }}</p>
+                <p>Lab Number: {{  object.labNumber }}<br>PID:{{ object.pid }}<br>Request Date:{{ object.dateRequested }}</p>
                 <div class="text-button">
-                  <a href="{% url 'DisplayCBCTestResult' result.pk %}">View <i class="fa fa-arrow-right"></i></a>
-                  <a href="{% url 'UpdateCBCTestResult' result.pk %}" style=" float: right;">Update <i class="fas fa-edit"></i> </a>
+                  <a href="{% url 'DisplayCBCTestResult' object.id %}">View <i class="fa fa-arrow-right"></i></a>
+                  <a href="{% url 'UpdateCBCTestResult' object.id %}" style=" float: right;">Update <i class="fas fa-edit"></i> </a>
                 </div>
               </div>
             </div>
+
+            
+          {% include 'deleteCBCTestResult.html' %}
           {% endfor %}
           
         </div>
       </div>
     </div>
   </div>
+  
 
    <!-- Scripts -->
    <script src="{% static 'jquery/jquery.js' %}"></script>
