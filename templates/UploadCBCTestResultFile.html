@@ -12,7 +12,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
 
-    <title>Isabuhay - Adding Options</title>
+    {% if type == 'docx' %}
+    <title>Isabuhay - Upload Docx</title>
+    {% elif type ==  'pdf' %}
+    <title>Isabuhay - Upload PDF</title>
+    {% elif type == 'image' %}
+    <title>Isabuhay - Upload Image</title>
+    {% endif %}
 
     <!-- Bootstrap core CSS -->
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -22,14 +28,15 @@ TemplateMo 570 Chain App Dev
 https://templatemo.com/tm-570-chain-app-dev
 -->
 
-    <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
+    <!-- Additional CSS Files --><link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
-
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/jeff_custom.css' %}">
     <!-- Buttonsss -->
-
+    
     <style>
       button{
         position: relative;
@@ -77,14 +84,14 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
+              <li class="scroll-to-section"><a href="{% url 'PromoOptions' 'pay' %}">Pay</a></li>
               {% if user.is_admin == True %}
               <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
               {% endif %}
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
               <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>          
+            </ul>   
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>
@@ -98,47 +105,47 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-      {% include 'messages.html' %}
+      {% include 'NotificationMessages.html' %}
       <div class="row">
-        <div class="col-lg-6 align-self-center wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.5s">
-          <div class="section-heading show-up header-text">
-            <h4>CBC Test Result <em>Adding Options</em></h4>
+        <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
+
+          <div class="section-heading" data-wow-duration="1s" data-wow-delay="0.5s" style="text-align: center;">
+            {% if type == 'docx' %}
+              <h4>Upload <em>Docx</em></h4>  
+            {% elif type ==  'pdf' %}
+              <h4>Upload <em>PDF</em></h4>
+            {% elif type == 'image' %}
+              <h4>Upload <em>Image</em></h4>
+            {% endif %}
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            <p>Choose the adding option most appropriate for you. You only have {{user.uploads}} available upload/s.</p>
-            <p>Click <a href="https://drive.google.com/file/d/1wfdNdMxwtBAJ524oAN5qjKAYRsYHb-gS/view?usp=sharing" target="_blank">Here</a> to see a sample of the CBC Test Result.</p>
+            
           </div>
-          <div class="row">
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'image' %}">Upload an Image</a></h4>
-                <p>Upload PNG, JPEG, etc.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'picture' %}">Capture an Image</a></h4>
-                <p>Take a picture using camera.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'pdf' %}">Upload PDF</a></h4>
-                <p>Upload a PDF file.</p>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="box-item">
-                <h4><a href="{% url 'DisplayAllPromoOptions' 'docx' %}">Upload DocX</a></h4>
-                <p>Upload a document.</p>
-              </div>
-            </div>
-            <div class="col-lg-12">
-              <p>Not finding what you need?</p>
-              <div class="gradient-button" style="cursor: auto;">
-                <a href="{% url 'DisplayAllCBCTestResult' %}">Go Back</a>
-              </div>
-            </div>
-          </div>
+          <form id="msform" action="." method="POST" enctype='multipart/form-data'>
+            {% csrf_token %}
+            <fieldset>
+              <h2 class="fs-title">Data to Extract</h2>
+              {% if type == 'docx' %}
+              <h3 class="fs-subtitle">Want to upload a Docx?</h3>
+            {% elif type ==  'pdf' %}
+            <h3 class="fs-subtitle">Want to upload a PDF?</h3>
+            {% elif type == 'image' %}
+            <h3 class="fs-subtitle">Want to upload a Image?</h3>
+            {% endif %}
+              <table style="width: 100%;">
+                <tr><td>
+                  {% if type == 'docx' %}
+                  <input type="file" id="newfile" name="testDocx" accept=".doc, .docx" required>
+                  {% elif type ==  'pdf' %}
+                  <input type="file" id="newfile" name="testPDF" accept=".pdf" required>
+                  {% elif type == 'image' %}
+                  <input type="file" id="newfile" name="testImage" accept="image/*" required>
+                  {% endif %}
+                </td></tr>
+              </table>
+            <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
+                  <input type="submit" class="action-button"  value="Upload"/>
+            </fieldset>
+            </form>
         </div>
         <div class="col-lg-6">
           <div class="right-image">
@@ -150,6 +157,7 @@ https://templatemo.com/tm-570-chain-app-dev
   </div>
 
   <!-- Scripts -->
+  <script src="{% static 'jquery/jquery.js' %}"></script>
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
@@ -157,12 +165,39 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
   <script src="{% static 'assets/js/popup.js' %}"></script>
   <script src="{% static 'assets/js/custom.js' %}"></script>
+
+
   <script>
     setTimeout(function(){
-      if ($('#msg').length > 0) {
-        $('#msg').remove();
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
       }
     }, 3000)
+    
+    function redirectBack(){
+      window.location.href = "{% url 'AddingCBCTestResultOptions' %}"
+    }
+
+    function preventBack() {
+        window.history.forward(); 
+    }
+      
+    setTimeout("preventBack()", 0);
+      
+    window.onunload = function () { null };
+
+    var isSubmitting = false
+    $(document).ready(function () {
+        $('#msform').submit(function(){
+            isSubmitting = true
+        })
+
+        $(window).on('beforeunload', function() {
+            if (!isSubmitting &&  $('#newfile')[0].files.length !== 0){
+                return 'You have unsaved changes which will not be saved.'
+            }
+        });
+    })
   </script> 
 </body>
 </html>

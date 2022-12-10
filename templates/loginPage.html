@@ -95,7 +95,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-
+      {% include 'NotificationMessages.html' %}
       <div class="row">
         <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
 
@@ -141,7 +141,13 @@ https://templatemo.com/tm-570-chain-app-dev
     </div>
   </div>
   <!-- Custom Scripts -->
-
+  <script>
+    setTimeout(function(){
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
+      }
+    }, 3000)
+  </script> 
   <!-- Scripts -->
   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

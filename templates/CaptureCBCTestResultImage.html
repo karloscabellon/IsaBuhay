@@ -78,7 +78,7 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
+              <li class="scroll-to-section"><a href="{% url 'PromoOptions' 'pay' %}">Pay</a></li>
               {% if user.is_admin == True %}
               <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
               {% endif %}
@@ -100,13 +100,13 @@ https://templatemo.com/tm-570-chain-app-dev
   <div id="services" class="services section">
     
     <div class="container">
-      {% include 'messages.html' %}
+      {% include 'NotificationMessages.html' %}
       <div class="row">
         <div class="col-lg-8 offset-lg-2">
           <div class="section-heading show-up header-text  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
             <h4>Capture <em>Image</em></h4>
             <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-            <p><a href="{% url 'DisplayAddingOptions' %}">Go Back To Adding Options</a></p>
+            <p><a href="{% url 'AddingCBCTestResultOptions' %}">Go Back To Adding Options</a></p>
             <p>Want to use your phone to take the picture? Click <a href="https://www.youtube.com/watch?v=J7iXt9fLI2U&t=222s" target="_blank">Here</a> To Know How</p>
             <br>
             <h5>Choose Camera</h5>

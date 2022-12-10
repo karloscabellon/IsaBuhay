@@ -41,7 +41,7 @@ class DisplayRevenueMonth(LoginRequiredMixin, View):
 
 class DisplayPaymentList(LoginRequiredMixin, View):
     def get(self, request,):
-        object = Payments.objects.all()
+        object = Payment.objects.all()
         context = {
             'object': object,
         }
@@ -216,9 +216,9 @@ class DisplayCBCTestResult(LoginRequiredMixin, View):
 
 # Marc John Corral
 
-class DisplayAddingOptions(LoginRequiredMixin, View):
-    template_name = 'displayAddingOptions.html'
-    redirect_template_name = 'DisplayAllCBCTestResult'
+class AddingCBCTestResultOptions(LoginRequiredMixin, View):
+    template_name = 'AddingCBCTestResultOptions.html'
+    redirect_template_name = 'LogoutView'
     error_message = 'The user was not found.'
     model = User
 
@@ -239,7 +239,7 @@ class DisplayAddingOptions(LoginRequiredMixin, View):
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(request, self.redirect_template_name)
+            return self.redirectTemplate(self.redirect_template_name)
         
         
         context = {'user': user}
@@ -252,8 +252,8 @@ class PaymentComplete(LoginRequiredMixin, View):
     user_error_message = 'The user was not found.'
     success_message = 'Payment Successful!'
     user_model = User
-    promo_model = PromoOptions
-    payment_model = Payments
+    promo_model = Promo
+    payment_model = Payment
 
     def loadJson(self, request):
         return json.loads(request.body)
@@ -310,7 +310,7 @@ class PaymentMethod(LoginRequiredMixin, View):
     template_name = 'paymentMethod.html'
     redirect_template_name = 'DisplayAllCBCTestResult'
     error_message = 'The record was not found.'
-    model = PromoOptions
+    model = Promo
 
     def getPromo(self, id):
         return self.model.objects.get(id=id)
@@ -338,21 +338,17 @@ class PaymentMethod(LoginRequiredMixin, View):
         context = {'type': type, 'object': object}
         return self.renderTemplate(request, self.template_name, context)
 
-class DisplayAllPromoOptions(LoginRequiredMixin, View):
-    template_name = 'promoOptions.html'
+class PromoOptions(LoginRequiredMixin, View):
+    template_name = 'PromoOptions.html'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
-    redirect_pdf_template_name = 'UploadPDF'
-    redirect_docx_template_name = 'UploadDocx'
-    redirect_image_template_name = 'UploadImage'
-    redirect_picture_template_name = 'CaptureImage'
-    error_message = 'Something went wrong! Please try again.'
+    redirect_logout_template_name = 'LogoutView'
     user_error_message = 'The user was not found!'
     promo_error_message = 'Their was something wrong with the promos!'
     user_model = User
-    promo_model = PromoOptions
+    promo_model = Promo
 
     def getUser(self, request):
-        return self.user_model.objects.get(id=request.user.id)
+        self.user_model.objects.get(id=request.user.id)
 
     def sendErrorMessage(self, request, message):
         messages.error(request, message)
@@ -368,39 +364,28 @@ class DisplayAllPromoOptions(LoginRequiredMixin, View):
 
     def get(self, request, type):
         try:
-            user = self.getUser(request)
+            self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            object_list = self.getPromos()
+        except:
+            self.sendErrorMessage(request, self.promo_error_message)
             return self.redirectTemplate(self.redirect_tests_template_name)
 
-        if user.uploads <= 0 or type == 'pay':
-            try:
-                object_list = self.getPromos()
-            except:
-                self.sendErrorMessage(request, self.promo_error_message)
-                return self.redirectTemplate(self.redirect_tests_template_name)
+        context = {'type': type, 'object_list': object_list}
+        return self.renderTemplate(request, self.template_name, context)
+       
 
-            context = {'type': type, 'object_list': object_list}
-            return self.renderTemplate(request, self.template_name, context)
-        elif type == 'pdf':
-            return self.redirectTemplate(self.redirect_pdf_template_name)
-        elif type == 'docx':
-            return self.redirectTemplate(self.redirect_docx_template_name)
-        elif type == 'picture':
-            return self.redirectTemplate(self.redirect_picture_template_name)
-        elif type == 'image':
-            return self.redirectTemplate(self.redirect_image_template_name)
-        else:
-            self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
-
-class UploadPDF(LoginRequiredMixin, View):
-    template_name = 'uploadCBCTestResult.html'
+class UploadCBCTestResultPDF(LoginRequiredMixin, View):
+    template_name = 'UploadCBCTestResultFile.html'
     redirect_create_template_name = 'CreateCBCTestResult'
-    redirect_promo_template_name = 'DisplayAllPromoOptions'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
     upload_error_message = 'You have no more uploads!'
-    saving_error_message = 'Something went wrong with the uploading process. Please try again!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
     user_error_message = 'The user was not found!'
     success_message = 'Upload PDF Successful!'
     user_model = User
@@ -425,11 +410,14 @@ class UploadPDF(LoginRequiredMixin, View):
         object.save()
         return object.get_id()
 
-    def redirectTemplate(self, template_name, id = None):
+    def redirectTemplate(self, template_name, type = None, id = None):
         if id == None:
-            return redirect(template_name, type='pdf')
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
         else:
-            return redirect(template_name, type = 'pdf', id = id)
+            return redirect(template_name, type = type, id = id)
     
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
@@ -439,7 +427,7 @@ class UploadPDF(LoginRequiredMixin, View):
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
         
         try:
             self.deductAvailableUploads(user)
@@ -450,33 +438,33 @@ class UploadPDF(LoginRequiredMixin, View):
             return self.renderTemplate(request, self.template_name, context)
         
         self.sendSuccessMessage(request, self.success_message)
-        return self.redirectTemplate(self.redirect_create_template_name, pdf_id)
+        return self.redirectTemplate(self.redirect_create_template_name, 'pdf', pdf_id)
 
     def get(self, request):
         try:
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
         
         if user.uploads <= 0:
             self.sendErrorMessage(request, self.upload_error_message)
-            return self.redirectTemplate(self.redirect_promo_template_name)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'pdf')
 
         context = {'type': 'pdf'}
         return self.renderTemplate(request, self.template_name, context)
 
-class UploadDocx(LoginRequiredMixin, View):
-    template_name = 'uploadCBCTestResult.html'
+class UploadCBCTestResultDocument(LoginRequiredMixin, View):
+    template_name = 'UploadCBCTestResultFile.html'
     redirect_create_template_name = 'CreateCBCTestResult'
-    redirect_promo_template_name = 'DisplayAllPromoOptions'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
     upload_error_message = 'You have no more uploads!'
-    saving_error_message = 'Something went wrong with the uploading process. Please try again!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
     user_error_message = 'The user was not found!'
     success_message = 'Upload Docx Successful!'
     user_model = User
-    docx_model = CBCTestResultDocx
+    docx_model = CBCTestResultDocument
 
     def getUser(self, request):
         return self.user_model.objects.get(id=request.user.id)
@@ -491,17 +479,20 @@ class UploadDocx(LoginRequiredMixin, View):
         user.uploads = user.uploads - 1
         user.save()
 
-    def saveDocx(self, request):
+    def saveDocument(self, request):
         object = self.docx_model()
         object.set_testDocx(request.FILES.get('testDocx'))
         object.save()
         return object.get_id()
 
-    def redirectTemplate(self, template_name, id = None):
+    def redirectTemplate(self, template_name, type = None, id = None):
         if id == None:
-            return redirect(template_name, type='docx')
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
         else:
-            return redirect(template_name, type = 'docx', id = id)
+            return redirect(template_name, type = type, id = id)
     
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
@@ -511,40 +502,40 @@ class UploadDocx(LoginRequiredMixin, View):
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
         
         try:
             self.deductAvailableUploads(user)
-            docx_id = self.saveDocx(request)
+            docx_id = self.saveDocument(request)
         except:
             self.sendErrorMessage(request, self.saving_error_message)
             context = {'type': 'docx'}
             return self.renderTemplate(request, self.template_name, context)
         
         self.sendSuccessMessage(request, self.success_message)
-        return self.redirectTemplate(self.redirect_create_template_name, docx_id)
+        return self.redirectTemplate(self.redirect_create_template_name, 'docx', docx_id)
     
     def get(self, request):
         try:
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
         
         if user.uploads <= 0:
             self.sendErrorMessage(request, self.upload_error_message)
-            return self.redirectTemplate(self.redirect_promo_template_name)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'docx')
 
         context = {'type': 'docx'}
         return self.renderTemplate(request, self.template_name, context)
 
-class UploadImage(LoginRequiredMixin, View):
-    template_name = 'uploadCBCTestResult.html'
+class UploadCBCTestResultImage(LoginRequiredMixin, View):
+    template_name = 'UploadCBCTestResultFile.html'
     redirect_create_template_name = 'CreateCBCTestResult'
-    redirect_promo_template_name = 'DisplayAllPromoOptions'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
     upload_error_message = 'You have no more uploads!'
-    saving_error_message = 'Something went wrong with the uploading process. Please try again!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
     user_error_message = 'The user was not found!'
     success_message = 'Upload Image Successful!'
     user_model = User
@@ -569,11 +560,14 @@ class UploadImage(LoginRequiredMixin, View):
         object.save()
         return object.get_id()
 
-    def redirectTemplate(self, template_name, id = None):
+    def redirectTemplate(self, template_name, type = None, id = None):
         if id == None:
-            return redirect(template_name, type='image')
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
         else:
-            return redirect(template_name, type = 'image', id = id)
+            return redirect(template_name, type = type, id = id)
     
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
@@ -583,8 +577,7 @@ class UploadImage(LoginRequiredMixin, View):
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            context = {'type': 'image'}
-            return self.renderTemplate(request, self.template_name, context)
+            return self.redirectTemplate(self.redirect_logout_template_name)
         
         try:
             self.deductAvailableUploads(user)
@@ -595,29 +588,29 @@ class UploadImage(LoginRequiredMixin, View):
             return self.renderTemplate(request, self.template_name, context)
         
         self.sendSuccessMessage(request, self.success_message)
-        return self.redirectTemplate(self.redirect_create_template_name, image_id)
+        return self.redirectTemplate(self.redirect_create_template_name, 'image', image_id)
 
     def get(self, request):
         try:
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         if user.uploads <= 0:
             self.sendErrorMessage(request, self.upload_error_message)
-            return self.redirectTemplate(self.redirect_promo_template_name)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'image')
 
         context = {'type': 'image'}
         return self.renderTemplate(request, self.template_name, context)
 
-class CaptureImage(LoginRequiredMixin, View):
-    template_name = 'captureImage.html'
+class CaptureCBCTestResultImage(LoginRequiredMixin, View):
+    template_name = 'CaptureCBCTestResultImage.html'
     redirect_create_template_name = 'CreateCBCTestResult'
-    redirect_promo_template_name = 'DisplayAllPromoOptions'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
     upload_error_message = 'You have no more uploads!'
-    saving_error_message = 'Something went wrong with the uploading process. Please try again!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
     user_error_message = 'The user was not found!'
     success_message = 'Capture Image Successful!'
     user_model = User
@@ -650,11 +643,14 @@ class CaptureImage(LoginRequiredMixin, View):
         object.save()
         return object.get_id()
 
-    def redirectTemplate(self, template_name, id = None):
+    def redirectTemplate(self, template_name, type=None, id = None):
         if id == None:
-            return redirect(template_name, type='picture')
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
         else:
-            return redirect(template_name, type = 'picture', id = id)
+            return redirect(template_name, type = type, id = id)
     
     def renderTemplate(self, request, template_name):
          return render(request, template_name)
@@ -664,7 +660,7 @@ class CaptureImage(LoginRequiredMixin, View):
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         try:
             self.deductAvailableUploads(user)
@@ -674,33 +670,33 @@ class CaptureImage(LoginRequiredMixin, View):
             return self.renderTemplate(request, self.template_name)
 
         self.sendSuccessMessage(request, self.success_message)
-        return self.redirectTemplate(self.redirect_create_template_name, image_id)
+        return self.redirectTemplate(self.redirect_create_template_name, 'picture', image_id)
     
     def get(self, request):
         try:
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
         
         if user.uploads <= 0:
             self.sendErrorMessage(request, self.upload_error_message)
-            return self.redirectTemplate(self.redirect_promo_template_name)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'picture')
 
         return self.renderTemplate(request, self.template_name)
 
 class CreateCBCTestResult(LoginRequiredMixin, View):
     test_model = CBCTestResult
-    docx_model = CBCTestResultDocx
+    docx_model = CBCTestResultDocument
     image_model = CBCTestResultImage
     pdf_model = CBCTestResultPDF
     user_model = User
-    redirect_adding_template_name = 'DisplayAddingOptions'
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
     redirect_test_template_name = 'DisplayCBCTestResult'
-    redirect_docx_template_name = 'UploadDocx'
-    redirect_pdf_template_name = 'UploadPDF'
-    redirect_image_template_name = 'UploadImage'
-    redirect_picture_template_name = 'CaptureImage'
+    redirect_docx_template_name = 'UploadCBCTestResultDocument'
+    redirect_pdf_template_name = 'UploadCBCTestResultPDF'
+    redirect_image_template_name = 'UploadCBCTestResultImage'
+    redirect_picture_template_name = 'CaptureCBCTestResultImage'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
     file_error_message = 'Could not find the file uploaded!'
     url_error_message = 'There was something wrong with the url!'
@@ -1170,15 +1166,6 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         elif type == 'image' or type == 'picture':
             try:
                 imgObject, data = self.getImageInitialValues(id)
-                
-                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
-                    self.removeFile(imgObject.get_testImage())
-                    self.sendErrorMessage(request, self.picture_error_message)
-                    self.addUserUploads(user)
-                    if type == 'image':
-                        return self.redirectTemplate(self.redirect_image_template_name)
-                    elif type == 'picture':
-                        return self.redirectTemplate(self.redirect_picture_template_name)
             except:
                 if imgObject != None: 
                     self.removeFile(imgObject.get_testImage())
@@ -1334,9 +1321,9 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
 
 class DeleteUploadedImage(LoginRequiredMixin, View):
     template_name = 'deleteCBCTestResult.html'
-    redirect_adding_template_name = 'DisplayAddingOptions'
-    redirect_image_template_name = 'UploadImage'
-    redirect_picture_template_name = 'CaptureImage'
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
+    redirect_image_template_name = 'UploadCBCTestResultImage'
+    redirect_picture_template_name = 'CaptureCBCTestResultImage'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
     image_error_message = 'The image was not found.'
     user_error_message = 'The user was not found.'
@@ -1408,9 +1395,9 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
 
 class DeletePDF(LoginRequiredMixin, View):
     template_name = 'deleteCBCTestResult.html'
-    redirect_adding_template_name = 'DisplayAddingOptions'
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
-    redirect_upload_template_name = 'UploadPDF'
+    redirect_upload_template_name = 'UploadCBCTestResultPDF'
     pdf_error_message = 'The pdf was not found.'
     user_error_message = 'The user was not found.'
     success_message = 'Delete PDF Successful!'
@@ -1478,13 +1465,13 @@ class DeletePDF(LoginRequiredMixin, View):
 
 class DeleteDocx(LoginRequiredMixin, View):
     template_name = 'deleteCBCTestResult.html'
-    redirect_adding_template_name = 'DisplayAddingOptions'
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
-    redirect_upload_template_name = 'UploadDocx'
+    redirect_upload_template_name = 'UploadCBCTestResultDocument'
     docx_error_message = 'The document was not found.'
     user_error_message = 'The user was not found.'
     success_message = 'Delete Docx Successful!'
-    docx_model = CBCTestResultDocx
+    docx_model = CBCTestResultDocument
     user_model = User
     
     def getDocx(self, id):

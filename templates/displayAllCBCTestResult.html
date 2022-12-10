@@ -63,7 +63,7 @@ https://templatemo.com/tm-570-chain-app-dev
                 <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
                 <li class="scroll-to-section"><a href="#" class="active">Reports</a></li>
                 <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
-                <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
+                <li class="scroll-to-section"><a href="{% url 'PromoOptions' 'pay' %}">Pay</a></li>
                 {% if user.is_admin == True %}
                 <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
                 {% endif %}
@@ -85,7 +85,7 @@ https://templatemo.com/tm-570-chain-app-dev
   
     <div id="All CBC" class="services section">
       <div class="container">
-  {% include 'messages.html' %}
+  {% include 'NotificationMessages.html' %}
         <div class="row">
           <div class="col-lg-8 offset-lg-2">
             <div class="section-heading  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
@@ -99,7 +99,7 @@ https://templatemo.com/tm-570-chain-app-dev
         <div class="row">
           <div class="col-lg-12">
             <div class="white-button first-button scroll-to-section">
-              <a href="{% url 'DisplayAddingOptions' %}"><i class="fab fa-buffer"></i>View Adding Options</a>
+              <a href="{% url 'AddingCBCTestResultOptions' %}"><i class="fab fa-buffer"></i>View Adding Options</a>
             </div>
         </div>
         <div class="row">

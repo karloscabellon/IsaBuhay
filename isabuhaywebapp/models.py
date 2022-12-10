@@ -114,7 +114,7 @@ class CBCTestResultPDF(models.Model):
     def set_testPDF(self, value):
         self.testPDF = value
 
-class CBCTestResultDocx(models.Model):
+class CBCTestResultDocument(models.Model):
     id = models.BigAutoField(primary_key=True)
     testDocx = models.FileField(upload_to='docs/', blank=False, null=False)
 
@@ -127,7 +127,7 @@ class CBCTestResultDocx(models.Model):
     def set_testDocx(self, value):
         self.testDocx = value
 
-class PromoOptions(models.Model):
+class Promo(models.Model):
     id = models.BigAutoField(primary_key=True)
     uploads = models.IntegerField(blank=False, null=False)
     price = models.FloatField(blank=False, null=False)
@@ -148,9 +148,9 @@ class PromoOptions(models.Model):
         self.price = value
 
 
-class Payments(models.Model):
+class Payment(models.Model):
     id = models.BigAutoField(primary_key=True)
-    promo = models.ForeignKey(PromoOptions, on_delete=models.SET_NULL, blank=True, null=True)
+    promo = models.ForeignKey(Promo, on_delete=models.SET_NULL, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     date = models.DateTimeField(blank=True, null=True)
 
@@ -183,7 +183,7 @@ class CBCTestResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     testImage = models.OneToOneField(CBCTestResultImage, on_delete=models.CASCADE, blank=True, null=True)
     testPDF = models.OneToOneField(CBCTestResultPDF, on_delete=models.CASCADE, blank=True, null=True)
-    testDocx = models.OneToOneField(CBCTestResultDocx, on_delete=models.CASCADE, blank=True, null=True)
+    testDocx = models.OneToOneField(CBCTestResultDocument, on_delete=models.CASCADE, blank=True, null=True)
     source = models.CharField(max_length=50, blank=False, null=False)
     labNumber = models.CharField(max_length=50, blank=False, null=False)
     pid = models.CharField(max_length=50, blank=False, null=False)

@@ -97,7 +97,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
-      {% include 'messages.html' %}
+      {% include 'NotificationMessages.html' %}
       <div class="row">
         <div class="col-lg-6 align-self-center wow fadeInLeft" data-wow-duration="1s" data-wow-delay="0.5s">
           <div class="section-heading show-up header-text">
@@ -126,7 +126,7 @@ https://templatemo.com/tm-570-chain-app-dev
             <div class="col-lg-12">
               <p>Not finding what you need?</p>
               <div class="gradient-button">
-                <a href="{% url 'DisplayAllPromoOptions' type %}">Go Back</a>
+                <a href="{% url 'PromoOptions' type %}">Go Back</a>
               </div>
             </div>
           </div>
@@ -192,15 +192,15 @@ function getCookie(name) {
 	 		}).then((response) => response.json())
 	    	.then((data) => {
           if ('{{type}}' === 'image') {
-            window.location.href = "{% url 'UploadImage' %}"
+            window.location.href = "{% url 'UploadCBCTestResultImage' %}"
           } else if ('{{type}}' === 'picture') {
-            window.location.href = "{% url 'CaptureImage' %}"
+            window.location.href = "{% url 'CaptureCBCTestResultImage' %}"
           } else if ('{{type}}' === 'pdf') {
-            window.location.href = "{% url 'UploadPDF' %}"
+            window.location.href = "{% url 'UploadCBCTestResultPDF' %}"
           } else if ('{{type}}' === 'docx') {
-            window.location.href = "{% url 'UploadDocx' %}"
+            window.location.href = "{% url 'UploadCBCTestResultDocument' %}"
           } else if ('{{type}}' === 'pay') {
-            window.location.href = "{% url 'DisplayAddingOptions' %}"
+            window.location.href = "{% url 'AddingCBCTestResultOptions' %}"
           }
 				})
 	 	}
