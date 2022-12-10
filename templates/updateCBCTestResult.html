@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
 
-    <title>Isabuhay - Register</title>
+    <title>Isabuhay - Update CBC Test Result</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -84,15 +84,15 @@ https://templatemo.com/tm-570-chain-app-dev
             <ul class="nav">
               <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="#">Analytics</a></li>
+              <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               {% if user.is_admin == True %}
-                  <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
-                {% endif %}
+              <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
+              {% endif %}
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
               <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>             
+            </ul>            
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>

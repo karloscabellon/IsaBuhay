@@ -79,12 +79,12 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
               <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
               {% if user.is_admin == True %}
-                <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
-                {% endif %}
+              <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
+              {% endif %}
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
               <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>             
+            </ul>          
             <a class='menu-trigger'>
                 <span>Menu</span>
             </a>

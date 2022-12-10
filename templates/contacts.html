@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    <title>Isabuhay - Reports</title>
+    <title>Isabuhay - Contacts</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -64,15 +64,15 @@ https://templatemo.com/tm-570-chain-app-dev
               <ul class="nav">
                 <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
                 <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-                <li class="scroll-to-section"><a href="#">Analytics</a></li>
+                <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
                 <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
                 {% if user.is_admin == True %}
                 <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
                 {% endif %}
                 <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
-                <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
+                <li class="scroll-to-section"><a href="#" class="active">Messages</a></li>
                 <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-              </ul>             
+              </ul>        
               <a class='menu-trigger'>
                   <span>Menu</span>
               </a>
