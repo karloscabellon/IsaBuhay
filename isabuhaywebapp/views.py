@@ -30,6 +30,7 @@ import os
 from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Q
+import logging
 
 class DisplayAdminPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAdminPage.html'
@@ -245,18 +246,21 @@ class AddingCBCTestResultOptions(LoginRequiredMixin, View):
         context = {'user': user}
         return self.renderTemplate(request, self.template_name, context)
 
-class PaymentComplete(LoginRequiredMixin, View):
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
-    redirect_template_name = 'PaymentMethod'
+class PaymentCompletion(LoginRequiredMixin, View):
+    redirect_payment_template_name = 'PaymentMethod'
+    redirect_logout_template_name = 'LogoutView'
+    redirect_image_template_name = 'UploadCBCTestResultImage'
+    redirect_picture_template_name = 'CaptureCBCTestResultImage'
+    redirect_pdf_template_name = 'UploadCBCTestResultPDF'
+    redirect_docx_template_name = 'UploadCBCTestResultDocument'
+    redirect_pay_template_name = 'AddingCBCTestResultOptions'
     promo_error_message = 'The promo was not found.'
     user_error_message = 'The user was not found.'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
     success_message = 'Payment Successful!'
     user_model = User
     promo_model = Promo
     payment_model = Payment
-
-    def loadJson(self, request):
-        return json.loads(request.body)
     
     def getPromo(self, id):
         return self.promo_model.objects.get(id=id)
@@ -282,38 +286,57 @@ class PaymentComplete(LoginRequiredMixin, View):
         new_payment = self.payment_model.objects.create( promo=promo, user=user, date=self.payment_model.current_time())
         new_payment.save()
 
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
 
-    def post(self, request):
-        body = self.loadJson(request)
-        
-        try:
-            promo = self.getPromo(body['promoId'])
-        except:
-            self.sendErrorMessage(request, self.promo_error_message)
-            return self.redirectTemplate(self.redirect_template_name)
-        
+    def get(self, request, type, id):
         try:
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
+        try:
+            promo = self.getPromo(id)
+        except:
+            self.sendErrorMessage(request, self.promo_error_message)
+            return self.redirectTemplate(self.redirect_payment_template_name)
 
-        self.addUserUploads(user, promo)
-
-        self.savePayment(user, promo)
+        try:
+            self.addUserUploads(user, promo)
+            self.savePayment(user, promo)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            return self.redirectTemplate(self.redirect_payment_template_name)
         
         self.sendSuccessMessage(request, self.success_message)
 
-        return JsonResponse('Payment completed!', safe=False)
+        if type == 'image':
+            return self.redirectTemplate(self.redirect_image_template_name)
+        elif type == 'picture':
+            return self.redirectTemplate(self.redirect_picture_template_name)
+        elif type == 'pdf':
+            return self.redirectTemplate(self.redirect_pdf_template_name)
+        elif type == 'docx':
+            return self.redirectTemplate(self.redirect_docx_template_name)
+        elif type == 'pay':
+            return self.redirectTemplate(self.redirect_pay_template_name)
 
 class PaymentMethod(LoginRequiredMixin, View):
-    template_name = 'paymentMethod.html'
-    redirect_template_name = 'DisplayAllCBCTestResult'
-    error_message = 'The record was not found.'
-    model = Promo
+    template_name = 'PaymentMethod.html'
+    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
+    user_error_message = 'The user was not found!'
+    promo_error_message = 'The promo was not found!'
+    type_error_message = 'There was something wrong with the URL!'
+    user_model = User
+    promo_model = Promo
 
     def getPromo(self, id):
-        return self.model.objects.get(id=id)
+        return self.promo_model.objects.get(id=id)
+
+    def getUser(self, request):
+        self.user_model.objects.get(id=request.user.id)
 
     def sendErrorMessage(self, request, message):
         messages.error(request, message)
@@ -326,14 +349,20 @@ class PaymentMethod(LoginRequiredMixin, View):
 
     def get(self, request, type, id):
         try:
-            object = self.getPromo(id)
+            self.getUser(request)
         except:
-            self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_template_name)
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         if type != 'pdf' and type != 'docx' and type != 'picture' and type != 'image' and type != 'pay':
-            self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_template_name)
+            self.sendErrorMessage(request, self.type_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
+        try:
+            object = self.getPromo(id)
+        except:
+            self.sendErrorMessage(request, self.promo_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
 
         context = {'type': type, 'object': object}
         return self.renderTemplate(request, self.template_name, context)
@@ -342,6 +371,7 @@ class PromoOptions(LoginRequiredMixin, View):
     template_name = 'PromoOptions.html'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
     redirect_logout_template_name = 'LogoutView'
+    type_error_message = 'There was something wrong with the URL!'
     user_error_message = 'The user was not found!'
     promo_error_message = 'Their was something wrong with the promos!'
     user_model = User
@@ -368,6 +398,10 @@ class PromoOptions(LoginRequiredMixin, View):
         except:
             self.sendErrorMessage(request, self.user_error_message)
             return self.redirectTemplate(self.redirect_logout_template_name)
+        
+        if type != 'pdf' and type != 'docx' and type != 'picture' and type != 'image' and type != 'pay':
+            self.sendErrorMessage(request, self.type_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
 
         try:
             object_list = self.getPromos()
@@ -698,13 +732,14 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
     redirect_image_template_name = 'UploadCBCTestResultImage'
     redirect_picture_template_name = 'CaptureCBCTestResultImage'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
     file_error_message = 'Could not find the file uploaded!'
     url_error_message = 'There was something wrong with the url!'
     saving_error_message = 'Something went wrong with the saving process. Please try again!'
     values_error_message = 'There was something wrong with your file or you uploaded the wrong file. Please try another one.'
     picture_error_message = 'Your image maybe unclear. Use a camera with higher quality. Or maybe you uploaded the wrong image.'
     user_error_message = 'The user was not found!'
-    template_name = 'createCBCTestResult.html'
+    template_name = 'CreateCBCTestResult.html'
     success_message = 'Create CBC Test Result Successful!'
 
     def getUser(self, request):
@@ -791,12 +826,12 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
     def sendSuccessMessage(self, request, message):
         messages.success(request, message)
     
-    def getDocx(self, id):
+    def getDocument(self, id):
         return self.docx_model.objects.get(id=id)
 
     def getDocxInitialValues(self, id):
         data = {}
-        docxObject = self.getDocx(id)
+        docxObject = self.getDocument(id)
         data['object'] = docxObject
         FILE_PATH = str(docxObject.get_testDocx().url[1:])
         txt = d2t.process(FILE_PATH)
@@ -1107,8 +1142,17 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 data['absoluteBandCount'] = result[index+1][1]
 
         return imgObject, data
+    
+    def deleteTest(self, object):
+        object.delete()
 
     def post(self, request, type, id):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
         try:
             test_id = self.saveTest(request, type, id)
         except:
@@ -1131,44 +1175,62 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
             
         if type == 'docx':
             try:
+                docxObject = None
                 docxObject, data = self.getDocxInitialValues(id)
                 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
                     self.removeFile(docxObject.get_testDocx())
+                    self.deleteTest(docxObject)
                     self.sendErrorMessage(request, self.values_error_message)
                     self.addUserUploads(user)
                     return self.redirectTemplate(self.redirect_docx_template_name)
             except:
                 if docxObject != None: 
                     self.removeFile(docxObject.get_testDocx())
+                    self.deleteTest(docxObject)
                 self.sendErrorMessage(request, self.values_error_message)
                 self.addUserUploads(user)
                 return self.redirectTemplate(self.redirect_docx_template_name)
         elif type == 'pdf':
             try:
+                pdfObject = None
                 pdfObject, data = self.getPDFInitialValues(id)
                 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
                     self.removeFile(pdfObject.get_testPDF())
+                    self.deleteTest(pdfObject)
                     self.sendErrorMessage(request, self.values_error_message)
                     self.addUserUploads(user)
                     return self.redirectTemplate(self.redirect_pdf_template_name)
             except:
                 if pdfObject != None: 
                     self.removeFile(pdfObject.get_testPDF())
+                    self.deleteTest(pdfObject)
                 self.sendErrorMessage(request, self.values_error_message)
                 self.addUserUploads(user)
                 return self.redirectTemplate(self.redirect_pdf_template_name)
         elif type == 'image' or type == 'picture':
             try:
+                imgObject = None
                 imgObject, data = self.getImageInitialValues(id)
+                
+                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
+                    self.removeFile(imgObject.get_testImage())
+                    self.deleteTest(imgObject)
+                    self.sendErrorMessage(request, self.picture_error_message)
+                    self.addUserUploads(user)
+                    if type == 'image':
+                        return self.redirectTemplate(self.redirect_image_template_name)
+                    elif type == 'picture':
+                        return self.redirectTemplate(self.redirect_picture_template_name)
             except:
                 if imgObject != None: 
                     self.removeFile(imgObject.get_testImage())
+                    self.deleteTest(imgObject)
                 self.sendErrorMessage(request, self.picture_error_message)
                 self.addUserUploads(user)
                 if type == 'image':
@@ -1181,15 +1243,19 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
         data['type'] = type
 
-        return render(request, 'createCBCTestResult.html', data)
+        return self.renderTemplate(request, self.template_name, data)
 
 class UpdateCBCTestResult(LoginRequiredMixin, View):
     template_name = 'updateCBCTestResult.html'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
     redirect_test_template_name = 'DisplayCBCTestResult'
-    error_message = 'The record was not found.'
+    redirect_logout_template_name = 'LogoutView'
+    user_error_message = 'The user was not found!'
+    record_error_message = 'The record was not found.'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
     succes_message = 'Update CBC Test Result Successful!'
-    model = CBCTestResult
+    test_model = CBCTestResult
+    user_model = User
 
     def sendErrorMessage(self, request, message):
         messages.error(request, message)
@@ -1229,44 +1295,56 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
         object.set_absoluteBasophilCount(request.POST.get('absoluteBasophilCount')) 
         object.set_absoluteBandCount(request.POST.get('absoluteBandCount')) 
         object.save()
-        return object
 
     def getTest(self, id):
-        return self.model.objects.get(id=id)
+        return self.test_model.objects.get(id=id)
+
+    def getUser(self, request):
+        self.user_model.objects.get(id=request.user.id)
 
     def post(self, request, id):
         try:
-            object = self.getTest(id)
+            self.getUser(request)
         except:
-            self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
-
-        if object != None:
-            object = self.updateTest(request, object)
-            messages.success(request, self.succes_message)
-            return self.redirectTemplate(self.redirect_test_template_name, id)
-        elif object == None:
-            self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
-            
-
-        context = {'object': object}
-        return self.renderTemplate(request, self.template_name, context)
-
-    def get(self, request, id):
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
         try:
             object = self.getTest(id)
         except:
-            self.sendErrorMessage(request, self.error_message)
+            self.sendErrorMessage(request, self.record_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
+        try:
+            self.updateTest(request, object)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            context = {'object': object}
+            return self.renderTemplate(request, self.template_name, context)
+
+        messages.success(request, self.succes_message)
+        return self.redirectTemplate(self.redirect_test_template_name, id)
+
+    def get(self, request, id):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            object = self.getTest(id)
+        except:
+            self.sendErrorMessage(request, self.record_error_message)
             return self.redirectTemplate(self.redirect_tests_template_name)
 
         context = {'object': object}
         return self.renderTemplate(request, self.template_name, context)
 
 class DeleteCBCTestResult(LoginRequiredMixin, View):
-    template_name = 'deleteCBCTestResult.html'
+    template_name = 'DeleteCBCTestResult.html'
     redirect_template_name = 'DisplayAllCBCTestResult'
-    error_message = 'The record was not found.'
+    record_error_message = 'The record was not found!'
+    deletion_error_message = 'Something went wrong with the deletion process!'
     success_message = 'Delete CBC Test Result Successful!'
     model = CBCTestResult
 
@@ -1290,43 +1368,39 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
 
     def deleteTest(self, object):
         object.delete()
+
     def post(self, request, id):
         try:
             object = self.getTest(id)
         except:
-            self.sendErrorMessage(request, self.error_message)
+            self.sendErrorMessage(request, self.record_error_message)
             return self.redirectTemplate(self.redirect_template_name)
 
-        self.deleteTest(object)
-
-        if object.get_testPDF() != None:
-            self.removeFile(object.get_testPDF().get_testPDF())
-        elif object.get_testDocx() != None:
-            self.removeFile(object.get_testDocx().get_testDocx())
-        elif object.get_testImage() != None:
-            self.removeFile(object.get_testImage().get_testImage())
+        try:
+            if object.get_testPDF() != None:
+                self.removeFile(object.get_testPDF().get_testPDF())
+            elif object.get_testDocx() != None:
+                self.removeFile(object.get_testDocx().get_testDocx())
+            elif object.get_testImage() != None:
+                self.removeFile(object.get_testImage().get_testImage())
+            
+            self.deleteTest(object)
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_template_name)
 
         self.sendSuccessMessage(request, self.success_message)
         return self.redirectTemplate(self.redirect_template_name)
 
-    def get(self, request, id):
-        try:
-            object = self.getTest(id)
-        except:
-            self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_template_name)
-
-        context = {'object': object, 'type': 'record'}
-        return self.renderTemplate(request, self.template_name, context)
-
-class DeleteUploadedImage(LoginRequiredMixin, View):
-    template_name = 'deleteCBCTestResult.html'
+class DeleteCBCTestResultImage(LoginRequiredMixin, View):
+    template_name = 'DeleteCBCTestResultFile.html'
+    redirect_logout_template_name = 'LogoutView'
     redirect_adding_template_name = 'AddingCBCTestResultOptions'
     redirect_image_template_name = 'UploadCBCTestResultImage'
     redirect_picture_template_name = 'CaptureCBCTestResultImage'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
     image_error_message = 'The image was not found.'
     user_error_message = 'The user was not found.'
+    deletion_error_message = 'Something went wrong with the deletion process!'
     success_message = 'Delete Image Successful!'
     image_model = CBCTestResultImage
     user_model = User
@@ -1334,8 +1408,8 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
     def getImage(self, id):
         return self.image_model.objects.get(id=id)
     
-    def getUser(self, id):
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
 
     def sendErrorMessage(self, request, message):
         messages.error(request, message)
@@ -1343,8 +1417,9 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
     def sendSuccessMessage(self, request, message):
         messages.success(request, message)
 
-    def redirectTemplate(self, template_name):
-        return redirect(template_name)
+    def redirectTemplate(self, template_name, type=None, id=None):
+        if type == None and id == None:
+            return redirect(template_name)
     
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
@@ -1361,20 +1436,24 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
 
     def post(self, request, type, id):
         try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
             object = self.getImage(id)
         except:
             self.sendErrorMessage(request, self.image_error_message)
             return self.redirectTemplate(self.redirect_adding_template_name)
-        
-        try:
-            user = self.getUser(request.user.id)
-        except:
-            self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
 
-        self.deleteImage(object)
-        self.removeFile(object.get_testImage())
-        self.addUserUploads(user)
+        try:
+            self.removeFile(object.get_testImage())
+            self.deleteImage(object)
+            self.addUserUploads(user)
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
 
         self.sendSuccessMessage(request, self.success_message)
 
@@ -1383,23 +1462,14 @@ class DeleteUploadedImage(LoginRequiredMixin, View):
         elif type == 'picture':
             return self.redirectTemplate(self.redirect_picture_template_name)
 
-    def get(self, request, type, id):
-        try:
-            object = self.getImage(id)
-        except:
-            self.sendErrorMessage(request, self.image_error_message)
-            return self.redirectTemplate(self.redirect_adding_template_name)
-            
-        context = {'object': object, 'type': type}
-        return self.renderTemplate(request, self.template_name, context)
-
-class DeletePDF(LoginRequiredMixin, View):
-    template_name = 'deleteCBCTestResult.html'
+class DeleteCBCTestResultPDF(LoginRequiredMixin, View):
+    template_name = 'DeleteCBCTestResultFile.html'
+    redirect_logout_template_name = 'LogoutView'
     redirect_adding_template_name = 'AddingCBCTestResultOptions'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
     redirect_upload_template_name = 'UploadCBCTestResultPDF'
     pdf_error_message = 'The pdf was not found.'
     user_error_message = 'The user was not found.'
+    deletion_error_message = 'Something went wrong with the deletion process!'
     success_message = 'Delete PDF Successful!'
     pdf_model = CBCTestResultPDF
     user_model = User
@@ -1407,8 +1477,8 @@ class DeletePDF(LoginRequiredMixin, View):
     def getPDF(self, id):
         return self.pdf_model.objects.get(id=id)
     
-    def getUser(self, id):
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
 
     def sendErrorMessage(self, request, message):
         messages.error(request, message)
@@ -1429,56 +1499,52 @@ class DeletePDF(LoginRequiredMixin, View):
         user.uploads = user.uploads + 1
         user.save()
     
-    def deleteImage(self, object):
+    def deletePDF(self, object):
         object.delete()
 
     def post(self, request, id):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
+
         try:
             object = self.getPDF(id)
         except:
             self.sendErrorMessage(request, self.pdf_error_message)
             return self.redirectTemplate(self.redirect_adding_template_name)
-        
+                
         try:
-            user = self.getUser(request.user.id)
-        except:
-            self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            self.removeFile(object.get_testPDF())
+            self.deletePDF(object)
+            self.addUserUploads(user)
 
-        self.deleteImage(object)
-        self.removeFile(object.get_testPDF())
-        self.addUserUploads(user)
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
 
         self.sendSuccessMessage(request, self.success_message)
 
         return self.redirectTemplate(self.redirect_upload_template_name)
 
-    def get(self, request, id):
-        try:
-            object = self.getPDF(id)
-        except:
-            self.sendErrorMessage(request, self.pdf_error_message)
-            return self.redirectTemplate(self.redirect_adding_template_name)
-
-        context = {'object': object, 'type': 'pdf'}
-        return self.renderTemplate(request, self.template_name, context)
-
-class DeleteDocx(LoginRequiredMixin, View):
-    template_name = 'deleteCBCTestResult.html'
+class DeleteCBCTestResultDocument(LoginRequiredMixin, View):
+    template_name = 'DeleteCBCTestResultFile.html'
+    redirect_logout_template_name = 'LogoutView'
     redirect_adding_template_name = 'AddingCBCTestResultOptions'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
     redirect_upload_template_name = 'UploadCBCTestResultDocument'
     docx_error_message = 'The document was not found.'
     user_error_message = 'The user was not found.'
+    deletion_error_message = 'Something went wrong with the deletion process!'
     success_message = 'Delete Docx Successful!'
     docx_model = CBCTestResultDocument
     user_model = User
     
-    def getDocx(self, id):
+    def getDocument(self, id):
         return self.docx_model.objects.get(id=id)
     
-    def getUser(self, id):
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
 
     def sendErrorMessage(self, request, message):
         messages.error(request, message)
@@ -1499,25 +1565,29 @@ class DeleteDocx(LoginRequiredMixin, View):
         user.uploads = user.uploads + 1
         user.save()
     
-    def deleteImage(self, object):
+    def deleteDocument(self, object):
         object.delete()
 
     def post(self, request, id):
         try:
-            object = self.getDocx(id)
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            object = self.getDocument(id)
         except:
             self.sendErrorMessage(request, self.docx_error_message)
             return self.redirectTemplate(self.redirect_adding_template_name)
-        
-        try:
-            user = self.getUser(request.user.id)
-        except:
-            self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
 
-        self.deleteImage(object)
-        self.removeFile(object.get_testDocx())
-        self.addUserUploads(user)
+        try:
+            self.removeFile(object.get_testDocx())
+            self.deleteDocument(object)
+            self.addUserUploads(user)
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
 
         self.sendSuccessMessage(request, self.success_message)
 
@@ -1533,15 +1603,15 @@ class DeleteDocx(LoginRequiredMixin, View):
         context = {'object': object, 'type': 'docx'}
         return self.renderTemplate(request, self.template_name, context)
 
-class ShowRoom(LoginRequiredMixin, View):
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
-    redirect_contacts_template_name = 'contacts'
-    redirect_chat_template_name = 'newChat'
+class ShowChatRoom(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
+    redirect_contacts_template_name = 'Contacts'
+    redirect_chat_template_name = 'EnterChatRoom'
     error_message = 'The user is not found.'
     model = User
 
-    def getUser(self, id): 
-        return self.model.objects.get(id=id)
+    def getUser(self, request):
+        return self.model.objects.get(id=request.user.id)
 
     def redirectTemplate(self, template_name):
         return redirect(template_name)
@@ -1551,20 +1621,20 @@ class ShowRoom(LoginRequiredMixin, View):
 
     def get(self, request):
         try:
-            user = self.getUser(request.user.id)
+            user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         if user.is_admin:
             return self.redirectTemplate(self.redirect_contacts_template_name)
         else:
             return self.redirectTemplate(self.redirect_chat_template_name)
 
-class NewChat(LoginRequiredMixin, View):
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
-    template_name = 'newChat.html'
-    redirect_chat_template_name = 'chatbox'
+class EnterChatRoom(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
+    template_name = 'EnterChatRoom.html'
+    redirect_chat_template_name = 'ChatRoom'
     error_message = 'The user is not found.'
     user_model = User
     room_model = Room
@@ -1581,8 +1651,8 @@ class NewChat(LoginRequiredMixin, View):
         else:
             return redirect(template_name, id)
         
-    def getUser(self, id): 
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
 
     def getRoom(self, user):
         room = user.room_set.first()
@@ -1599,10 +1669,10 @@ class NewChat(LoginRequiredMixin, View):
 
     def post(self, request):
         try:
-            user = self.getUser(request.user.id)
+            user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         if user.room_set.first():
             room_id = self.getRoom(user)
@@ -1611,10 +1681,10 @@ class NewChat(LoginRequiredMixin, View):
             new_room_id = self.newRoom(user)
             return self.redirectTemplate(self.redirect_chat_template_name, id = new_room_id)
 
-class ChatBox(LoginRequiredMixin, View):
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
-    template_name = 'chatbox.html'
-    redirect_room_template_name = 'showRoom'
+class ChatRoom(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
+    template_name = 'ChatRoom.html'
+    redirect_room_template_name = 'ShowChatRoom'
     user_error_message = 'The user was not found!'
     room_error_message = 'The room was not found!'
     user_model = User
@@ -1623,8 +1693,8 @@ class ChatBox(LoginRequiredMixin, View):
     def getRoom(self, id):
         return self.room_model.objects.get(id=id)
     
-    def getUser(self, id): 
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
     
     def readMessages(self, room_details, user):
         room_details.message_set.filter(~Q(user__username=user.username)&Q(read=False)).update(read=True)
@@ -1640,10 +1710,10 @@ class ChatBox(LoginRequiredMixin, View):
 
     def get(self, request, id):
         try:
-            user = self.getUser(request.user.id)
+            user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         try:
             room_details = self.getRoom(id)
@@ -1657,9 +1727,9 @@ class ChatBox(LoginRequiredMixin, View):
         return self.renderTemplate(request, self.template_name, context)
 
 class Contacts(LoginRequiredMixin, View):
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
     user_error_message = 'The user was not found!'
-    template_name = 'contacts.html'
+    template_name = 'Contacts.html'
     user_model = User
     room_model = Room
 
@@ -1669,8 +1739,8 @@ class Contacts(LoginRequiredMixin, View):
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
 
-    def getUser(self, id): 
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
     
     def getRooms(self, user):
         return self.room_model.objects.filter(~Q(owner__username=user.username))
@@ -1680,18 +1750,18 @@ class Contacts(LoginRequiredMixin, View):
 
     def get(self, request):
         try:
-            user = self.getUser(request.user.id)
+            user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         rooms = self.getRooms(user)
 
         context = {'rooms': rooms}
         return render(request, self.template_name, context)
 
-class GetContactNotifications(LoginRequiredMixin, View):
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+class NotificationMessages(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
     user_error_message = 'The user was not found!'
     user_model = User
     room_model = Room
@@ -1703,8 +1773,8 @@ class GetContactNotifications(LoginRequiredMixin, View):
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
 
-    def getUser(self, id): 
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
 
     def getRooms(self, user):
         return self.room_model.objects.filter(~Q(owner__username=user.username))
@@ -1748,10 +1818,10 @@ class GetContactNotifications(LoginRequiredMixin, View):
     def get(self, request):
         context = {}
         try:
-            user = self.getUser(request.user.id)
+            user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         if user.is_admin:
             rooms = self.getRooms(user)
@@ -1765,12 +1835,12 @@ class GetContactNotifications(LoginRequiredMixin, View):
 
         return JsonResponse({"messages":context})      
 
-class Send(LoginRequiredMixin, View):
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+class SendMessage(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
     user_error_message = 'The user was not found!'
     room_error_message = 'The room was not found!'
     saving_error_message = 'There something went wrong in the saving process!'
-    redirect_room_template_name = 'showRoom'
+    redirect_room_template_name = 'ShowChatRoom'
     user_model = User
     room_model = Room
     message_model = Message
@@ -1799,7 +1869,7 @@ class Send(LoginRequiredMixin, View):
             user = self.getUser(request.user.id)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         message = request.POST.get('message')
         room_id = request.POST.get('room_id')
@@ -1819,9 +1889,9 @@ class Send(LoginRequiredMixin, View):
         return HttpResponse('Message sent successfully')
 
 class GetMessages(LoginRequiredMixin, View):
-    redirect_room_template_name = 'showRoom'
+    redirect_room_template_name = 'ShowChatRoom'
     room_error_message = 'The room was not found!'
-    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
     user_error_message = 'The user was not found!'
     error_message = 'Something went wrong.'
     user_model = User
@@ -1833,8 +1903,8 @@ class GetMessages(LoginRequiredMixin, View):
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
 
-    def getUser(self, id): 
-        return self.user_model.objects.get(id=id)
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
 
     def getRoom(self, id):
         return self.room_model.objects.get(id=id)
@@ -1850,10 +1920,10 @@ class GetMessages(LoginRequiredMixin, View):
 
     def get(self, request, id):
         try:
-            user = self.getUser(request.user.id)
+            user = self.getUser(request)
         except:
             self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_tests_template_name)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
         try:
             room = self.getRoom(id)
@@ -1869,8 +1939,8 @@ class GetMessages(LoginRequiredMixin, View):
         return JsonResponse({"messages":list(messages.values('user__username', 'value', 'date', 'read', 'id')), "username": username})
 
 class DeleteMessage(LoginRequiredMixin, View):
-    redirect_chat_template_name = 'chatbox'
-    redirect_room_template_name = 'showRoom'
+    redirect_chat_template_name = 'ChatRoom'
+    redirect_room_template_name = 'ShowChatRoom'
     error_message = 'Something went wrong.'
     message_model = Message
 

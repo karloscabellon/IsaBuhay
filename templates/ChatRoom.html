@@ -137,7 +137,7 @@ https://templatemo.com/tm-570-chain-app-dev
                   <h4>Isabuhay <em>ChatBox</em></h4>
                   <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
                   <p>Are you done with messaging?</p>
-                  <p><a href="{% url 'showRoom' %}">Go Back to Previous Page</a></p>
+                  <p><a href="{% url 'ShowChatRoom' %}">Go Back to Previous Page</a></p>
                   
                  </div>
               </div>
@@ -185,7 +185,7 @@ https://templatemo.com/tm-570-chain-app-dev
       
           </style>
       
-          <form method="POST"  id="post-form">
+          <form method="POST" id="post-form">
               {% csrf_token %}
               <textarea name="message" id="message" rows="2" form="post-form" placeholder="Enter Message Here..." required></textarea>
               <input id="btn" type="submit" value="Send">
@@ -221,7 +221,7 @@ https://templatemo.com/tm-570-chain-app-dev
     setInterval(function(){
         $.ajax({
             type: 'GET',
-            url : "/getMessages/{{room_details.id}}",
+            url : "/get-messages/{{room_details.id}}",
             success: function(response){
                 console.log(response);
                 $("#scroll-object").empty();
@@ -229,10 +229,10 @@ https://templatemo.com/tm-570-chain-app-dev
                 {
                   if(response.username == response.messages[key].user__username){
                     if(response.messages[key].read)
-                      var temp="<div class='chatbox darker'><a href=\"{% url 'deleteMessage' id=1 %}\"><i class=\"fa-solid fa-xmark xmark\"></i></a><b>".replace(/1/, response.messages[key].id) +response.messages[key].user__username+"</b><p style=\"color: white; font-size: 16px; white-space: normal; word-break: break-all;\">"+response.messages[key].value.replace(/(?:\r\n|\r|\n)/g, '<br>') +"</p><span class='time-left'>"+response.messages[key].date.replace(/T|Z/g,' ')+"</span><br><i class=\"fa-solid fa-eye\"></i></div>" ;
+                      var temp="<div class='chatbox darker'><a href=\"{% url 'DeleteMessage' id=1 %}\"><i class=\"fa-solid fa-xmark xmark\"></i></a><b>".replace(/1/, response.messages[key].id) +response.messages[key].user__username+"</b><p style=\"color: white; font-size: 16px; white-space: normal; word-break: break-all;\">"+response.messages[key].value.replace(/(?:\r\n|\r|\n)/g, '<br>') +"</p><span class='time-left'>"+response.messages[key].date.replace(/T|Z/g,' ')+"</span><br><i class=\"fa-solid fa-eye\"></i></div>" ;
                     else  
                     
-                      var temp="<div class='chatbox darker'><a href=\"{% url 'deleteMessage' id=1 %}\"><i class=\"fa-solid fa-xmark xmark\"></i></a><b>".replace(/1/, response.messages[key].id) +response.messages[key].user__username+"</b><p style=\"color: white; font-size: 16px; white-space: normal; word-break: break-all;\">"+response.messages[key].value.replace(/(?:\r\n|\r|\n)/g, '<br>') +"</p><span class='time-left'>"+response.messages[key].date.replace(/T|Z/g,' ')+"</span><br><i class=\"fa-sharp fa-solid fa-eye-slash\"></i></div>";
+                      var temp="<div class='chatbox darker'><a href=\"{% url 'DeleteMessage' id=1 %}\"><i class=\"fa-solid fa-xmark xmark\"></i></a><b>".replace(/1/, response.messages[key].id) +response.messages[key].user__username+"</b><p style=\"color: white; font-size: 16px; white-space: normal; word-break: break-all;\">"+response.messages[key].value.replace(/(?:\r\n|\r|\n)/g, '<br>') +"</p><span class='time-left'>"+response.messages[key].date.replace(/T|Z/g,' ')+"</span><br><i class=\"fa-sharp fa-solid fa-eye-slash\"></i></div>";
                   }
                   else{
                     if(response.messages[key].read)
@@ -258,14 +258,11 @@ https://templatemo.com/tm-570-chain-app-dev
 
     $.ajax({
       type:'POST',
-      url:'/send',
+      url:'/send-message',
       data:{
           room_id: '{{room_details.id}}',
           message:$('#message').val(),
         csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
-      },
-      success: function(data){
-         //alert(data)
       }
     });
     document.getElementById('message').value = ''

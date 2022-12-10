@@ -81,7 +81,7 @@ https://templatemo.com/tm-570-chain-app-dev
               <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
               {% endif %}
               <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
-              <li class="scroll-to-section"><a href="{% url 'showRoom' %}">Messages</a></li>
+              <li class="scroll-to-section"><a href="{% url 'ShowChatRoom' %}">Messages</a></li>
               <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
             </ul>          
             <a class='menu-trigger'>
@@ -118,8 +118,7 @@ https://templatemo.com/tm-570-chain-app-dev
 					<hr>
 					<p>Total: <span>&#8369;</span>{{object.price }}</p>
 					<hr>
-
-					<div id="paypal-button-container"></div>
+          <div id="paypal-button-container"></div>
 
 				</div>
 			</div>
@@ -151,88 +150,67 @@ https://templatemo.com/tm-570-chain-app-dev
   <script src="{% static 'assets/js/custom.js' %}"></script>
 	<script src="https://www.paypal.com/sdk/js?client-id=AURbFapWaO4d7Kq4nc416VamBaa_47woOx5cAz1_wZxJ4roOWcQifvZvRO2v6MrEPoVPtXhfoB3ZK-qH&currency=PHP"></script>
 
+  
 	 <script>
-    setTimeout(function(){
+setTimeout(function(){
       if ($('.alert').length > 0) {
         $('.alert').remove();
       }
     }, 3000)
 
-function getCookie(name) {
-		    var cookieValue = null;
-		    if (document.cookie && document.cookie !== '') {
-		        var cookies = document.cookie.split(';');
-		        for (var i = 0; i < cookies.length; i++) {
-		            var cookie = cookies[i].trim();
-		            // Does this cookie string begin with the name we want?
-		            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-		                break;
-		            }
-		        }
-		    }
-		    return cookieValue;
-		}
-		var csrftoken = getCookie('csrftoken');
-
-	 	var price = '{{object.price}}'
-	 	var uploads = '{{object.uploads}}'
-    var promoId = '{{object.pk}}'
-
-     function completeOrder(){
-	 		var url = "{% url 'complete' %}"
-
-	 		fetch(url, {
-	 			method:'POST',
-	 			headers:{
-	 				'Content-type':'application/json',
-	 				'X-CSRFToken':csrftoken,
-	 			},
-	 			body:JSON.stringify({'promoId':promoId})
-	 		}).then((response) => response.json())
-	    	.then((data) => {
-          if ('{{type}}' === 'image') {
-            window.location.href = "{% url 'UploadCBCTestResultImage' %}"
-          } else if ('{{type}}' === 'picture') {
-            window.location.href = "{% url 'CaptureCBCTestResultImage' %}"
-          } else if ('{{type}}' === 'pdf') {
-            window.location.href = "{% url 'UploadCBCTestResultPDF' %}"
-          } else if ('{{type}}' === 'docx') {
-            window.location.href = "{% url 'UploadCBCTestResultDocument' %}"
-          } else if ('{{type}}' === 'pay') {
-            window.location.href = "{% url 'AddingCBCTestResultOptions' %}"
-          }
-				})
-	 	}
-
-        // Render the PayPal button into #paypal-button-container
-        paypal.Buttons({
-            style: {
-                color:  'blue',
-                shape:  'pill',
-                label:  'pay',
-                height: 40
-            },
-            // Set up the transaction
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: parseFloat(price).toFixed(2)
+    
+    function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
                         }
-                    }]
-                });
-            },
-
-            // Finalize the transaction
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(orderData) {
-                    completeOrder()
-                });
+                    }
+                }
+                return cookieValue;
             }
-
-
-        }).render('#paypal-button-container');
+            var csrftoken = getCookie('csrftoken');
+    
+             var price = '{{object.price}}'
+             var uploads = '{{object.uploads}}'
+    
+         function completeOrder(){
+            window.location.href = "{% url 'PaymentCompletion' type object.id %}"
+             }
+    
+            // Render the PayPal button into #paypal-button-container
+            paypal.Buttons({
+                style: {
+                    color:  'blue',
+                    shape:  'pill',
+                    label:  'pay',
+                    height: 40
+                },
+                // Set up the transaction
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: parseFloat(price).toFixed(2)
+                            }
+                        }]
+                    });
+                },
+    
+                // Finalize the transaction
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(orderData) {
+                        completeOrder()
+                    });
+                }
+    
+    
+            }).render('#paypal-button-container');
     </script>
 
 </body>

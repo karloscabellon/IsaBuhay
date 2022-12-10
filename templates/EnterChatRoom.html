@@ -150,7 +150,7 @@ https://templatemo.com/tm-570-chain-app-dev
   setInterval(function(){
       $.ajax({
           type: 'GET',
-          url : "/getContactNotifications",
+          url : "/notification-messages",
           success: function(response){
               console.log(response);
               $("#display").empty();

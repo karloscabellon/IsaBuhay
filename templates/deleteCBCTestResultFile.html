@@ -32,11 +32,11 @@
         </div>
         <div class="modal-footer">
             {% if type == 'docx' %}
-            <form method="POST" action="{% url 'DeleteDocx' object.id %}">
+            <form method="POST" action="{% url 'DeleteCBCTestResultDocument' object.id %}">
             {% elif type ==  'pdf' %}
-            <form method="POST" action="{% url 'DeletePDF' object.id %}">
+            <form method="POST" action="{% url 'DeleteCBCTestResultPDF' object.id %}">
             {% elif type == 'image' or type == 'picture'  %}
-            <form method="POST" action="{% url 'DeleteUploadedImage' type object.id %}">
+            <form method="POST" action="{% url 'DeleteCBCTestResultImage' type object.id %}">
             {% endif %}
             {% csrf_token %}
             {% if type == 'docx' %}
