@@ -783,14 +783,14 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
         date_time_str = request.POST.get('dateRequested')
         try:
-            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
             object.set_dateRequested(pytz.utc.localize(unaware_date)) 
         except:
             object.set_dateRequested(None)
         
         date_time_str = request.POST.get('dateReceived')
         try:
-            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
             object.set_dateReceived(pytz.utc.localize(unaware_date)) 
         except:
             object.set_dateReceived(None)
@@ -849,9 +849,29 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
         if 'Requested' in values[22]:
             data['dateRequested'] = values[23]+" "+values[24]+" "+values[25]
+            if "PM" in data['dateRequested']:
+                dateArr = data['dateRequested'].split()
+                
+                newHour = int(dateArr[1][:2]) + 12
+                
+                dateArr[1] = str(newHour) + dateArr[1][2:]
+                finalDate = dateArr[0] + " " + dateArr[1]
+                data['dateRequested'] = finalDate
+            elif "AM" in data['dateRequested']:
+                data['dateRequested'] = data['dateRequested'][:-3]
 
         if 'Received' in values[26]:
             data['dateReceived'] = values[27]+" "+values[28]+" "+values[29]
+            if "PM" in data['dateReceived']:
+                dateArr = data['dateReceived'].split()
+                
+                newHour = int(dateArr[1][:2]) + 12
+                
+                dateArr[1] = str(newHour) + dateArr[1][2:]
+                finalDate = dateArr[0] + " " + dateArr[1]
+                data['dateReceived'] = finalDate
+            elif "AM" in data['dateReceived']:
+                data['dateReceived'] = data['dateReceived'][:-3]
 
         if 'White' in values[39] and 'Blood' in values[40] and 'Cells' in values[41]:
             data['whiteBloodCells'] = values[42]
@@ -954,9 +974,29 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
 
         if 'Requested' in values[26]:
             data['dateRequested'] = values[27]+values[28]+values[29]+values[30]+values[31]+" "+values[32]+" "+values[33]
+            if "PM" in data['dateRequested']:
+                dateArr = data['dateRequested'].split()
+                
+                newHour = int(dateArr[1][:2]) + 12
+                
+                dateArr[1] = str(newHour) + dateArr[1][2:]
+                finalDate = dateArr[0] + " " + dateArr[1]
+                data['dateRequested'] = finalDate
+            elif "AM" in data['dateRequested']:
+                data['dateRequested'] = data['dateRequested'][:-3]
 
         if 'Received' in values[34]:
             data['dateReceived'] = values[35]+values[36]+values[37]+values[38]+values[39]+" "+values[40]+" "+values[41]
+            if "PM" in data['dateReceived']:
+                dateArr = data['dateReceived'].split()
+                
+                newHour = int(dateArr[1][:2]) + 12
+                
+                dateArr[1] = str(newHour) + dateArr[1][2:]
+                finalDate = dateArr[0] + " " + dateArr[1]
+                data['dateReceived'] = finalDate
+            elif "AM" in data['dateReceived']:
+                data['dateReceived'] = data['dateReceived'][:-3]
 
         if 'White' in values[51] and 'Blood' in values[52] and 'Cells' in values[53]:
             data['whiteBloodCells'] = values[54]
@@ -1052,10 +1092,30 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
             if 'Requested' in r[1] and flag[3] == 0:
                 flag[3] = 1
                 data['dateRequested'] = result[index+1][1]
+                if "PM" in data['dateRequested']:
+                    dateArr = data['dateRequested'].split()
+                    
+                    newHour = int(dateArr[1][:2]) + 12
+                    
+                    dateArr[1] = str(newHour) + dateArr[1][2:]
+                    finalDate = dateArr[0] + " " + dateArr[1]
+                    data['dateRequested'] = finalDate
+                elif "AM" in data['dateRequested']:
+                    data['dateRequested'] = data['dateRequested'][:-3]
 
             if 'Received' in r[1] and flag[4] == 0:
                 flag[4] = 1
                 data['dateReceived'] = result[index+1][1]
+                if "PM" in data['dateReceived']:
+                    dateArr = data['dateReceived'].split()
+                    
+                    newHour = int(dateArr[1][:2]) + 12
+                    
+                    dateArr[1] = str(newHour) + dateArr[1][2:]
+                    finalDate = dateArr[0] + " " + dateArr[1]
+                    data['dateReceived'] = finalDate
+                elif "AM" in data['dateReceived']:
+                    data['dateReceived'] = data['dateReceived'][:-3]
             
             if 'White Blood Cells' in r[1] and flag[5] == 0:
                 flag[5] = 1
@@ -1273,6 +1333,24 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
          return render(request, template_name, context)
 
     def updateTest(self, request, object):
+        date_time_str = request.POST.get('dateRequested')
+        try:
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
+            object.set_dateRequested(pytz.utc.localize(unaware_date)) 
+        except:
+            object.set_dateRequested(None)
+        
+        date_time_str = request.POST.get('dateReceived')
+        try:
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
+            object.set_dateReceived(pytz.utc.localize(unaware_date)) 
+        except:
+            object.set_dateReceived(None)
+
+        object.set_user(User.objects.get(id=request.user.id))
+        object.set_source(request.POST.get('source')) 
+        object.set_labNumber(request.POST.get('labNumber')) 
+        object.set_pid(request.POST.get('pid')) 
         object.set_whiteBloodCells(request.POST.get('whiteBloodCells')) 
         object.set_redBloodCells(request.POST.get('redBloodCells')) 
         object.set_hemoglobin(request.POST.get('hemoglobin')) 
@@ -1302,6 +1380,12 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
     def getUser(self, request):
         self.user_model.objects.get(id=request.user.id)
 
+    def getCorrectDateFormat(self, object):
+        date_time_str = object
+        dateArr = date_time_str.split()
+        yearArr = dateArr[0].split('-')
+        return yearArr[1]+ '-' + yearArr[2]+ '-' + yearArr[0] + ' ' + dateArr[1]
+        
     def post(self, request, id):
         try:
             self.getUser(request)
@@ -1337,7 +1421,10 @@ class UpdateCBCTestResult(LoginRequiredMixin, View):
             self.sendErrorMessage(request, self.record_error_message)
             return self.redirectTemplate(self.redirect_tests_template_name)
 
-        context = {'object': object}
+        dateRequestedStr = self.getCorrectDateFormat(str(object.dateRequested)[:-9])
+        dateReceivedStr = self.getCorrectDateFormat(str(object.dateReceived)[:-9])
+
+        context = {'object': object, 'dateRequestedStr': dateRequestedStr, 'dateReceivedStr': dateReceivedStr}
         return self.renderTemplate(request, self.template_name, context)
 
 class DeleteCBCTestResult(LoginRequiredMixin, View):
