@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'isabuhaywebapp.apps.IsabuhaywebappConfig',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -159,3 +160,11 @@ EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'isabuhay.services.noreply@gmail.com'
 EMAIL_HOST_PASSWORD = 'pdplfcokkyerxnwf'
+
+AWS_ACCESS_KEY_ID = 'AKIAWALVJOKH2673O3JY'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'isabuhay'
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
