@@ -247,7 +247,7 @@ https://templatemo.com/tm-570-chain-app-dev
                 }
             },
             error: function(response){
-                alert('An error occured')
+                alert('Something went wrong with getting the messages!')
             }
         });
     },1000);
@@ -263,6 +263,9 @@ https://templatemo.com/tm-570-chain-app-dev
           room_id: '{{room_details.id}}',
           message:$('#message').val(),
         csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+      },
+      error: function(response){
+          alert('Something went wrong in the sending process!')
       }
     });
     document.getElementById('message').value = ''

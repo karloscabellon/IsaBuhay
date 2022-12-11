@@ -43,7 +43,7 @@ urlpatterns = [
     path('chat-room/<str:id>', ChatRoom.as_view(), name='ChatRoom'),
     path('send-message', SendMessage.as_view(), name='SendMessage'),
     path('contacts', Contacts.as_view(), name='Contacts'),
-    path('notification-messages', NotificationMessages.as_view(), name='NotificationMessages'),
+    path('unread-messages', UnreadMessages.as_view(), name='UnreadMessages'),
     path('get-messages/<str:id>', GetMessages.as_view(), name='GetMessages'),
     path('delete-message/<str:id>', DeleteMessage.as_view(), name='DeleteMessage'),
 ]

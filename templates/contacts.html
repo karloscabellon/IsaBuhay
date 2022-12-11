@@ -128,9 +128,8 @@ https://templatemo.com/tm-570-chain-app-dev
         setInterval(function(){
             $.ajax({
                 type: 'GET',
-                url : "/notification-messages",
+                url : "/unread-messages",
                 success: function(response){
-                    console.log(response);
                     $("#display").empty();
                     for (var key in response.messages)
                     {
@@ -139,7 +138,7 @@ https://templatemo.com/tm-570-chain-app-dev
                     }
                 },
                 error: function(response){
-                    alert('An error occured')
+                    alert('Something went wrong with the unread messages notification!')
                 }
             });
         },1000);

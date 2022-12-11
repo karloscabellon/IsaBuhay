@@ -1665,6 +1665,12 @@ class EnterChatRoom(LoginRequiredMixin, View):
         return new_room.get_id()
 
     def get(self, request):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
         return self.renderTemplate(request, self.template_name)
 
     def post(self, request):
@@ -1686,7 +1692,8 @@ class ChatRoom(LoginRequiredMixin, View):
     template_name = 'ChatRoom.html'
     redirect_room_template_name = 'ShowChatRoom'
     user_error_message = 'The user was not found!'
-    room_error_message = 'The room was not found!'
+    room_error_message = 'The chat room was not found!'
+    read_error_message = 'Something went wrong with the reading process!'
     user_model = User
     room_model = Room
 
@@ -1721,14 +1728,20 @@ class ChatRoom(LoginRequiredMixin, View):
             self.sendErrorMessage(request, self.room_error_message)
             return self.redirectTemplate(self.redirect_room_template_name)
         
-        self.readMessages(room_details, user)
+        try:
+             self.readMessages(room_details, user)
+        except:
+            self.sendErrorMessage(request, self.read_error_message)
+            return self.redirectTemplate(self.redirect_room_template_name)
 
         context = {'room_details': room_details}
         return self.renderTemplate(request, self.template_name, context)
 
 class Contacts(LoginRequiredMixin, View):
+    redirect_test_template_name = 'DisplayAllCBCTestResult'
     redirect_logout_template_name = 'LogoutView'
     user_error_message = 'The user was not found!'
+    rooms_error_message = 'Something is wrong with the Chat Rooms!'
     template_name = 'Contacts.html'
     user_model = User
     room_model = Room
@@ -1755,23 +1768,19 @@ class Contacts(LoginRequiredMixin, View):
             self.sendErrorMessage(request, self.user_error_message)
             return self.redirectTemplate(self.redirect_logout_template_name)
 
-        rooms = self.getRooms(user)
+        try:
+            rooms = self.getRooms(user)
+        except:
+            self.sendErrorMessage(request, self.rooms_error_message)
+            return self.redirectTemplate(self.redirect_test_template_name)
 
         context = {'rooms': rooms}
-        return render(request, self.template_name, context)
+        return self.renderTemplate(request, self.template_name, context)
 
-class NotificationMessages(LoginRequiredMixin, View):
-    redirect_logout_template_name = 'LogoutView'
-    user_error_message = 'The user was not found!'
+class UnreadMessages(LoginRequiredMixin, View):
     user_model = User
     room_model = Room
     admin_name = 'admin'
-
-    def redirectTemplate(self, template_name):
-        return redirect(template_name)
-    
-    def renderTemplate(self, request, template_name, context):
-         return render(request, template_name, context)
 
     def getUser(self, request):
         return self.user_model.objects.get(id=request.user.id)
@@ -1781,9 +1790,6 @@ class NotificationMessages(LoginRequiredMixin, View):
     
     def countNotification(self, room, user):
         return room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).count()
-    
-    def sendErrorMessage(self, request, message):
-        messages.error(request, message)
     
     def getAdminNotifications(self, user):
         context = {}
@@ -1817,18 +1823,9 @@ class NotificationMessages(LoginRequiredMixin, View):
 
     def get(self, request):
         context = {}
-        try:
-            user = self.getUser(request)
-        except:
-            self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_logout_template_name)
-
+        user = self.getUser(request)
         if user.is_admin:
-            rooms = self.getRooms(user)
-            queue = []
-            i = 0
-            for room in rooms:
-                context = self.getAdminNotifications(user)
+            context = self.getAdminNotifications(user)
         else:
             if user.room_set.first():
                 context = self.getUserNotifications(user)
@@ -1836,26 +1833,13 @@ class NotificationMessages(LoginRequiredMixin, View):
         return JsonResponse({"messages":context})      
 
 class SendMessage(LoginRequiredMixin, View):
-    redirect_logout_template_name = 'LogoutView'
-    user_error_message = 'The user was not found!'
-    room_error_message = 'The room was not found!'
-    saving_error_message = 'There something went wrong in the saving process!'
-    redirect_room_template_name = 'ShowChatRoom'
     user_model = User
     room_model = Room
     message_model = Message
 
-    def redirectTemplate(self, template_name):
-        return redirect(template_name)
-    
-    def renderTemplate(self, request, template_name, context):
-         return render(request, template_name, context)
 
     def getUser(self, id): 
         return self.user_model.objects.get(id=id)
-
-    def sendErrorMessage(self, request, message):
-        messages.error(request, message)
 
     def getRoom(self, id):
         return self.room_model.objects.get(id=id)
@@ -1865,43 +1849,20 @@ class SendMessage(LoginRequiredMixin, View):
         new_message.save()
 
     def post(self, request):
-        try:
-            user = self.getUser(request.user.id)
-        except:
-            self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_logout_template_name)
+        user = self.getUser(request.user.id)
 
         message = request.POST.get('message')
         room_id = request.POST.get('room_id')
 
-        try:
-            room = self.getRoom(room_id)
-        except:
-            self.sendErrorMessage(request, self.room_error_message)
-            return self.redirectTemplate(self.redirect_room_template_name)
+        room = self.getRoom(room_id)
 
-        try:
-            self.saveMessage(message, user, room)
-        except:
-            self.sendErrorMessage(request, self.saving_error_message)
-            return self.redirectTemplate(self.redirect_room_template_name)
+        self.saveMessage(message, user, room)
         
         return HttpResponse('Message sent successfully')
 
 class GetMessages(LoginRequiredMixin, View):
-    redirect_room_template_name = 'ShowChatRoom'
-    room_error_message = 'The room was not found!'
-    redirect_logout_template_name = 'LogoutView'
-    user_error_message = 'The user was not found!'
-    error_message = 'Something went wrong.'
     user_model = User
     room_model = Room
-
-    def redirectTemplate(self, template_name):
-        return redirect(template_name)
-    
-    def renderTemplate(self, request, template_name, context):
-         return render(request, template_name, context)
 
     def getUser(self, request):
         return self.user_model.objects.get(id=request.user.id)
@@ -1919,29 +1880,19 @@ class GetMessages(LoginRequiredMixin, View):
         return user.username
 
     def get(self, request, id):
-        try:
-            user = self.getUser(request)
-        except:
-            self.sendErrorMessage(request, self.user_error_message)
-            return self.redirectTemplate(self.redirect_logout_template_name)
-
-        try:
-            room = self.getRoom(id)
-        except:
-            self.sendErrorMessage(request, self.room_error_message)
-            return self.redirectTemplate(self.redirect_room_template_name)
-
-        
+        user = self.getUser(request)
+        room = self.getRoom(id)
         messages = self.getMessages(room)
         self.readMessages(room, user)
         username = self.getUserName(user)
-
         return JsonResponse({"messages":list(messages.values('user__username', 'value', 'date', 'read', 'id')), "username": username})
 
 class DeleteMessage(LoginRequiredMixin, View):
     redirect_chat_template_name = 'ChatRoom'
     redirect_room_template_name = 'ShowChatRoom'
-    error_message = 'Something went wrong.'
+    deletion_error_message = 'Something went wrong with the deletion process!'
+    user_error_message = 'User is not the same with the message owner!'
+    success_message = 'Message is deleted!'
     message_model = Message
 
     def getMessage(self, id):
@@ -1949,22 +1900,37 @@ class DeleteMessage(LoginRequiredMixin, View):
     
     def deleteMessage(self, message):
         message.delete()
+
+    def getRoomId(self, message):
+        return message.room.get_id()
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
     
-    def redirectTemplate(self, template_name, id):
-        return redirect(template_name, id)
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+    
+    def redirectTemplate(self, template_name, id=None):
+        if id == None:
+            return  redirect(template_name)
+        else:
+            return redirect(template_name, id)
     
     def get(self, request, id):
         try:
             message = self.getMessage(id)
-            room_id = message.room.get_id()
+            room_id = self.getRoomId(message)
+            if message.user.id == request.user.id:
+                    self.deleteMessage(message)
+            else:
+                self.sendErrorMessage(request, self.user_error_message)
+                return self.redirectTemplate(self.redirect_chat_template_name, room_id)
         except:
-            self.sendErrorMessage(request, self.room_error_message)
+            self.sendErrorMessage(request, self.deletion_error_message)
             return self.redirectTemplate(self.redirect_room_template_name)
         
-        if message.user.id == request.user.id:
-            self.deleteMessage(message)
-
-        return self.redirectTemplate(self.redirect_chat_template_name, id =room_id)
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_chat_template_name, room_id)
         
 
 # Marc John Corral

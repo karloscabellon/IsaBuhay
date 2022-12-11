@@ -102,6 +102,7 @@ https://templatemo.com/tm-570-chain-app-dev
 
   <div id="about" class="about-us section">
     <div class="container">
+      {% include 'NotificationMessages.html' %}
       <div class="row">
         <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
 
@@ -148,9 +149,15 @@ https://templatemo.com/tm-570-chain-app-dev
       $(document).ready(function(){
   
   setInterval(function(){
+    setTimeout(function(){
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
+      }
+    }, 3000)
+
       $.ajax({
           type: 'GET',
-          url : "/notification-messages",
+          url : "/unread-messages",
           success: function(response){
               console.log(response);
               $("#display").empty();
@@ -165,7 +172,7 @@ https://templatemo.com/tm-570-chain-app-dev
               }
           },
           error: function(response){
-              alert('An error occured')
+            alert('Something went wrong with the unread messages notification!')
           }
       });
   },1000);
