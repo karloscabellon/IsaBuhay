@@ -117,7 +117,7 @@ https://templatemo.com/tm-570-chain-app-dev
                   </td></tr>
                   <tr><td colspan="3">
                     <label>Lab Number:</label>
-                    <input type="text"  name="labNumber" required value="{{labNumber}}" >
+                    <input type="number"  name="labNumber" required value="{{labNumber}}" >
                   </td></tr>
                 <tr><td colspan="3">
                   <label>PID Number:</label>
@@ -134,99 +134,99 @@ https://templatemo.com/tm-570-chain-app-dev
                   <tr>
                     <td colspan="1">
                       <label>WBC:</label>
-                          <input type="number"  name="whiteBloodCells" min=0 step="any" min=0 step="any" required  value="{{whiteBloodCells}}" >
+                          <input type="number"  name="whiteBloodCells" min=0 step="any" max="1000" required  value="{{whiteBloodCells}}" >
                     </td>
                     <td colspan="1">
                       <label>RBC:</label>
-                          <input type="number"  name="redBloodCells" min=0 step="any" required  value="{{redBloodCells}}" >
+                          <input type="number"  name="redBloodCells" min=0 step="any" max="1000" required  value="{{redBloodCells}}" >
                     </td>
                     <td colspan="1">
                       <label>HGB:</label>
-                        <input type="number"  name="hemoglobin" min=0 step="any" required  value="{{hemoglobin}}" >
+                        <input type="number"  name="hemoglobin" min=0 step="any" max="1000" required  value="{{hemoglobin}}" >
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <label>HCT:</label>
-                      <input type="number"  name="hematocrit" min=0 step="any" required  value="{{hematocrit}}" >
+                      <input type="number"  name="hematocrit" min=0 step="any" max="1000" required  value="{{hematocrit}}" >
                     </td>
                     <td>
                       <label>MCV:</label>
-                      <input type="number"  name="meanCorpuscularVolume" min=0 step="any" required  value="{{meanCorpuscularVolume}}" >
+                      <input type="number"  name="meanCorpuscularVolume" min=0 step="any" max="1000" required  value="{{meanCorpuscularVolume}}" >
                     </td>
                     <td>
                       <label>MCH:</label>
-                      <input type="number"  name="meanCorpuscularHb" min=0 step="any" required  value="{{meanCorpuscularHb}}" >
+                      <input type="number"  name="meanCorpuscularHb" min=0 step="any" max="1000" required  value="{{meanCorpuscularHb}}" >
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <label>MCHC:</label>
-                      <input type="number"  name="meanCorpuscularHbConc" min=0 step="any" required  value="{{meanCorpuscularHbConc}}" >
+                      <input type="number"  name="meanCorpuscularHbConc" min=0 step="any" max="1000" required  value="{{meanCorpuscularHbConc}}" >
                     </td>
                     <td>
                       <label>RDW:</label>
-                      <input type="number"  name="rbcDistributionWidth" min=0 step="any" required  value="{{rbcDistributionWidth}}" >
+                      <input type="number"  name="rbcDistributionWidth" min=0 step="any" max="1000" required  value="{{rbcDistributionWidth}}" >
                     </td>
                     <td>
                       <label>PLT:</label>
-                      <input type="number"  name="plateletCount" min=0 step="any" required  value="{{plateletCount}}" >
+                      <input type="number"  name="plateletCount" min=0 step="any" max="1000" required  value="{{plateletCount}}" >
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <label>NEUT:</label>
-                      <input type="number"  name="neutrophils" min=0 step="any" required  value="{{neutrophils}}" >
+                      <input type="number"  name="neutrophils" min=0 step="any" max="1000" required  value="{{neutrophils}}" >
                     </td>
                     <td>
                       <label>LYMPH:</label>
-                      <input type="number"  name="lymphocytes" min=0 step="any" required  value="{{lymphocytes}}" >
+                      <input type="number"  name="lymphocytes" min=0 step="any" max="1000" required  value="{{lymphocytes}}" >
                     </td>
                     <td>
                       <label>MONO:</label>
-                      <input type="number"  name="monocytes" min=0 step="any" required  value="{{monocytes}}" >
+                      <input type="number"  name="monocytes" min=0 step="any" max="1000" required  value="{{monocytes}}" >
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <label>EOS:</label>
-                      <input type="number"  name="eosinophils" min=0 step="any" required  value="{{eosinophils}}" >
+                      <input type="number"  name="eosinophils" min=0 step="any" max="1000" required  value="{{eosinophils}}" >
                     </td>
                     <td>
                       <label>BASO:</label>
-                  <input type="number"  name="basophils" min=0 step="any" required  value="{{basophils}}" >
+                  <input type="number"  name="basophils" min=0 step="any" max="1000" required  value="{{basophils}}" >
                     </td>
                     <td>
                       <label>BANDS:</label>
-                <input type="number"  name="bands" min=0 step="any" required  value="{{bands}}" >
+                <input type="number"  name="bands" min=0 step="any" max="1000" required  value="{{bands}}" >
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <label>ABS NEUT:</label>
-                      <input type="number"  name="absoluteNeutrophilsCount" min=0 step="any" required  value="{{absoluteNeutrophilsCount}}" >
+                      <input type="number"  name="absoluteNeutrophilsCount" min=0 step="any" max="1000" required  value="{{absoluteNeutrophilsCount}}" >
                     </td>
                     <td>
                       <label>ABS LYMPH:</label>
-                  <input type="number"  name="absoluteLymphocyteCount" min=0 step="any" required  value="{{absoluteLymphocyteCount}}" >
+                  <input type="number"  name="absoluteLymphocyteCount" min=0 step="any" max="1000" required  value="{{absoluteLymphocyteCount}}" >
                     </td>
                     <td>
                       <label>ABS MONO:</label>
-                      <input type="number"  name="absoluteMonocyteCount" min=0 step="any" required  value="{{absoluteMonocyteCount}}" >
+                      <input type="number"  name="absoluteMonocyteCount" min=0 step="any" max="1000" required  value="{{absoluteMonocyteCount}}" >
                     </td>
                   </tr>
                   <tr>
                     <td>
                       <label>ABS EOS:</label>
-                      <input type="number"  name="absoluteEosinophilCount" min=0 step="any" required  value="{{absoluteEosinophilCount}}" >
+                      <input type="number"  name="absoluteEosinophilCount" min=0 step="any" max="1000" required  value="{{absoluteEosinophilCount}}" >
                     </td>
                     <td>
                       <label>ABS BASO:</label>
-                      <input type="number"  name="absoluteBasophilCount" min=0 step="any" required  value="{{absoluteBasophilCount}}" >
+                      <input type="number"  name="absoluteBasophilCount" min=0 step="any" max="1000" required  value="{{absoluteBasophilCount}}" >
                     </td>
                     <td>
                       <label>ABS BAND:</label>
-                      <input type="number"  name="absoluteBandCount" min=0 step="any" required  value="{{absoluteBandCount}}" >      
+                      <input type="number"  name="absoluteBandCount" min=0 step="any" max="1000" required  value="{{absoluteBandCount}}" >      
                     </td>
                   </tr>
                 </table>
