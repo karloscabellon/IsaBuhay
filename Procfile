@@ -1,1 +1,0 @@
-web gunicorn isabuhay.wsgi:application --log-file -
