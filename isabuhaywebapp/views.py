@@ -1246,7 +1246,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         return self.renderTemplate(request, self.template_name, data)
 
 class UpdateCBCTestResult(LoginRequiredMixin, View):
-    template_name = 'updateCBCTestResult.html'
+    template_name = 'UpdateCBCTestResult.html'
     redirect_tests_template_name = 'DisplayAllCBCTestResult'
     redirect_test_template_name = 'DisplayCBCTestResult'
     redirect_logout_template_name = 'LogoutView'
