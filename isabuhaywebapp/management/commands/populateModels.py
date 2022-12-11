@@ -7,11 +7,11 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        model = PromoOptions(uploads=1, price=10.00)
+        model = Promo(uploads=1, price=10.00)
         model.save()
-        model = PromoOptions(uploads=5, price=45.00)
+        model = Promo(uploads=5, price=45.00)
         model.save()
-        model = PromoOptions(uploads=10, price=80.00)
+        model = Promo(uploads=10, price=80.00)
         model.save()
-        model = PromoOptions(uploads=25, price=200.00)
+        model = Promo(uploads=25, price=200.00)
         model.save()

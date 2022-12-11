@@ -81,8 +81,12 @@ LOGIN_URL = reverse_lazy('DisplayLoginPage')
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'isabuhay_db',
+        'USER': 'postgres',
+        'PASSWORD': '12345678',
+        'HOST': 'database-3.cfgeb0pnzqn4.ap-northeast-1.rds.amazonaws.com',
+        'PORT': '5432'
     }
 }
 
