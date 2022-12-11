@@ -90,7 +90,7 @@ class User(AbstractBaseUser):
 
 class CBCTestResultImage(models.Model):
     id = models.BigAutoField(primary_key=True)
-    testImage = models.ImageField(upload_to='images/', blank=False, null=False)
+    testImage = models.ImageField(verbose_name="testImage", blank=False, null=False)
 
     def get_id(self):
         return self.id
@@ -103,7 +103,7 @@ class CBCTestResultImage(models.Model):
 
 class CBCTestResultPDF(models.Model):
     id = models.BigAutoField(primary_key=True)
-    testPDF = models.FileField(upload_to='pdfs/', blank=False, null=False)
+    testPDF = models.FileField(verbose_name="testPDF", blank=False, null=False)
 
     def get_id(self):
         return self.id
@@ -116,7 +116,7 @@ class CBCTestResultPDF(models.Model):
 
 class CBCTestResultDocument(models.Model):
     id = models.BigAutoField(primary_key=True)
-    testDocx = models.FileField(upload_to='docs/', blank=False, null=False)
+    testDocx = models.FileField(verbose_name="testDocx", blank=False, null=False)
 
     def get_id(self):
         return self.id

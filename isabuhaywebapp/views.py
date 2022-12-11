@@ -31,6 +31,8 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Q
 import logging
+import requests
+from pdf2image import convert_from_path
 
 class DisplayAdminPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAdminPage.html'
@@ -856,10 +858,20 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         data = {}
         docxObject = self.getDocument(id)
         data['object'] = docxObject
-        FILE_PATH = str(docxObject.get_testDocx().url[1:])
-        txt = d2t.process(FILE_PATH)
+        FILE_PATH = docxObject.testDocx.url
+        req = requests.get(FILE_PATH)
+        filename = req.url[FILE_PATH.rfind('/')+1:]
+        filename = "media/" + filename.split("?")[0]
+
+        with open(filename, 'wb') as f:
+            for chunk in req.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
+        txt = d2t.process(filename)
 
         values = txt.split()
+        self.removeFile(filename)
 
         if 'PID' in values[4]:
             data['pid'] = values[5]
@@ -877,9 +889,13 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 
                 newHour = int(dateArr[1][:2]) + 12
                 
-                dateArr[1] = str(newHour) + dateArr[1][2:]
-                finalDate = dateArr[0] + " " + dateArr[1]
-                data['dateRequested'] = finalDate
+                if newHour > 23:
+                    data['dateRequested'] = data['dateRequested'][:-3]
+                else:
+                    dateArr[1] = str(newHour) + dateArr[1][2:]
+                    finalDate = dateArr[0] + " " + dateArr[1]
+                    data['dateRequested'] = finalDate
+
             elif "AM" in data['dateRequested']:
                 data['dateRequested'] = data['dateRequested'][:-3]
 
@@ -890,9 +906,13 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 
                 newHour = int(dateArr[1][:2]) + 12
                 
-                dateArr[1] = str(newHour) + dateArr[1][2:]
-                finalDate = dateArr[0] + " " + dateArr[1]
-                data['dateReceived'] = finalDate
+                if newHour > 23:
+                    data['dateReceived'] = data['dateReceived'][:-3]
+                else:
+                    dateArr[1] = str(newHour) + dateArr[1][2:]
+                    finalDate = dateArr[0] + " " + dateArr[1]
+                    data['dateReceived'] = finalDate
+
             elif "AM" in data['dateReceived']:
                 data['dateReceived'] = data['dateReceived'][:-3]
 
@@ -963,7 +983,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         return docxObject, data
     
     def removeFile(self, file):
-        os.remove(str(file.url)[1:]) 
+        os.remove(file) 
 
     def addUserUploads(self, user):
         user.uploads = user.uploads + 1
@@ -976,127 +996,25 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         data = {}
         pdfObject = self.getPDF(id)
         data['object'] = pdfObject
-        FILE_PATH = str(pdfObject.get_testPDF().url[1:])
+        FILE_PATH = pdfObject.testPDF.url
 
-        with open(FILE_PATH, mode='rb') as f:
-            reader = PyPDF4.PdfFileReader(f)
-            page = reader.getPage(0)
-            txt = page.extractText()
+        req = requests.get(FILE_PATH)
+        filename = req.url[FILE_PATH.rfind('/')+1:]
+        filename = "media/" + filename.split("?")[0]
 
-        values = txt.split()
-
-
-        if 'PID' in values[4]:
-            data['pid'] = values[5]
-
-        if 'Source' in values[10]:
-            data['source'] = values[11]
-
-        if 'Lab' in values[12] and 'Number' in values[13]:
-            data['labNumber'] = values[14]
-
-        if 'Requested' in values[26]:
-            data['dateRequested'] = values[27]+values[28]+values[29]+values[30]+values[31]+" "+values[32]+" "+values[33]
-            if "PM" in data['dateRequested']:
-                dateArr = data['dateRequested'].split()
-                
-                newHour = int(dateArr[1][:2]) + 12
-                
-                dateArr[1] = str(newHour) + dateArr[1][2:]
-                finalDate = dateArr[0] + " " + dateArr[1]
-                data['dateRequested'] = finalDate
-            elif "AM" in data['dateRequested']:
-                data['dateRequested'] = data['dateRequested'][:-3]
-
-        if 'Received' in values[34]:
-            data['dateReceived'] = values[35]+values[36]+values[37]+values[38]+values[39]+" "+values[40]+" "+values[41]
-            if "PM" in data['dateReceived']:
-                dateArr = data['dateReceived'].split()
-                
-                newHour = int(dateArr[1][:2]) + 12
-                
-                dateArr[1] = str(newHour) + dateArr[1][2:]
-                finalDate = dateArr[0] + " " + dateArr[1]
-                data['dateReceived'] = finalDate
-            elif "AM" in data['dateReceived']:
-                data['dateReceived'] = data['dateReceived'][:-3]
-
-        if 'White' in values[51] and 'Blood' in values[52] and 'Cells' in values[53]:
-            data['whiteBloodCells'] = values[54]
-
-        if 'Red' in values[59] and 'Blood' in values[60] and 'Cells' in values[61]:
-            data['redBloodCells'] = values[62]
-
-        if 'Hemoglobin' in values[67]:
-            data['hemoglobin'] = values[68]
-
-        if 'Hematocrit' in values[73]:
-            data['hematocrit'] = values[74]
-
-        if 'Mean' in values[79] and 'Corpuscular' in values[80] and 'Volume' in values[81]:
-            data['meanCorpuscularVolume'] = values[82]
-
-        if 'Mean' in values[87] and 'Corpuscular' in values[88] and 'Hb' in values[89]:
-            data['meanCorpuscularHb'] = values[90]
-
-        if 'Mean' in values[95] and 'Corpuscular' in values[96] and 'Hb' in values[97] and 'Conc' in values[98]:
-            data['meanCorpuscularHbConc'] = values[99]
-
-        if 'RBC' in values[104] and 'Distribution' in values[105] and 'Width' in values[106]:
-            data['rbcDistributionWidth'] = values[107]
-
-        if 'Platelet' in values[112] and 'Count' in values[113]:
-            data['plateletCount'] = values[114]
-
-        if 'Neutrophils' in values[122]:
-            data['neutrophils'] = values[123]
-
-        if 'Lymphocytes' in values[128]:
-            data['lymphocytes'] = values[129]
-
-        if 'Monocytes' in values[134]:
-            data['monocytes'] = values[135]
-
-        if 'Eosinophils' in values[140]:
-            data['eosinophils'] = values[141]
-
-        if 'Basophils' in values[146]:
-            data['basophils'] = values[147]
-
-        if 'Bands' in values[152]:
-            data['bands'] = values[153]
-
-        if 'Absolute' in values[161] and 'Neutrophils' in values[162] and 'Count' in values[163]:
-            data['absoluteNeutrophilsCount'] = values[164]
-
-        if 'Absolute' in values[169] and 'Lymphocyte' in values[170] and 'Count' in values[171]:
-            data['absoluteLymphocyteCount'] = values[172]
-
-        if 'Absolute' in values[177] and 'Monocyte' in values[178] and 'Count' in values[179]:
-            data['absoluteMonocyteCount'] = values[180]
-
-        if 'Absolute' in values[185] and 'Eosinophil' in values[186] and 'Count' in values[187]:
-            data['absoluteEosinophilCount'] = values[188]
-
-        if 'Absolute' in values[193] and 'Basophil' in values[194] and 'Count' in values[195]:
-            data['absoluteBasophilCount'] = values[196]
-
-        if 'Absolute' in values[201] and 'Band' in values[202] and 'Count' in values[203]:
-            data['absoluteBandCount'] = values[204]
+        with open(filename, 'wb') as f:
+            for chunk in req.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
         
-        return pdfObject, data
-
-    def getImage(self, id):
-        return self.image_model.objects.get(id=id)
-
-    def getImageInitialValues(self, id):
-        data = {}
-        imgObject = self.getImage(id)
-        data['object'] = imgObject
-        FILE_PATH = str(imgObject.get_testImage().url[1:])
+        pages = convert_from_path(filename, 500)
+        newfilename = 'newpdf.jpg'
+        pages[0].save(newfilename, 'JPEG')
 
         reader = easyocr.Reader(['en'], gpu=False)
-        result = reader.readtext(FILE_PATH)
+        result = reader.readtext(newfilename)
+        self.removeFile(newfilename)
+        self.removeFile(filename)
 
         flag = [0] * 26
         for index, r in enumerate(result):
@@ -1120,9 +1038,13 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                     
                     newHour = int(dateArr[1][:2]) + 12
                     
-                    dateArr[1] = str(newHour) + dateArr[1][2:]
-                    finalDate = dateArr[0] + " " + dateArr[1]
-                    data['dateRequested'] = finalDate
+                    if newHour > 23:
+                        data['dateRequested'] = data['dateRequested'][:-3]
+                    else:
+                        dateArr[1] = str(newHour) + dateArr[1][2:]
+                        finalDate = dateArr[0] + " " + dateArr[1]
+                        data['dateRequested'] = finalDate
+                        
                 elif "AM" in data['dateRequested']:
                     data['dateRequested'] = data['dateRequested'][:-3]
 
@@ -1134,9 +1056,172 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                     
                     newHour = int(dateArr[1][:2]) + 12
                     
-                    dateArr[1] = str(newHour) + dateArr[1][2:]
-                    finalDate = dateArr[0] + " " + dateArr[1]
-                    data['dateReceived'] = finalDate
+                    if newHour > 23:
+                        data['dateReceived'] = data['dateReceived'][:-3]
+                    else:
+                        dateArr[1] = str(newHour) + dateArr[1][2:]
+                        finalDate = dateArr[0] + " " + dateArr[1]
+                        data['dateReceived'] = finalDate
+
+                elif "AM" in data['dateReceived']:
+                    data['dateReceived'] = data['dateReceived'][:-3]
+            
+            if 'White Blood Cells' in r[1] and flag[5] == 0:
+                flag[5] = 1
+                data['whiteBloodCells'] = result[index+1][1] 
+            
+            if 'Red Blood Cells' in r[1] and flag[6] == 0:
+                flag[6] = 1
+                data['redBloodCells'] = result[index+1][1]
+            
+            if 'Hemoglobin' in r[1] and flag[7] == 0:
+                flag[7] = 1
+                data['hemoglobin'] = result[index+1][1]
+            
+            if 'Hematocrit' in r[1] and flag[8] == 0:
+                flag[8] = 1
+                data['hematocrit'] = result[index+1][1]
+            
+            if 'Mean Corpuscular Volume' in r[1] and flag[9] == 0:
+                flag[9] = 1
+                data['meanCorpuscularVolume'] = result[index+1][1]
+
+            if 'Mean Corpuscular Hb' in r[1] and flag[10] == 0:
+                flag[10] = 1
+                data['meanCorpuscularHb'] = result[index+1][1]
+            
+            if 'Mean Corpuscular Hb Conc' in r[1] and flag[11] == 0:
+                flag[11] = 1
+                data['meanCorpuscularHbConc'] = result[index+1][1]   
+            
+            if 'RBC Distribution Width' in r[1] and flag[12] == 0:
+                flag[12] = 1
+                data['rbcDistributionWidth'] = result[index+1][1]
+            
+            if 'Platelet Count' in r[1] and flag[13] == 0:
+                flag[13] = 1
+                data['plateletCount'] = result[index+1][1]
+            
+            if 'Neutrophils' in r[1] and flag[14] == 0:
+                flag[14] = 1
+                data['neutrophils'] = result[index+1][1]
+            
+            if 'Lymphocytes' in r[1] and flag[15] == 0:
+                flag[15] = 1
+                data['lymphocytes'] = result[index+1][1]
+            
+            if 'Monocytes' in r[1] and flag[16] == 0:
+                flag[16] = 1
+                data['monocytes'] = result[index+1][1]
+            
+            if 'Eosinophils' in r[1] and flag[17] == 0:
+                flag[17] = 1
+                data['eosinophils'] = result[index+1][1]
+            
+            if 'Basophils' in r[1] and flag[18] == 0:
+                flag[18] = 1
+                data['basophils'] = result[index+1][1]
+            
+            if 'Bands' in r[1] and flag[19] == 0:
+                flag[19] = 1
+                data['bands'] = result[index+1][1]
+            
+            if 'Absolute Neutrophils Count' in r[1] and flag[20] == 0:
+                flag[20] = 1
+                data['absoluteNeutrophilsCount'] = result[index+1][1]
+            
+            if 'Absolute Lymphocyte Count' in r[1] and flag[21] == 0:
+                flag[21] = 1
+                data['absoluteLymphocyteCount'] = result[index+1][1]
+            
+            if 'Absolute Monocyte Count' in r[1] and flag[22] == 0:
+                flag[22] = 1
+                data['absoluteMonocyteCount'] = result[index+1][1]
+            
+            if 'Absolute Eosinophil Count' in r[1] and flag[23] == 0:
+                flag[23] = 1
+                data['absoluteEosinophilCount'] = result[index+1][1]
+            
+            if 'Absolute Basophil Count' in r[1] and flag[24] == 0:
+                flag[24] = 1
+                data['absoluteBasophilCount'] = result[index+1][1]
+
+            if 'Absolute Band Count' in r[1] and flag[25] == 0:
+                flag[25] = 1
+                data['absoluteBandCount'] = result[index+1][1]
+
+        
+        return pdfObject, data
+
+    def getImage(self, id):
+        return self.image_model.objects.get(id=id)
+
+    def getImageInitialValues(self, id):
+        data = {}
+        imgObject = self.getImage(id)
+        data['object'] = imgObject
+        FILE_PATH = imgObject.testImage.url
+
+        req = requests.get(FILE_PATH)
+        filename = req.url[FILE_PATH.rfind('/')+1:]
+        filename = "media/" + filename.split("?")[0]
+
+        with open(filename, 'wb') as f:
+            for chunk in req.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
+        reader = easyocr.Reader(['en'], gpu=False)
+        result = reader.readtext(filename)
+        self.removeFile(filename)
+
+        flag = [0] * 26
+        for index, r in enumerate(result):
+            if 'Lab Number' in r[1] and flag[0] == 0:
+                flag[0] = 1
+                data['labNumber'] = result[index+1][1]
+
+            if 'PID' in r[1] and flag[1] == 0:
+                flag[1] = 1
+                data['pid'] = result[index+1][1]
+
+            if 'Source' in r[1] and flag[2] == 0:
+                flag[2] = 1
+                data['source'] = result[index+1][1]
+            
+            if 'Requested' in r[1] and flag[3] == 0:
+                flag[3] = 1
+                data['dateRequested'] = result[index+1][1]
+                if "PM" in data['dateRequested']:
+                    dateArr = data['dateRequested'].split()
+                    
+                    newHour = int(dateArr[1][:2]) + 12
+                    
+                    if newHour > 23:
+                        data['dateRequested'] = data['dateRequested'][:-3]
+                    else:
+                        dateArr[1] = str(newHour) + dateArr[1][2:]
+                        finalDate = dateArr[0] + " " + dateArr[1]
+                        data['dateRequested'] = finalDate
+                        
+                elif "AM" in data['dateRequested']:
+                    data['dateRequested'] = data['dateRequested'][:-3]
+
+            if 'Received' in r[1] and flag[4] == 0:
+                flag[4] = 1
+                data['dateReceived'] = result[index+1][1]
+                if "PM" in data['dateReceived']:
+                    dateArr = data['dateReceived'].split()
+                    
+                    newHour = int(dateArr[1][:2]) + 12
+                    
+                    if newHour > 23:
+                        data['dateReceived'] = data['dateReceived'][:-3]
+                    else:
+                        dateArr[1] = str(newHour) + dateArr[1][2:]
+                        finalDate = dateArr[0] + " " + dateArr[1]
+                        data['dateReceived'] = finalDate
+
                 elif "AM" in data['dateReceived']:
                     data['dateReceived'] = data['dateReceived'][:-3]
             
@@ -1266,14 +1351,12 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 docxObject, data = self.getDocxInitialValues(id)
                 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
-                    self.removeFile(docxObject.get_testDocx())
                     self.deleteTest(docxObject)
                     self.sendErrorMessage(request, self.values_error_message)
                     self.addUserUploads(user)
                     return self.redirectTemplate(self.redirect_docx_template_name)
             except:
                 if docxObject != None: 
-                    self.removeFile(docxObject.get_testDocx())
                     self.deleteTest(docxObject)
                 self.sendErrorMessage(request, self.values_error_message)
                 self.addUserUploads(user)
@@ -1284,14 +1367,12 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 pdfObject, data = self.getPDFInitialValues(id)
                 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
-                    self.removeFile(pdfObject.get_testPDF())
                     self.deleteTest(pdfObject)
                     self.sendErrorMessage(request, self.values_error_message)
                     self.addUserUploads(user)
                     return self.redirectTemplate(self.redirect_pdf_template_name)
             except:
                 if pdfObject != None: 
-                    self.removeFile(pdfObject.get_testPDF())
                     self.deleteTest(pdfObject)
                 self.sendErrorMessage(request, self.values_error_message)
                 self.addUserUploads(user)
@@ -1302,7 +1383,6 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 imgObject, data = self.getImageInitialValues(id)
                 
                 if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
-                    self.removeFile(imgObject.get_testImage())
                     self.deleteTest(imgObject)
                     self.sendErrorMessage(request, self.picture_error_message)
                     self.addUserUploads(user)
@@ -1312,7 +1392,6 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                         return self.redirectTemplate(self.redirect_picture_template_name)
             except:
                 if imgObject != None: 
-                    self.removeFile(imgObject.get_testImage())
                     self.deleteTest(imgObject)
                 self.sendErrorMessage(request, self.picture_error_message)
                 self.addUserUploads(user)
@@ -1473,9 +1552,6 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
 
-    def removeFile(self, file):
-        os.remove(str(file.url)[1:]) 
-
     def deleteTest(self, object):
         object.delete()
 
@@ -1487,13 +1563,6 @@ class DeleteCBCTestResult(LoginRequiredMixin, View):
             return self.redirectTemplate(self.redirect_template_name)
 
         try:
-            if object.get_testPDF() != None:
-                self.removeFile(object.get_testPDF().get_testPDF())
-            elif object.get_testDocx() != None:
-                self.removeFile(object.get_testDocx().get_testDocx())
-            elif object.get_testImage() != None:
-                self.removeFile(object.get_testImage().get_testImage())
-            
             self.deleteTest(object)
         except:
             self.sendErrorMessage(request, self.deletion_error_message)
@@ -1534,9 +1603,6 @@ class DeleteCBCTestResultImage(LoginRequiredMixin, View):
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
 
-    def removeFile(self, file):
-        os.remove(str(file.url)[1:]) 
-
     def addUserUploads(self, user):
         user.uploads = user.uploads + 1
         user.save()
@@ -1558,7 +1624,6 @@ class DeleteCBCTestResultImage(LoginRequiredMixin, View):
             return self.redirectTemplate(self.redirect_adding_template_name)
 
         try:
-            self.removeFile(object.get_testImage())
             self.deleteImage(object)
             self.addUserUploads(user)
         except:
@@ -1602,9 +1667,6 @@ class DeleteCBCTestResultPDF(LoginRequiredMixin, View):
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
 
-    def removeFile(self, file):
-        os.remove(str(file.url)[1:]) 
-
     def addUserUploads(self, user):
         user.uploads = user.uploads + 1
         user.save()
@@ -1626,7 +1688,6 @@ class DeleteCBCTestResultPDF(LoginRequiredMixin, View):
             return self.redirectTemplate(self.redirect_adding_template_name)
                 
         try:
-            self.removeFile(object.get_testPDF())
             self.deletePDF(object)
             self.addUserUploads(user)
 
@@ -1668,9 +1729,6 @@ class DeleteCBCTestResultDocument(LoginRequiredMixin, View):
     def renderTemplate(self, request, template_name, context):
          return render(request, template_name, context)
 
-    def removeFile(self, file):
-        os.remove(str(file.url)[1:]) 
-
     def addUserUploads(self, user):
         user.uploads = user.uploads + 1
         user.save()
@@ -1692,7 +1750,6 @@ class DeleteCBCTestResultDocument(LoginRequiredMixin, View):
             return self.redirectTemplate(self.redirect_adding_template_name)
 
         try:
-            self.removeFile(object.get_testDocx())
             self.deleteDocument(object)
             self.addUserUploads(user)
         except:

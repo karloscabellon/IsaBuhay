@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from django.urls import reverse_lazy
 from pathlib import Path
 import os
+import django_heroku
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,9 +27,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--c#2qwydxaizl1x)0--ujwz+winjsqwqn7ctyq1ek5^gwn7@d3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['isabuhay.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -129,8 +131,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
     )
@@ -161,10 +161,12 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'isabuhay.services.noreply@gmail.com'
 EMAIL_HOST_PASSWORD = 'pdplfcokkyerxnwf'
 
-AWS_ACCESS_KEY_ID = 'AKIAWALVJOKH2673O3JY'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'isabuhay'
+AWS_ACCESS_KEY_ID = 'AKIAWALVJOKH6OSAHCOK'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'isabuhay-crm'
 
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+django_heroku.settings(locals())
