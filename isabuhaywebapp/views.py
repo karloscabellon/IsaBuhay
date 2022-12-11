@@ -70,8 +70,8 @@ class DisplayAllUsers(LoginRequiredMixin, View):
 
 class DeleteUser(LoginRequiredMixin, View):
     def get(self, request, id):
-        user = User.objects.get(pk = id)
-        user.delete()
+        users = User.objects.get(pk = id)
+        users.delete()
         users = User.objects.all()
         return render(request, 'displayAllUsers.html',{'users': users} )
 
