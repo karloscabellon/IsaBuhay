@@ -124,23 +124,23 @@ https://templatemo.com/tm-570-chain-app-dev
                 <table style="width: 100%;">
                   <tr><td colspan="3">
                     <label>Source:</label>
-                    <input type="text"  name="source" required value="{{object.source}}" disabled>
+                    <input type="text"  name="source" required value="{{object.source}}">
                   </td></tr>
                   <tr><td colspan="3">
                     <label>Lab Number:</label>
-                    <input type="text"  name="labNumber" required value="{{object.labNumber}}" disabled>
+                    <input type="text"  name="labNumber" required value="{{object.labNumber}}">
                   </td></tr>
                 <tr><td colspan="3">
                   <label>PID Number:</label>
-                  <input type="text"  name="pid" required  value="{{object.pid}}" disabled>
+                  <input type="text"  name="pid" required  value="{{object.pid}}">
                 </td></tr>
                 <tr><td colspan="3">
-                  <label>dateRequested:</label>
-                  <input type="datetime"  name="dateRequested" required value="{{object.dateRequested}}" disabled>
+                  <label>Date Requested (MM-DD-YYYY HH:MM AM/PM):</label>
+                  <input type="datetime"  name="dateRequested" pattern="(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])-[0-9]{4} (1[012]|0[1-9]):[0-5][0-9] (AM|PM)" required value="{{object.dateRequested}}">
                 </td></tr>
               <tr><td colspan="3">
-                <label>dateReceived:</label>
-                <input type="datetime"  name="dateReceived" required value="{{object.dateReceived}}" disabled>
+                <label>Date Received (MM-DD-YYYY HH:MM AM/PM):</label>
+                <input type="datetime"  name="dateReceived" pattern="(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])-[0-9]{4} (1[012]|0[1-9]):[0-5][0-9] (AM|PM)" required value="{{object.dateReceived}}">
               </td></tr>
                   <tr>
                     <td colspan="1">
