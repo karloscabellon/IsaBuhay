@@ -37,26 +37,48 @@ class DisplayAdminPage(LoginRequiredMixin, TemplateView):
 
 class DisplayRevenueMonth(LoginRequiredMixin, View):
     def get(self, request):
-        payments = User.objects.all()
-        return render(request, 'displayRevenueMonth.html',{'payments': payments} )
+        payments = Payment.objects.all()
+        return render(request, 'displayRevenueMonth.html',{'payments': payments})
 
 class DisplayPaymentList(LoginRequiredMixin, View):
     def get(self, request,):
+        users = User.objects.all()
+        users_count = users.count()
         object = Payment.objects.all()
-        context = {
+        object_count = object.count()
+        context = { 
+            'users' : users,
+            'users_count': users_count,
             'object': object,
+            'object_count': object_count,
         }
         return render(request, 'displayPaymentList.html', context)
      
 class DisplayAllUsers(LoginRequiredMixin, View):
     def get(self, request):
         users = User.objects.all()
+        users_count = users.count()
+        object = Payment.objects.all()
+        object_count = object.count()
+        context = {
+            'users' : users,
+            'users_count': users_count, 
+            'object': object,
+            'object_count': object_count,
+        }
+        return render(request, 'displayAllUsers.html',context )
+
+class DeleteUser(LoginRequiredMixin, View):
+    def get(self, request, id):
+        users = User.objects.get(pk = id)
+        users.delete()
         return render(request, 'displayAllUsers.html',{'users': users} )
-        
+
 class DisplayUsersMonthly(LoginRequiredMixin, View):
     def get(self, request):
         users = User.objects.all()
         return render(request, 'displayUsersMonthly.html',{'users': users} )
+
         
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
