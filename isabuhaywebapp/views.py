@@ -1,8 +1,4 @@
-import cv2
-import numpy as np
 import easyocr
-import re
-import PyPDF4
 import docx2txt as d2t
 from urllib.request import urlopen
 from django.contrib.auth import logout
@@ -25,12 +21,10 @@ from isabuhaywebapp.models import User
 from django.contrib import messages
 from datetime import date
 from isabuhaywebapp.models import CBCTestResult
-import json
 import os
 from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Q
-import logging
 import requests
 from pdf2image import convert_from_path
 
