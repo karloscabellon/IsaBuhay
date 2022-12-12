@@ -1,4 +1,3 @@
-import easyocr
 import docx2txt as d2t
 from urllib.request import urlopen
 from django.contrib.auth import logout
@@ -21,12 +20,14 @@ from isabuhaywebapp.models import User
 from django.contrib import messages
 from datetime import date
 from isabuhaywebapp.models import CBCTestResult
-import os
+import os, io
+import pandas as pd
 from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Q
 import requests
 from pdf2image import convert_from_path
+from google.cloud import vision
 
 class DisplayAdminPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAdminPage.html'
@@ -761,6 +762,33 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
     template_name = 'CreateCBCTestResult.html'
     success_message = 'Create CBC Test Result Successful!'
 
+    def ocrModel(self, file_name, data):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'static\\ocr\\vision-api.json'
+
+        client = vision.ImageAnnotatorClient()
+
+        with io.open(file_name, 'rb') as image_file:
+            content = image_file.read()
+
+        image = vision.Image(content=content)
+        response = client.text_detection(image=image)  
+        df = pd.DataFrame(columns=['locale', 'description'])
+
+        texts = response.text_annotations
+        for text in texts:
+            df = df.append(
+                dict(
+                    locale=text.locale,
+                    description=text.description
+                ),
+                ignore_index=True
+            )
+            
+        data['labNumber'] = df['description'][114]
+        data['source'] = df['description'][110]
+        data['pid'] = df['description'][9]
+        return data
+
     def getUser(self, request):
         return self.user_model.objects.get(id=request.user.id)
 
@@ -1005,145 +1033,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
         newfilename = 'newpdf.jpg'
         pages[0].save(newfilename, 'JPEG')
 
-        reader = easyocr.Reader(['en'], gpu=False)
-        result = reader.readtext(newfilename)
-        self.removeFile(newfilename)
-        self.removeFile(filename)
-
-        flag = [0] * 26
-        for index, r in enumerate(result):
-            if 'Lab Number' in r[1] and flag[0] == 0:
-                flag[0] = 1
-                data['labNumber'] = result[index+1][1]
-
-            if 'PID' in r[1] and flag[1] == 0:
-                flag[1] = 1
-                data['pid'] = result[index+1][1]
-
-            if 'Source' in r[1] and flag[2] == 0:
-                flag[2] = 1
-                data['source'] = result[index+1][1]
-            
-            if 'Requested' in r[1] and flag[3] == 0:
-                flag[3] = 1
-                data['dateRequested'] = result[index+1][1]
-                if "PM" in data['dateRequested']:
-                    dateArr = data['dateRequested'].split()
-                    
-                    newHour = int(dateArr[1][:2]) + 12
-                    
-                    if newHour > 23:
-                        data['dateRequested'] = data['dateRequested'][:-3]
-                    else:
-                        dateArr[1] = str(newHour) + dateArr[1][2:]
-                        finalDate = dateArr[0] + " " + dateArr[1]
-                        data['dateRequested'] = finalDate
-                        
-                elif "AM" in data['dateRequested']:
-                    data['dateRequested'] = data['dateRequested'][:-3]
-
-            if 'Received' in r[1] and flag[4] == 0:
-                flag[4] = 1
-                data['dateReceived'] = result[index+1][1]
-                if "PM" in data['dateReceived']:
-                    dateArr = data['dateReceived'].split()
-                    
-                    newHour = int(dateArr[1][:2]) + 12
-                    
-                    if newHour > 23:
-                        data['dateReceived'] = data['dateReceived'][:-3]
-                    else:
-                        dateArr[1] = str(newHour) + dateArr[1][2:]
-                        finalDate = dateArr[0] + " " + dateArr[1]
-                        data['dateReceived'] = finalDate
-
-                elif "AM" in data['dateReceived']:
-                    data['dateReceived'] = data['dateReceived'][:-3]
-            
-            if 'White Blood Cells' in r[1] and flag[5] == 0:
-                flag[5] = 1
-                data['whiteBloodCells'] = result[index+1][1] 
-            
-            if 'Red Blood Cells' in r[1] and flag[6] == 0:
-                flag[6] = 1
-                data['redBloodCells'] = result[index+1][1]
-            
-            if 'Hemoglobin' in r[1] and flag[7] == 0:
-                flag[7] = 1
-                data['hemoglobin'] = result[index+1][1]
-            
-            if 'Hematocrit' in r[1] and flag[8] == 0:
-                flag[8] = 1
-                data['hematocrit'] = result[index+1][1]
-            
-            if 'Mean Corpuscular Volume' in r[1] and flag[9] == 0:
-                flag[9] = 1
-                data['meanCorpuscularVolume'] = result[index+1][1]
-
-            if 'Mean Corpuscular Hb' in r[1] and flag[10] == 0:
-                flag[10] = 1
-                data['meanCorpuscularHb'] = result[index+1][1]
-            
-            if 'Mean Corpuscular Hb Conc' in r[1] and flag[11] == 0:
-                flag[11] = 1
-                data['meanCorpuscularHbConc'] = result[index+1][1]   
-            
-            if 'RBC Distribution Width' in r[1] and flag[12] == 0:
-                flag[12] = 1
-                data['rbcDistributionWidth'] = result[index+1][1]
-            
-            if 'Platelet Count' in r[1] and flag[13] == 0:
-                flag[13] = 1
-                data['plateletCount'] = result[index+1][1]
-            
-            if 'Neutrophils' in r[1] and flag[14] == 0:
-                flag[14] = 1
-                data['neutrophils'] = result[index+1][1]
-            
-            if 'Lymphocytes' in r[1] and flag[15] == 0:
-                flag[15] = 1
-                data['lymphocytes'] = result[index+1][1]
-            
-            if 'Monocytes' in r[1] and flag[16] == 0:
-                flag[16] = 1
-                data['monocytes'] = result[index+1][1]
-            
-            if 'Eosinophils' in r[1] and flag[17] == 0:
-                flag[17] = 1
-                data['eosinophils'] = result[index+1][1]
-            
-            if 'Basophils' in r[1] and flag[18] == 0:
-                flag[18] = 1
-                data['basophils'] = result[index+1][1]
-            
-            if 'Bands' in r[1] and flag[19] == 0:
-                flag[19] = 1
-                data['bands'] = result[index+1][1]
-            
-            if 'Absolute Neutrophils Count' in r[1] and flag[20] == 0:
-                flag[20] = 1
-                data['absoluteNeutrophilsCount'] = result[index+1][1]
-            
-            if 'Absolute Lymphocyte Count' in r[1] and flag[21] == 0:
-                flag[21] = 1
-                data['absoluteLymphocyteCount'] = result[index+1][1]
-            
-            if 'Absolute Monocyte Count' in r[1] and flag[22] == 0:
-                flag[22] = 1
-                data['absoluteMonocyteCount'] = result[index+1][1]
-            
-            if 'Absolute Eosinophil Count' in r[1] and flag[23] == 0:
-                flag[23] = 1
-                data['absoluteEosinophilCount'] = result[index+1][1]
-            
-            if 'Absolute Basophil Count' in r[1] and flag[24] == 0:
-                flag[24] = 1
-                data['absoluteBasophilCount'] = result[index+1][1]
-
-            if 'Absolute Band Count' in r[1] and flag[25] == 0:
-                flag[25] = 1
-                data['absoluteBandCount'] = result[index+1][1]
-
+        data = self.ocrModel(newfilename, data)
         
         return pdfObject, data
 
@@ -1165,143 +1055,7 @@ class CreateCBCTestResult(LoginRequiredMixin, View):
                 if chunk:
                     f.write(chunk)
 
-        reader = easyocr.Reader(['en'], gpu=False)
-        result = reader.readtext(filename)
-        self.removeFile(filename)
-
-        flag = [0] * 26
-        for index, r in enumerate(result):
-            if 'Lab Number' in r[1] and flag[0] == 0:
-                flag[0] = 1
-                data['labNumber'] = result[index+1][1]
-
-            if 'PID' in r[1] and flag[1] == 0:
-                flag[1] = 1
-                data['pid'] = result[index+1][1]
-
-            if 'Source' in r[1] and flag[2] == 0:
-                flag[2] = 1
-                data['source'] = result[index+1][1]
-            
-            if 'Requested' in r[1] and flag[3] == 0:
-                flag[3] = 1
-                data['dateRequested'] = result[index+1][1]
-                if "PM" in data['dateRequested']:
-                    dateArr = data['dateRequested'].split()
-                    
-                    newHour = int(dateArr[1][:2]) + 12
-                    
-                    if newHour > 23:
-                        data['dateRequested'] = data['dateRequested'][:-3]
-                    else:
-                        dateArr[1] = str(newHour) + dateArr[1][2:]
-                        finalDate = dateArr[0] + " " + dateArr[1]
-                        data['dateRequested'] = finalDate
-                        
-                elif "AM" in data['dateRequested']:
-                    data['dateRequested'] = data['dateRequested'][:-3]
-
-            if 'Received' in r[1] and flag[4] == 0:
-                flag[4] = 1
-                data['dateReceived'] = result[index+1][1]
-                if "PM" in data['dateReceived']:
-                    dateArr = data['dateReceived'].split()
-                    
-                    newHour = int(dateArr[1][:2]) + 12
-                    
-                    if newHour > 23:
-                        data['dateReceived'] = data['dateReceived'][:-3]
-                    else:
-                        dateArr[1] = str(newHour) + dateArr[1][2:]
-                        finalDate = dateArr[0] + " " + dateArr[1]
-                        data['dateReceived'] = finalDate
-
-                elif "AM" in data['dateReceived']:
-                    data['dateReceived'] = data['dateReceived'][:-3]
-            
-            if 'White Blood Cells' in r[1] and flag[5] == 0:
-                flag[5] = 1
-                data['whiteBloodCells'] = result[index+1][1] 
-            
-            if 'Red Blood Cells' in r[1] and flag[6] == 0:
-                flag[6] = 1
-                data['redBloodCells'] = result[index+1][1]
-            
-            if 'Hemoglobin' in r[1] and flag[7] == 0:
-                flag[7] = 1
-                data['hemoglobin'] = result[index+1][1]
-            
-            if 'Hematocrit' in r[1] and flag[8] == 0:
-                flag[8] = 1
-                data['hematocrit'] = result[index+1][1]
-            
-            if 'Mean Corpuscular Volume' in r[1] and flag[9] == 0:
-                flag[9] = 1
-                data['meanCorpuscularVolume'] = result[index+1][1]
-
-            if 'Mean Corpuscular Hb' in r[1] and flag[10] == 0:
-                flag[10] = 1
-                data['meanCorpuscularHb'] = result[index+1][1]
-            
-            if 'Mean Corpuscular Hb Conc' in r[1] and flag[11] == 0:
-                flag[11] = 1
-                data['meanCorpuscularHbConc'] = result[index+1][1]   
-            
-            if 'RBC Distribution Width' in r[1] and flag[12] == 0:
-                flag[12] = 1
-                data['rbcDistributionWidth'] = result[index+1][1]
-            
-            if 'Platelet Count' in r[1] and flag[13] == 0:
-                flag[13] = 1
-                data['plateletCount'] = result[index+1][1]
-            
-            if 'Neutrophils' in r[1] and flag[14] == 0:
-                flag[14] = 1
-                data['neutrophils'] = result[index+1][1]
-            
-            if 'Lymphocytes' in r[1] and flag[15] == 0:
-                flag[15] = 1
-                data['lymphocytes'] = result[index+1][1]
-            
-            if 'Monocytes' in r[1] and flag[16] == 0:
-                flag[16] = 1
-                data['monocytes'] = result[index+1][1]
-            
-            if 'Eosinophils' in r[1] and flag[17] == 0:
-                flag[17] = 1
-                data['eosinophils'] = result[index+1][1]
-            
-            if 'Basophils' in r[1] and flag[18] == 0:
-                flag[18] = 1
-                data['basophils'] = result[index+1][1]
-            
-            if 'Bands' in r[1] and flag[19] == 0:
-                flag[19] = 1
-                data['bands'] = result[index+1][1]
-            
-            if 'Absolute Neutrophils Count' in r[1] and flag[20] == 0:
-                flag[20] = 1
-                data['absoluteNeutrophilsCount'] = result[index+1][1]
-            
-            if 'Absolute Lymphocyte Count' in r[1] and flag[21] == 0:
-                flag[21] = 1
-                data['absoluteLymphocyteCount'] = result[index+1][1]
-            
-            if 'Absolute Monocyte Count' in r[1] and flag[22] == 0:
-                flag[22] = 1
-                data['absoluteMonocyteCount'] = result[index+1][1]
-            
-            if 'Absolute Eosinophil Count' in r[1] and flag[23] == 0:
-                flag[23] = 1
-                data['absoluteEosinophilCount'] = result[index+1][1]
-            
-            if 'Absolute Basophil Count' in r[1] and flag[24] == 0:
-                flag[24] = 1
-                data['absoluteBasophilCount'] = result[index+1][1]
-
-            if 'Absolute Band Count' in r[1] and flag[25] == 0:
-                flag[25] = 1
-                data['absoluteBandCount'] = result[index+1][1]
+        data = self.ocrModel(filename, data)
 
         return imgObject, data
     
