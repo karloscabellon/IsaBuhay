@@ -1,8 +1,3 @@
-import cv2
-import numpy as np
-import pytesseract
-import re
-import PyPDF4
 import docx2txt as d2t
 from urllib.request import urlopen
 from django.contrib.auth import logout
@@ -14,6 +9,8 @@ from isabuhaywebapp.models import *
 from django.shortcuts import *
 from .forms import *
 from datetime import datetime
+from django.utils import timezone
+import pytz
 from django.contrib.auth.views import LoginView
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
@@ -23,36 +20,63 @@ from isabuhaywebapp.models import User
 from django.contrib import messages
 from datetime import date
 from isabuhaywebapp.models import CBCTestResult
-import json
-import os
+import os, io
+import pandas as pd
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db.models import Q
+import requests
+from pdf2image import convert_from_path
+from google.cloud import vision
 
 class DisplayAdminPage(LoginRequiredMixin, TemplateView):
     template_name = 'displayAdminPage.html'
 
 class DisplayRevenueMonth(LoginRequiredMixin, View):
     def get(self, request):
-        payments = User.objects.all()
-        return render(request, 'displayRevenueMonth.html',{'payments': payments} )
+        payments = Payment.objects.all()
+        return render(request, 'displayRevenueMonth.html',{'payments': payments})
 
 class DisplayPaymentList(LoginRequiredMixin, View):
     def get(self, request,):
-        object = Payments.objects.all()
-        context = {
+        users = User.objects.all()
+        users_count = users.count()
+        object = Payment.objects.all()
+        object_count = object.count()
+        context = { 
+            'users' : users,
+            'users_count': users_count,
             'object': object,
+            'object_count': object_count,
         }
         return render(request, 'displayPaymentList.html', context)
      
 class DisplayAllUsers(LoginRequiredMixin, View):
     def get(self, request):
         users = User.objects.all()
+        users_count = users.count()
+        object = Payment.objects.all()
+        object_count = object.count()
+        context = {
+            'users' : users,
+            'users_count': users_count, 
+            'object': object,
+            'object_count': object_count,
+        }
+        return render(request, 'displayAllUsers.html',context )
+
+class DeleteUser(LoginRequiredMixin, View):
+    def get(self, request, id):
+        users = User.objects.get(pk = id)
+        users.delete()
+        users = User.objects.all()
         return render(request, 'displayAllUsers.html',{'users': users} )
-        
+
 class DisplayUsersMonthly(LoginRequiredMixin, View):
     def get(self, request):
         users = User.objects.all()
         return render(request, 'displayUsersMonthly.html',{'users': users} )
+
         
 class DisplayLandingPage(TemplateView):
     template_name = 'displayLandingPage.html'
@@ -95,6 +119,8 @@ class LogoutView(LoginRequiredMixin, View):
 
 class PasswordResetPage(aviews.PasswordResetView):
     template_name = 'resetPassword.html'
+    email_template_name = 'email_template.html'
+    subject_template_name = "email_subject.txt"
 
     def post(self, request, *args, **kwargs):
         user = User.objects.all().filter(email=request.POST['email'])
@@ -177,143 +203,487 @@ class DeleteAccountPage(LoginRequiredMixin, DeleteView):
 
     def get_object(self, queryset = None):
         return self.request.user
-    
+
+class DisplayAllCBCTestResult(LoginRequiredMixin, View):
+    template_name = 'displayAllCBCTestResult.html'
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        user = self.model.objects.get(id=request.user.id)
+        object_list = user.cbctestresult_set.all()
+        context = {'object_list': object_list}
+        return render(request, self.template_name, context)
+
+class DisplayCBCTestResult(LoginRequiredMixin, View):
+    template_name = 'displayCBCTestResult.html'
+    redirect_template_name = 'DisplayAllCBCTestResult'
+    error_message = 'The record was not found.'
+    model = User
+
+    def get(self, request, id, *args, **kwargs):
+        user = self.model.objects.get(id=request.user.id)
+        try:
+            object = user.cbctestresult_set.get(id=id)
+        except:
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
+        
+        if object == None:
+            messages.error(request, self.error_message)
+            return redirect(self.redirect_template_name)
+        context = {'object': object}
+        return render(request, self.template_name, context)
+
 
 # Marc John Corral
 
-class PaymentComplete(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        body = json.loads(request.body)
-        promo = PromoOptions.objects.get(id=body['promoId'])
+class AddingCBCTestResultOptions(LoginRequiredMixin, View):
+    template_name = 'AddingCBCTestResultOptions.html'
+    redirect_template_name = 'LogoutView'
+    error_message = 'The user was not found.'
+    model = User
+
+    def getUser(self, request):
+        return self.model.objects.get(id=request.user.id)
+    
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+        return render(request, template_name, context)
+
+    def get(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.error_message)
+            return self.redirectTemplate(self.redirect_template_name)
         
-        user = User.objects.get(id=request.user.id)
+        
+        context = {'user': user}
+        return self.renderTemplate(request, self.template_name, context)
+
+class PaymentCompletion(LoginRequiredMixin, View):
+    redirect_payment_template_name = 'PaymentMethod'
+    redirect_logout_template_name = 'LogoutView'
+    redirect_image_template_name = 'UploadCBCTestResultImage'
+    redirect_picture_template_name = 'CaptureCBCTestResultImage'
+    redirect_pdf_template_name = 'UploadCBCTestResultPDF'
+    redirect_docx_template_name = 'UploadCBCTestResultDocument'
+    redirect_pay_template_name = 'AddingCBCTestResultOptions'
+    promo_error_message = 'The promo was not found.'
+    user_error_message = 'The user was not found.'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
+    success_message = 'Payment Successful!'
+    user_model = User
+    promo_model = Promo
+    payment_model = Payment
+    
+    def getPromo(self, id):
+        return self.promo_model.objects.get(id=id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def addUserUploads(self, user, promo):
         user.uploads = user.uploads + promo.uploads
         user.save()
-        Payments.objects.create( promo=promo, user=user)
+    
+    def savePayment(self, user, promo):
+        new_payment = self.payment_model.objects.create( promo=promo, user=user, date=self.payment_model.current_time())
+        new_payment.save()
 
-        messages.success(request, 'Payment Successful!')
-        return JsonResponse('Payment completed!', safe=False)
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
 
-class DisplayAllCBCTestResult(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        object_list = user.cbctestresult_set.all()
-        context = {'object_list': object_list}
-        return render(request, 'displayAllCBCTestResult.html', context)
+    def get(self, request, type, id):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
+        try:
+            promo = self.getPromo(id)
+        except:
+            self.sendErrorMessage(request, self.promo_error_message)
+            return self.redirectTemplate(self.redirect_payment_template_name)
 
-class DisplayCBCTestResult(LoginRequiredMixin, View):
-    def get(self, request, pk, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        object = user.cbctestresult_set.get(id=pk)
-        context = {'object': object}
-        return render(request, 'displayCBCTestResult.html', context)
+        try:
+            self.addUserUploads(user, promo)
+            self.savePayment(user, promo)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            return self.redirectTemplate(self.redirect_payment_template_name)
+        
+        self.sendSuccessMessage(request, self.success_message)
 
-class DisplayAddingOptions(LoginRequiredMixin, View):
-    def get(self, request,  *args, **kwargs):
-        object = User.objects.get(id=request.user.id)
-        context = {'object': object}
-        return render(request, 'displayAddingOptions.html', context)
+        if type == 'image':
+            return self.redirectTemplate(self.redirect_image_template_name)
+        elif type == 'picture':
+            return self.redirectTemplate(self.redirect_picture_template_name)
+        elif type == 'pdf':
+            return self.redirectTemplate(self.redirect_pdf_template_name)
+        elif type == 'docx':
+            return self.redirectTemplate(self.redirect_docx_template_name)
+        elif type == 'pay':
+            return self.redirectTemplate(self.redirect_pay_template_name)
 
 class PaymentMethod(LoginRequiredMixin, View):
-    def get(self, request, type, pk, *args, **kwargs):
-        object = PromoOptions.objects.get(id=pk)
+    template_name = 'PaymentMethod.html'
+    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
+    user_error_message = 'The user was not found!'
+    promo_error_message = 'The promo was not found!'
+    type_error_message = 'There was something wrong with the URL!'
+    user_model = User
+    promo_model = Promo
+
+    def getPromo(self, id):
+        return self.promo_model.objects.get(id=id)
+
+    def getUser(self, request):
+        self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+        return render(request, template_name, context)
+
+    def get(self, request, type, id):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        if type != 'pdf' and type != 'docx' and type != 'picture' and type != 'image' and type != 'pay':
+            self.sendErrorMessage(request, self.type_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
+        try:
+            object = self.getPromo(id)
+        except:
+            self.sendErrorMessage(request, self.promo_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
         context = {'type': type, 'object': object}
-        return render(request, 'paymentMethod.html', context)
+        return self.renderTemplate(request, self.template_name, context)
 
-class DisplayAllPromoOptions(LoginRequiredMixin, View):
-    def get(self, request, type, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        if user.uploads <= 0 or type == 'pay':
-            object_list = PromoOptions.objects.all()
-            context = {'type': type, 'object_list': object_list}
-            return render(request, 'promoOptions.html', context)
-        elif type == 'pdf':
-            return redirect('UploadPDF')
-        elif type == 'docx':
-            return redirect('UploadDocx')
-        elif type == 'picture':
-            return redirect('CaptureImage')
-        elif type == 'image':
-            return redirect('UploadImage')
+class PromoOptions(LoginRequiredMixin, View):
+    template_name = 'PromoOptions.html'
+    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
+    type_error_message = 'There was something wrong with the URL!'
+    user_error_message = 'The user was not found!'
+    promo_error_message = 'Their was something wrong with the promos!'
+    user_model = User
+    promo_model = Promo
+
+    def getUser(self, request):
+        self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def getPromos(self):
+        return self.promo_model.objects.all()
+    
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+        return render(request, template_name, context)
+
+    def get(self, request, type):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
+        if type != 'pdf' and type != 'docx' and type != 'picture' and type != 'image' and type != 'pay':
+            self.sendErrorMessage(request, self.type_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
+        try:
+            object_list = self.getPromos()
+        except:
+            self.sendErrorMessage(request, self.promo_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
+        context = {'type': type, 'object_list': object_list}
+        return self.renderTemplate(request, self.template_name, context)
+       
+
+class UploadCBCTestResultPDF(LoginRequiredMixin, View):
+    template_name = 'UploadCBCTestResultFile.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
+    upload_error_message = 'You have no more uploads!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
+    user_error_message = 'The user was not found!'
+    success_message = 'Upload PDF Successful!'
+    user_model = User
+    pdf_model = CBCTestResultPDF
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def deductAvailableUploads(self, user):
+        user.uploads = user.uploads - 1
+        user.save()
+
+    def savePDF(self, request):
+        object = self.pdf_model()
+        object.set_testPDF(request.FILES.get('testPDF'))
+        object.save()
+        return object.get_id()
+
+    def redirectTemplate(self, template_name, type = None, id = None):
+        if id == None:
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
         else:
-            messages.error(request, 'There was something wrong!')
-            return redirect('DisplayAllCBCTestResult')
+            return redirect(template_name, type = type, id = id)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
 
-class UploadPDF(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        if user.uploads != 0:
-            user.uploads = user.uploads - 1
-            user.save()
-        object = CBCTestResultPDF()
-        object.testPDF = request.FILES.get('testPDF')
-        object.save()
+    def post(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
+        try:
+            self.deductAvailableUploads(user)
+            pdf_id = self.savePDF(request)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            context = {'type': 'pdf'}
+            return self.renderTemplate(request, self.template_name, context)
+        
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_create_template_name, 'pdf', pdf_id)
 
-        messages.success(request, 'Upload PDF Successful!')
-
-        return redirect('CreateCBCTestResult', type = 'pdf', pk = object.pk)
-
-    def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+    def get(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='pdf')
-            
+            self.sendErrorMessage(request, self.upload_error_message)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'pdf')
+
         context = {'type': 'pdf'}
-        return render(request, 'uploadCBCTestResult.html', context)
+        return self.renderTemplate(request, self.template_name, context)
 
-class UploadDocx(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        if user.uploads != 0:
-            user.uploads = user.uploads - 1
-            user.save()
-        object = CBCTestResultDocx()
-        object.testDocx = request.FILES.get('testDocx')
+class UploadCBCTestResultDocument(LoginRequiredMixin, View):
+    template_name = 'UploadCBCTestResultFile.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
+    upload_error_message = 'You have no more uploads!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
+    user_error_message = 'The user was not found!'
+    success_message = 'Upload Docx Successful!'
+    user_model = User
+    docx_model = CBCTestResultDocument
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def deductAvailableUploads(self, user):
+        user.uploads = user.uploads - 1
+        user.save()
+
+    def saveDocument(self, request):
+        object = self.docx_model()
+        object.set_testDocx(request.FILES.get('testDocx'))
         object.save()
+        return object.get_id()
 
-        messages.success(request, 'Upload Docx Successful!')
+    def redirectTemplate(self, template_name, type = None, id = None):
+        if id == None:
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
+        else:
+            return redirect(template_name, type = type, id = id)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
 
-        return redirect('CreateCBCTestResult', type = 'docx', pk = object.pk)
-
-    def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+    def post(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
+        try:
+            self.deductAvailableUploads(user)
+            docx_id = self.saveDocument(request)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            context = {'type': 'docx'}
+            return self.renderTemplate(request, self.template_name, context)
+        
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_create_template_name, 'docx', docx_id)
+    
+    def get(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='docx')
+            self.sendErrorMessage(request, self.upload_error_message)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'docx')
 
         context = {'type': 'docx'}
-        return render(request, 'uploadCBCTestResult.html', context)
+        return self.renderTemplate(request, self.template_name, context)
 
-class UploadImage(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        if user.uploads != 0:
-            user.uploads = user.uploads - 1
-            user.save()
-        object = CBCTestResultImage()
-        object.testImage = request.FILES.get('testImage')
+class UploadCBCTestResultImage(LoginRequiredMixin, View):
+    template_name = 'UploadCBCTestResultFile.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
+    upload_error_message = 'You have no more uploads!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
+    user_error_message = 'The user was not found!'
+    success_message = 'Upload Image Successful!'
+    user_model = User
+    image_model = CBCTestResultImage
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def deductAvailableUploads(self, user):
+        user.uploads = user.uploads - 1
+        user.save()
+
+    def saveImage(self, request):
+        object = self.image_model()
+        object.set_testImage(request.FILES.get('testImage'))
         object.save()
+        return object.get_id()
 
-        messages.success(request, 'Upload Image Successful!')
+    def redirectTemplate(self, template_name, type = None, id = None):
+        if id == None:
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
+        else:
+            return redirect(template_name, type = type, id = id)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
 
-        return redirect('CreateCBCTestResult', type = 'image', pk = object.pk)
+    def post(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
+        try:
+            self.deductAvailableUploads(user)
+            image_id = self.saveImage(request)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            context = {'type': 'image'}
+            return self.renderTemplate(request, self.template_name, context)
+        
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_create_template_name, 'image', image_id)
 
-    def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+    def get(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='image')
+            self.sendErrorMessage(request, self.upload_error_message)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'image')
 
         context = {'type': 'image'}
-        return render(request, 'uploadCBCTestResult.html', context)
+        return self.renderTemplate(request, self.template_name, context)
 
-class CaptureImage(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        if user.uploads != 0:
-            user.uploads = user.uploads - 1
-            user.save()
+class CaptureCBCTestResultImage(LoginRequiredMixin, View):
+    template_name = 'CaptureCBCTestResultImage.html'
+    redirect_create_template_name = 'CreateCBCTestResult'
+    redirect_promo_template_name = 'PromoOptions'
+    redirect_logout_template_name = 'LogoutView'
+    upload_error_message = 'You have no more uploads!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
+    user_error_message = 'The user was not found!'
+    success_message = 'Capture Image Successful!'
+    user_model = User
+    image_model = CBCTestResultImage
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+    
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def deductAvailableUploads(self, user):
+        user.uploads = user.uploads - 1
+        user.save()
+
+    def saveImage(self, request):
         image_path = request.POST["src"] 
         image = NamedTemporaryFile()
         image.write(urlopen(image_path).read())
@@ -322,514 +692,1163 @@ class CaptureImage(LoginRequiredMixin, View):
         name = str(image.name).split('\\')[-1]
         name += '.png' 
         image.name = name
-        obj = CBCTestResultImage.objects.create(testImage=image) 
-        obj.save()
-        return redirect('CreateCBCTestResult', pk = obj.pk, type = 'picture')
+        object = self.image_model.objects.create() 
+        object.set_testImage(image)
+        object.save()
+        return object.get_id()
+
+    def redirectTemplate(self, template_name, type=None, id = None):
+        if id == None:
+            if type == None:
+                return redirect(template_name)
+            else:
+                return redirect(template_name, type = type)
+        else:
+            return redirect(template_name, type = type, id = id)
     
-    def get(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
+    def renderTemplate(self, request, template_name):
+         return render(request, template_name)
+
+    def post(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            self.deductAvailableUploads(user)
+            image_id = self.saveImage(request)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            return self.renderTemplate(request, self.template_name)
+
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_create_template_name, 'picture', image_id)
+    
+    def get(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        
         if user.uploads <= 0:
-            messages.error(request, 'You have no more uploads!')
-            return redirect('DisplayAllPromoOptions', type='picture')
+            self.sendErrorMessage(request, self.upload_error_message)
+            return self.redirectTemplate(self.redirect_promo_template_name, 'picture')
 
-        return render(request, 'captureImage.html')
-
-
+        return self.renderTemplate(request, self.template_name)
 
 class CreateCBCTestResult(LoginRequiredMixin, View):
-    def post(self, request, type, pk, *args, **kwargs):
-        object = CBCTestResult()
-        if type == 'docx':
-            object.testDocx = CBCTestResultDocx.objects.get(id=pk)
-        elif type == 'pdf':
-            object.testPDF = CBCTestResultPDF.objects.get(id=pk)
-        elif type == 'image' or type == 'picture':
-            object.testImage = CBCTestResultImage.objects.get(id=pk)
+    test_model = CBCTestResult
+    docx_model = CBCTestResultDocument
+    image_model = CBCTestResultImage
+    pdf_model = CBCTestResultPDF
+    user_model = User
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
+    redirect_test_template_name = 'DisplayCBCTestResult'
+    redirect_docx_template_name = 'UploadCBCTestResultDocument'
+    redirect_pdf_template_name = 'UploadCBCTestResultPDF'
+    redirect_image_template_name = 'UploadCBCTestResultImage'
+    redirect_picture_template_name = 'CaptureCBCTestResultImage'
+    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
+    file_error_message = 'Could not find the file uploaded!'
+    url_error_message = 'There was something wrong with the url!'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
+    values_error_message = 'There was something wrong with your file or you uploaded the wrong file. Please try another one.'
+    picture_error_message = 'Your image maybe unclear. Use a camera with higher quality. Or maybe you uploaded the wrong image.'
+    user_error_message = 'The user was not found!'
+    template_name = 'CreateCBCTestResult.html'
+    success_message = 'Create CBC Test Result Successful!'
+
+    def ocrModel(self, file_name, data):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'static\\ocr\\vision-api.json'
+
+        client = vision.ImageAnnotatorClient()
+
+        with io.open(file_name, 'rb') as image_file:
+            content = image_file.read()
+
+        image = vision.Image(content=content)
+        response = client.text_detection(image=image)  
+        df = pd.DataFrame(columns=['locale', 'description'])
+
+        texts = response.text_annotations
+        for text in texts:
+            df = df.append(
+                dict(
+                    locale=text.locale,
+                    description=text.description
+                ),
+                ignore_index=True
+            )
+            
+        data['labNumber'] = df['description'][114]
+        data['source'] = df['description'][110]
+        data['pid'] = df['description'][9]
+        return data
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+
+    def redirectTemplate(self, template_name, id = None):
+        if id == None:
+            return redirect(template_name)
         else:
-            messages.error(request, 'There was something wrong!')
-            return redirect('DisplayAddingOptions')
+            return redirect(template_name, id = id)
+        
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
+    
+    def saveTest(self, request, type, id):
+        object = self.test_model()
+        if type == 'docx':
+            try:
+                object.set_testDocx(self.docx_model.objects.get(id=id)) 
+            except:
+                self.sendErrorMessage(request, self.file_error_message)
+                return self.redirectTemplate(self.redirect_adding_template_name)
+        elif type == 'pdf':
+            try: 
+                object.set_testPDF(self.pdf_model.objects.get(id=id))
+            except:
+                self.sendErrorMessage(request, self.file_error_message)
+                return self.redirectTemplate(self.redirect_adding_template_name)
+        elif type == 'image' or type == 'picture':
+            try:
+                object.set_testImage(self.image_model.objects.get(id=id))
+            except:
+                self.sendErrorMessage(request, self.file_error_message)
+                return self.redirectTemplate(self.redirect_adding_template_name)
+        else:
+            self.sendErrorMessage(request, self.file_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
 
         date_time_str = request.POST.get('dateRequested')
         try:
-            object.dateRequested = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
+            object.set_dateRequested(pytz.utc.localize(unaware_date)) 
         except:
-            object.dateRequested = None
+            object.set_dateRequested(None)
         
         date_time_str = request.POST.get('dateReceived')
         try:
-            object.dateReceived = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M %p')
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
+            object.set_dateReceived(pytz.utc.localize(unaware_date)) 
         except:
-            object.dateReceived = None
+            object.set_dateReceived(None)
 
-        object.user = User.objects.get(id=request.user.id)
-        object.source = request.POST.get('source')
-        object.labNumber = request.POST.get('labNumber')
-        object.pid = request.POST.get('pid')
-        object.whiteBloodCells = request.POST.get('whiteBloodCells')
-        object.redBloodCells = request.POST.get('redBloodCells')
-        object.hemoglobin = request.POST.get('hemoglobin')
-        object.hematocrit = request.POST.get('hematocrit')
-        object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
-        object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
-        object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
-        object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
-        object.plateletCount = request.POST.get('plateletCount')
-        object.segmenters = request.POST.get('segmenters')
-        object.lymphocytes = request.POST.get('lymphocytes')
-        object.monocytes = request.POST.get('monocytes')
-        object.eosinophils = request.POST.get('eosinophils')
-        object.basophils = request.POST.get('basophils')
-        object.bands = request.POST.get('bands')
-        object.absoluteSeg = request.POST.get('absoluteSeg')
-        object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
-        object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
-        object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
-        object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
-        object.absoluteBandCount = request.POST.get('absoluteBandCount')
+        object.set_user(User.objects.get(id=request.user.id))
+        object.set_source(request.POST.get('source')) 
+        object.set_labNumber(request.POST.get('labNumber')) 
+        object.set_pid(request.POST.get('pid')) 
+        object.set_whiteBloodCells(request.POST.get('whiteBloodCells')) 
+        object.set_redBloodCells(request.POST.get('redBloodCells')) 
+        object.set_hemoglobin(request.POST.get('hemoglobin')) 
+        object.set_hematocrit( request.POST.get('hematocrit')) 
+        object.set_meanCorpuscularVolume(request.POST.get('meanCorpuscularVolume')) 
+        object.set_meanCorpuscularHb(request.POST.get('meanCorpuscularHb')) 
+        object.set_meanCorpuscularHbConc(request.POST.get('meanCorpuscularHbConc')) 
+        object.set_rbcDistributionWidth(request.POST.get('rbcDistributionWidth')) 
+        object.set_plateletCount(request.POST.get('plateletCount')) 
+        object.set_neutrophils(request.POST.get('neutrophils')) 
+        object.set_lymphocytes(request.POST.get('lymphocytes')) 
+        object.set_monocytes(request.POST.get('monocytes')) 
+        object.set_eosinophils(request.POST.get('eosinophils')) 
+        object.set_basophils(request.POST.get('basophils')) 
+        object.set_bands(request.POST.get('bands')) 
+        object.set_absoluteNeutrophilsCount(request.POST.get('absoluteNeutrophilsCount')) 
+        object.set_absoluteLymphocyteCount(request.POST.get('absoluteLymphocyteCount')) 
+        object.set_absoluteMonocyteCount(request.POST.get('absoluteMonocyteCount')) 
+        object.set_absoluteEosinophilCount(request.POST.get('absoluteEosinophilCount')) 
+        object.set_absoluteBasophilCount(request.POST.get('absoluteBasophilCount')) 
+        object.set_absoluteBandCount(request.POST.get('absoluteBandCount')) 
         object.save()
+        return object.get_id()
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+    
+    def getDocument(self, id):
+        return self.docx_model.objects.get(id=id)
 
-        messages.success(request, 'Create CBC Test Result Successful!')
+    def getDocxInitialValues(self, id):
+        data = {}
+        docxObject = self.getDocument(id)
+        data['object'] = docxObject
+        FILE_PATH = docxObject.testDocx.url
+        req = requests.get(FILE_PATH)
+        filename = req.url[FILE_PATH.rfind('/')+1:]
+        filename = "media/" + filename.split("?")[0]
 
-        return redirect('DisplayCBCTestResult', pk=object.pk)
+        with open(filename, 'wb') as f:
+            for chunk in req.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
 
-    def get(self, request, type, pk, *args, **kwargs):
-        user = User.objects.get(id=request.user.id)
-        data = {'type': type}
+        txt = d2t.process(filename)
+
+        values = txt.split()
+        self.removeFile(filename)
+
+        if 'PID' in values[4]:
+            data['pid'] = values[5]
+
+        if 'Source' in values[10]:
+            data['source'] = values[11]
+
+        if 'Lab' in values[12] and 'Number' in values[13]:
+            data['labNumber'] = values[14]
+
+        if 'Requested' in values[22]:
+            data['dateRequested'] = values[23]+" "+values[24]+" "+values[25]
+            if "PM" in data['dateRequested']:
+                dateArr = data['dateRequested'].split()
+                
+                newHour = int(dateArr[1][:2]) + 12
+                
+                if newHour > 23:
+                    data['dateRequested'] = data['dateRequested'][:-3]
+                else:
+                    dateArr[1] = str(newHour) + dateArr[1][2:]
+                    finalDate = dateArr[0] + " " + dateArr[1]
+                    data['dateRequested'] = finalDate
+
+            elif "AM" in data['dateRequested']:
+                data['dateRequested'] = data['dateRequested'][:-3]
+
+        if 'Received' in values[26]:
+            data['dateReceived'] = values[27]+" "+values[28]+" "+values[29]
+            if "PM" in data['dateReceived']:
+                dateArr = data['dateReceived'].split()
+                
+                newHour = int(dateArr[1][:2]) + 12
+                
+                if newHour > 23:
+                    data['dateReceived'] = data['dateReceived'][:-3]
+                else:
+                    dateArr[1] = str(newHour) + dateArr[1][2:]
+                    finalDate = dateArr[0] + " " + dateArr[1]
+                    data['dateReceived'] = finalDate
+
+            elif "AM" in data['dateReceived']:
+                data['dateReceived'] = data['dateReceived'][:-3]
+
+        if 'White' in values[39] and 'Blood' in values[40] and 'Cells' in values[41]:
+            data['whiteBloodCells'] = values[42]
+
+        if 'Red' in values[45] and 'Blood' in values[46] and 'Cells' in values[47]:
+            data['redBloodCells'] = values[48]
+
+        if 'Hemoglobin' in values[51]:
+            data['hemoglobin'] = values[52]
+
+        if 'Hematocrit' in values[55]:
+            data['hematocrit'] = values[56]
+
+        if 'Mean' in values[59] and 'Corpuscular' in values[60] and 'Volume' in values[61]:
+            data['meanCorpuscularVolume'] = values[62]
+
+        if 'Mean' in values[65] and 'Corpuscular' in values[66] and 'Hb' in values[67]:
+            data['meanCorpuscularHb'] = values[68]
+
+        if 'Mean' in values[71] and 'Corpuscular' in values[72] and 'Hb' in values[73] and 'Conc' in values[74]:
+            data['meanCorpuscularHbConc'] = values[75]
+
+        if 'RBC' in values[78] and 'Distribution' in values[79] and 'Width' in values[80]:
+            data['rbcDistributionWidth'] = values[81]
+
+        if 'Platelet' in values[84] and 'Count' in values[85]:
+            data['plateletCount'] = values[86]
+
+        if 'Neutrophils' in values[92]:
+            data['neutrophils'] = values[93]
+
+        if 'Lymphocytes' in values[96]:
+            data['lymphocytes'] = values[97]
+
+        if 'Monocytes' in values[100]:
+            data['monocytes'] = values[101]
+
+        if 'Eosinophils' in values[104]:
+            data['eosinophils'] = values[105]
+
+        if 'Basophils' in values[108]:
+            data['basophils'] = values[109]
+
+        if 'Bands' in values[112]:
+            data['bands'] = values[113]
+
+        if 'Absolute' in values[119] and 'Neutrophils' in values[120] and 'Count' in values[121]:
+            data['absoluteNeutrophilsCount'] = values[122]
+
+        if 'Absolute' in values[125] and 'Lymphocyte' in values[126] and 'Count' in values[127]:
+            data['absoluteLymphocyteCount'] = values[128]
+
+        if 'Absolute' in values[131] and 'Monocyte' in values[132] and 'Count' in values[133]:
+            data['absoluteMonocyteCount'] = values[134]
+
+
+        if 'Absolute' in values[137] and 'Eosinophil' in values[138] and 'Count' in values[139]:
+            data['absoluteEosinophilCount'] = values[140]
+
+        if 'Absolute' in values[143] and 'Basophil' in values[144] and 'Count' in values[145]:
+            data['absoluteBasophilCount'] = values[146]
+
+        if 'Absolute' in values[149] and 'Band' in values[150] and 'Count' in values[151]:
+            data['absoluteBandCount'] = values[152]
+        
+        return docxObject, data
+    
+    def removeFile(self, file):
+        os.remove(file) 
+
+    def addUserUploads(self, user):
+        user.uploads = user.uploads + 1
+        user.save()
+
+    def getPDF(self, id):
+        return self.pdf_model.objects.get(id=id)
+    
+    def getPDFInitialValues(self, id):
+        data = {}
+        pdfObject = self.getPDF(id)
+        data['object'] = pdfObject
+        FILE_PATH = pdfObject.testPDF.url
+
+        req = requests.get(FILE_PATH)
+        filename = req.url[FILE_PATH.rfind('/')+1:]
+        filename = "media/" + filename.split("?")[0]
+
+        with open(filename, 'wb') as f:
+            for chunk in req.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+        
+        pages = convert_from_path(filename, 500)
+        newfilename = 'newpdf.jpg'
+        pages[0].save(newfilename, 'JPEG')
+
+        data = self.ocrModel(newfilename, data)
+        
+        return pdfObject, data
+
+    def getImage(self, id):
+        return self.image_model.objects.get(id=id)
+
+    def getImageInitialValues(self, id):
+        data = {}
+        imgObject = self.getImage(id)
+        data['object'] = imgObject
+        FILE_PATH = imgObject.testImage.url
+
+        req = requests.get(FILE_PATH)
+        filename = req.url[FILE_PATH.rfind('/')+1:]
+        filename = "media/" + filename.split("?")[0]
+
+        with open(filename, 'wb') as f:
+            for chunk in req.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
+        data = self.ocrModel(filename, data)
+
+        return imgObject, data
+    
+    def deleteTest(self, object):
+        object.delete()
+
+    def post(self, request, type, id):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            test_id = self.saveTest(request, type, id)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            if type == 'docx':
+                _, data = self.getDocxInitialValues(id)
+            elif type == 'pdf':
+                _, data = self.getPDFInitialValues(id)
+            elif type == 'image' or type == 'picture':
+                _, data = self.getImageInitialValues(id)
+
+            data['type'] = type
+            return self.renderTemplate(request, self.template_name, data)
+        
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_test_template_name, test_id)
+
+    def get(self, request, type, id):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+            
         if type == 'docx':
             try:
-                docxObject = CBCTestResultDocx.objects.get(id=pk)
-                data['object'] = docxObject
-                FILE_PATH = str(docxObject.testDocx.url[1:])
-                txt = d2t.process(FILE_PATH)
-
-                numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
-                values = re.split('\s+',txt)
-                data['source'] = values[15] + " " + values[16] + " " + values[17] 
-                data['labNumber'] = values[29] 
-                data['pid'] = values[7]
-                data['dateRequested'] = values[23] + " " + values[24] + " " + values[25]
-                data['dateReceived'] = values[43] + " " + values[44] + " " + values[45] 
-                data['whiteBloodCells'] = numericalValues[18] 
-                data['redBloodCells'] = numericalValues[23] 
-                data['hemoglobin'] = numericalValues[28] 
-                data['hematocrit'] = numericalValues[31] 
-                data['meanCorpuscularVolume'] = numericalValues[34] 
-                data['meanCorpuscularHb'] = numericalValues[37] 
-                data['meanCorpuscularHbConc'] = numericalValues[40] 
-                data['rbcDistributionWidth'] = numericalValues[43] 
-                data['plateletCount'] = numericalValues[46] 
-                data['segmenters'] = numericalValues[51] 
-                data['lymphocytes'] = numericalValues[54] 
-                data['monocytes'] = numericalValues[57] 
-                data['eosinophils'] = numericalValues[60] 
-                data['basophils'] = numericalValues[63] 
-                data['bands'] = numericalValues[66] 
-                data['absoluteSeg'] = numericalValues[69] 
-                data['absoluteLymphocyteCount'] = numericalValues[74] 
-                data['absoluteMonocyteCount'] = numericalValues[79] 
-                data['absoluteEosinophilCount'] = numericalValues[83] 
-                data['absoluteBasophilCount'] = numericalValues[87] 
-                data['absoluteBandCount'] = numericalValues[91]
+                docxObject = None
+                docxObject, data = self.getDocxInitialValues(id)
+                
+                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
+                    self.deleteTest(docxObject)
+                    self.sendErrorMessage(request, self.values_error_message)
+                    self.addUserUploads(user)
+                    return self.redirectTemplate(self.redirect_docx_template_name)
             except:
                 if docxObject != None: 
-                    os.remove(str(docxObject.testDocx.url)[1:]) 
-                messages.error(request, 'There was something wrong with your document. Please try another one!')
-                user.uploads = user.uploads + 1
-                user.save()
-                return redirect('UploadDocx')
+                    self.deleteTest(docxObject)
+                self.sendErrorMessage(request, self.values_error_message)
+                self.addUserUploads(user)
+                return self.redirectTemplate(self.redirect_docx_template_name)
         elif type == 'pdf':
             try:
-                pdfObject = CBCTestResultPDF.objects.get(id=pk)
-                data['object'] = pdfObject
-                FILE_PATH = str(pdfObject.testPDF.url[1:])
-
-                with open(FILE_PATH, mode='rb') as f:
-                    reader = PyPDF4.PdfFileReader(f)
-                    page = reader.getPage(0)
-                    txt = page.extractText()
-
-                numericalValues = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", txt)
-                values = re.split("\n",txt)
-                data['source'] = values[35] + values[36] + values[37]
-                data['labNumber'] = numericalValues[7] 
-                data['pid'] = values[16] + values[17]
-                data['dateRequested'] = values[47] + values[48] + values[49] + values[50] + values[51]
-                data['dateReceived'] = values[85] + values[86] + values[87] + values[88] + values[89]
-                data['whiteBloodCells'] = numericalValues[18] 
-                data['redBloodCells'] = numericalValues[23] 
-                data['hemoglobin'] = numericalValues[28] 
-                data['hematocrit'] = numericalValues[31] 
-                data['meanCorpuscularVolume'] = numericalValues[34] 
-                data['meanCorpuscularHb'] = numericalValues[37] 
-                data['meanCorpuscularHbConc'] = numericalValues[40] 
-                data['rbcDistributionWidth'] = numericalValues[43] 
-                data['plateletCount'] = numericalValues[46] 
-                data['segmenters'] = numericalValues[51] 
-                data['lymphocytes'] = numericalValues[54] 
-                data['monocytes'] = numericalValues[57] 
-                data['eosinophils'] = numericalValues[60] 
-                data['basophils'] = numericalValues[63] 
-                data['bands'] = numericalValues[66] 
-                data['absoluteSeg'] = numericalValues[69] 
-                data['absoluteLymphocyteCount'] = numericalValues[74] 
-                data['absoluteMonocyteCount'] = numericalValues[79] 
-                data['absoluteEosinophilCount'] = numericalValues[83] 
-                data['absoluteBasophilCount'] = numericalValues[87] 
-                data['absoluteBandCount'] = numericalValues[91]
+                pdfObject = None
+                pdfObject, data = self.getPDFInitialValues(id)
+                
+                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
+                    self.deleteTest(pdfObject)
+                    self.sendErrorMessage(request, self.values_error_message)
+                    self.addUserUploads(user)
+                    return self.redirectTemplate(self.redirect_pdf_template_name)
             except:
                 if pdfObject != None: 
-                    os.remove(str(pdfObject.testPDF.url)[1:]) 
-                messages.error(request, 'There was something wrong with your pdf. Please try another one!')
-                user.uploads = user.uploads + 1
-                user.save()
-                return redirect('UploadPDF')
+                    self.deleteTest(pdfObject)
+                self.sendErrorMessage(request, self.values_error_message)
+                self.addUserUploads(user)
+                return self.redirectTemplate(self.redirect_pdf_template_name)
         elif type == 'image' or type == 'picture':
             try:
-                roi = [ [(250, 235), (837, 293), 'text', 'source'],
-                [(1193, 89), (1500, 144), 'text', 'labNumber'], 
-                [(253, 143), (590, 190), 'text', 'pid'], 
-                [(376, 374), (739, 425), 'text', 'dateRequested'],
-                [(1158,381), (1512, 434), 'text', 'dateReceived'],
-                [(645, 675), (803, 730), 'float', 'whiteBloodCells'], 
-                [(645, 735), (803, 790), 'float', 'redBloodCells'], 
-                [(645, 795), (803, 850), 'float', 'hemoglobin'], 
-                [(645, 855), (803, 910), 'float', 'hematocrit'], 
-                [(645, 915), (803, 970), 'float', 'meanCorpuscularVolume'], 
-                [(645, 973), (803, 1028), 'float', 'meanCorpuscularHb'], 
-                [(645, 1034), (803, 1089), 'float', 'meanCorpuscularHbConc'], 
-                [(645, 1093), (803, 1146), 'float', 'rbcDistributionWidth'], 
-                [(645, 1153), (803, 1208), 'float', 'plateletCount'], 
-                [(645, 1270), (803, 1327), 'float', 'segmenters'], 
-                [(645, 1327), (803, 1384), 'float', 'lymphocytes'], 
-                [(645, 1386), (803, 1443), 'float', 'monocytes'], 
-                [(645, 1445), (803, 1505), 'float', 'eosinophils'], 
-                [(645, 1506), (803, 1560), 'float', 'basophils'], 
-                [(645, 1562), (803, 1619), 'float', 'bands'], 
-                [(645, 1684), (803, 1741), 'float', 'absoluteSeg'], 
-                [(645, 1743), (803, 1800), 'float', 'absoluteLymphocyteCount'], 
-                [(645, 1802), (803, 1863), 'float', 'absoluteMonocyteCount'], 
-                [(645, 1860), (803, 1919), 'float', 'absoluteEosinophilCount'], 
-                [(645, 1920), (803, 1978), 'float', 'absoluteBasophilCount'], 
-                [(645, 1978), (803, 2036), 'float', 'absoluteBandCount']
-                ]
-
-                def grayscale(image):
-                    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-                per = 25
-                pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+                imgObject = None
+                imgObject, data = self.getImageInitialValues(id)
                 
-                imgQ = cv2.imread('imageQuery\sample.png')
-                h,w,c = imgQ.shape
-                gray_image = grayscale(imgQ)
-                thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
-
-                orb = cv2.ORB_create(1000)
-                kp1, des1 = orb.detectAndCompute(im_bw, None)
-
-                imgObject = CBCTestResultImage.objects.get(id=pk)
-                data['object'] = imgObject
-                img = cv2.imread(str(imgObject.testImage.url)[1:])
-                gray_image = grayscale(img)
-                thresh, im_bw = cv2.threshold(gray_image, 210, 230, cv2.THRESH_BINARY)
-                kp2, des2 = orb.detectAndCompute(im_bw, None)
-                bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-                matches = bf.match(des2, des1)
-                list(matches).sort(key= lambda x: x.distance)
-                good = matches[:int(len(matches) * (per/100))]
-
-                srcPoints = np.float32([kp2[m.queryIdx].pt for m in good]).reshape(-1,1,2)
-                dstPoints = np.float32([kp1[m.trainIdx].pt for m in good]).reshape(-1,1,2)
-
-                M, _ = cv2.findHomography(srcPoints, dstPoints, cv2.RANSAC, 5.0)
-                imgScan = cv2.warpPerspective(img, M, (w,h))
-                imgShow = imgScan.copy()
-                imgMask = np.zeros_like(imgShow)
-
-                for x, r in enumerate(roi):
-                    cv2.rectangle(imgMask, (r[0][0], r[0][1]), (r[1][0], r[1][1]), (0, 255, 0), cv2.FILLED)
-                    imgShow = cv2.addWeighted(imgShow, 0.99, imgMask, 0.1, 0)
-                    imgCrop = imgScan[r[0][1]:r[1][1], r[0][0]:r[1][0]]
-
-                    if r[2] == 'float':
-                        text = pytesseract.image_to_string(imgCrop)
-                        value = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", text)
-                        if len(value) != 0:
-                            data[r[3]] = float(value[0])
-                        else:
-                            data[r[3]] = None
-                    elif r[2] == 'text':
-                        text = pytesseract.image_to_string(imgCrop)
-                        newText = re.sub(r"[^a-zA-Z0-9-(): ]","",text)
-                        if newText != '':
-                            data[r[3]] = newText
-                        else:
-                            data[r[3]] = None
+                if data['source'] == None or data['labNumber'] == None or data['pid'] == None: 
+                    self.deleteTest(imgObject)
+                    self.sendErrorMessage(request, self.picture_error_message)
+                    self.addUserUploads(user)
+                    if type == 'image':
+                        return self.redirectTemplate(self.redirect_image_template_name)
+                    elif type == 'picture':
+                        return self.redirectTemplate(self.redirect_picture_template_name)
             except:
                 if imgObject != None: 
-                    os.remove(str(imgObject.testImage.url)[1:]) 
-                messages.error(request, 'There was something wrong with your image. Please try another oimreadne!')
-                user.uploads = user.uploads + 1
-                user.save()
+                    self.deleteTest(imgObject)
+                self.sendErrorMessage(request, self.picture_error_message)
+                self.addUserUploads(user)
                 if type == 'image':
-                    return redirect('UploadImage')
+                        return self.redirectTemplate(self.redirect_image_template_name)
                 elif type == 'picture':
-                    return redirect('CaptureImage')
+                    return self.redirectTemplate(self.redirect_picture_template_name)
         else:
-            messages.error(request, 'There was something wrong!')
-            return redirect('DisplayAddingOptions')
+            self.sendErrorMessage(request, self.url_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
 
-        return render(request, 'createCBCTestResult.html', data)
+        data['type'] = type
 
-
+        return self.renderTemplate(request, self.template_name, data)
 
 class UpdateCBCTestResult(LoginRequiredMixin, View):
-    def post(self, request, pk, *args, **kwargs):
+    template_name = 'UpdateCBCTestResult.html'
+    redirect_tests_template_name = 'DisplayAllCBCTestResult'
+    redirect_test_template_name = 'DisplayCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
+    user_error_message = 'The user was not found!'
+    record_error_message = 'The record was not found.'
+    saving_error_message = 'Something went wrong with the saving process. Please try again!'
+    succes_message = 'Update CBC Test Result Successful!'
+    test_model = CBCTestResult
+    user_model = User
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def redirectTemplate(self, template_name, id = None):
+        if id == None:
+            return redirect(template_name)
+        else:
+            return redirect(template_name, id = id)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
+
+    def updateTest(self, request, object):
+        date_time_str = request.POST.get('dateRequested')
         try:
-            object = CBCTestResult.objects.get(id=pk)
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
+            object.set_dateRequested(pytz.utc.localize(unaware_date)) 
         except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
-
-        if object != None:
-            object.whiteBloodCells = request.POST.get('whiteBloodCells')
-            object.redBloodCells = request.POST.get('redBloodCells')
-            object.hemoglobin = request.POST.get('hemoglobin')
-            object.hematocrit = request.POST.get('hematocrit')
-            object.meanCorpuscularVolume = request.POST.get('meanCorpuscularVolume')
-            object.meanCorpuscularHb = request.POST.get('meanCorpuscularHb')
-            object.meanCorpuscularHbConc = request.POST.get('meanCorpuscularHbConc')
-            object.rbcDistributionWidth = request.POST.get('rbcDistributionWidth')
-            object.plateletCount = request.POST.get('plateletCount')
-            object.segmenters = request.POST.get('segmenters')
-            object.lymphocytes = request.POST.get('lymphocytes')
-            object.monocytes = request.POST.get('monocytes')
-            object.eosinophils = request.POST.get('eosinophils')
-            object.basophils = request.POST.get('basophils')
-            object.bands = request.POST.get('bands')
-            object.absoluteSeg = request.POST.get('absoluteSeg')
-            object.absoluteLymphocyteCount = request.POST.get('absoluteLymphocyteCount')
-            object.absoluteMonocyteCount = request.POST.get('absoluteMonocyteCount')
-            object.absoluteEosinophilCount = request.POST.get('absoluteEosinophilCount')
-            object.absoluteBasophilCount = request.POST.get('absoluteBasophilCount')
-            object.absoluteBandCount = request.POST.get('absoluteBandCount')
-            object.save()
-
-            messages.success(request, 'Update CBC Test Result Successful!')
-            return redirect('DisplayCBCTestResult', pk=pk)
-        elif object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
-            
-
-        context = {'object': object}
-        return render(request, 'updateCBCTestResult.html', context)
-
-    def get(self, request, pk, *args, **kwargs):
-        try:
-            object = CBCTestResult.objects.get(id=pk)
-        except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+            object.set_dateRequested(None)
         
-        if object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
-        context = {'object': object}
-        return render(request, 'updateCBCTestResult.html', context)
+        date_time_str = request.POST.get('dateReceived')
+        try:
+            unaware_date = datetime.strptime(date_time_str, '%m-%d-%Y %H:%M')
+            object.set_dateReceived(pytz.utc.localize(unaware_date)) 
+        except:
+            object.set_dateReceived(None)
+
+        object.set_user(User.objects.get(id=request.user.id))
+        object.set_source(request.POST.get('source')) 
+        object.set_labNumber(request.POST.get('labNumber')) 
+        object.set_pid(request.POST.get('pid')) 
+        object.set_whiteBloodCells(request.POST.get('whiteBloodCells')) 
+        object.set_redBloodCells(request.POST.get('redBloodCells')) 
+        object.set_hemoglobin(request.POST.get('hemoglobin')) 
+        object.set_hematocrit( request.POST.get('hematocrit')) 
+        object.set_meanCorpuscularVolume(request.POST.get('meanCorpuscularVolume')) 
+        object.set_meanCorpuscularHb(request.POST.get('meanCorpuscularHb')) 
+        object.set_meanCorpuscularHbConc(request.POST.get('meanCorpuscularHbConc')) 
+        object.set_rbcDistributionWidth(request.POST.get('rbcDistributionWidth')) 
+        object.set_plateletCount(request.POST.get('plateletCount')) 
+        object.set_neutrophils(request.POST.get('neutrophils')) 
+        object.set_lymphocytes(request.POST.get('lymphocytes')) 
+        object.set_monocytes(request.POST.get('monocytes')) 
+        object.set_eosinophils(request.POST.get('eosinophils')) 
+        object.set_basophils(request.POST.get('basophils')) 
+        object.set_bands(request.POST.get('bands')) 
+        object.set_absoluteNeutrophilsCount(request.POST.get('absoluteNeutrophilsCount')) 
+        object.set_absoluteLymphocyteCount(request.POST.get('absoluteLymphocyteCount')) 
+        object.set_absoluteMonocyteCount(request.POST.get('absoluteMonocyteCount')) 
+        object.set_absoluteEosinophilCount(request.POST.get('absoluteEosinophilCount')) 
+        object.set_absoluteBasophilCount(request.POST.get('absoluteBasophilCount')) 
+        object.set_absoluteBandCount(request.POST.get('absoluteBandCount')) 
+        object.save()
+
+    def getTest(self, id):
+        return self.test_model.objects.get(id=id)
+
+    def getUser(self, request):
+        self.user_model.objects.get(id=request.user.id)
+
+    def getCorrectDateFormat(self, object):
+        date_time_str = object
+        dateArr = date_time_str.split()
+        yearArr = dateArr[0].split('-')
+        return yearArr[1]+ '-' + yearArr[2]+ '-' + yearArr[0] + ' ' + dateArr[1]
+        
+    def post(self, request, id):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+        try:
+            object = self.getTest(id)
+        except:
+            self.sendErrorMessage(request, self.record_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
+        try:
+            self.updateTest(request, object)
+        except:
+            self.sendErrorMessage(request, self.saving_error_message)
+            context = {'object': object}
+            return self.renderTemplate(request, self.template_name, context)
+
+        messages.success(request, self.succes_message)
+        return self.redirectTemplate(self.redirect_test_template_name, id)
+
+    def get(self, request, id):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            object = self.getTest(id)
+        except:
+            self.sendErrorMessage(request, self.record_error_message)
+            return self.redirectTemplate(self.redirect_tests_template_name)
+
+        dateRequestedStr = self.getCorrectDateFormat(str(object.dateRequested)[:-9])
+        dateReceivedStr = self.getCorrectDateFormat(str(object.dateReceived)[:-9])
+
+        context = {'object': object, 'dateRequestedStr': dateRequestedStr, 'dateReceivedStr': dateReceivedStr}
+        return self.renderTemplate(request, self.template_name, context)
 
 class DeleteCBCTestResult(LoginRequiredMixin, View):
-    def post(self, request, pk, *args, **kwargs):
-        try:
-            object = CBCTestResult.objects.get(id=pk)
-        except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
+    template_name = 'DeleteCBCTestResult.html'
+    redirect_template_name = 'DisplayAllCBCTestResult'
+    record_error_message = 'The record was not found!'
+    deletion_error_message = 'Something went wrong with the deletion process!'
+    success_message = 'Delete CBC Test Result Successful!'
+    model = CBCTestResult
 
-        if object != None:
-            object.delete()
+    def getTest(self, id):
+        return self.model.objects.get(id=id)
 
-            if object.testPDF != None:
-                os.remove(str(object.testPDF.testPDF.url)[1:]) 
-            elif object.testDocx != None:
-                os.remove(str(object.testDocx.testDocx.url)[1:]) 
-            elif object.testImage != None:
-                os.remove(str(object.testImage.testImage.url)[1:]) 
-
-            messages.success(request, 'Delete CBC Test Result Successful!')
-
-            return redirect('DisplayAllCBCTestResult')
-        elif object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
-
-        context = {'object': object, 'type': 'record'}
-        return render(request, 'deleteCBCTestResult.html', context)
-
-    def get(self, request, pk, *args, **kwargs):
-        try:
-            object = CBCTestResult.objects.get(id=pk)
-        except:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
-
-        if object == None:
-            messages.error(request, 'The record was not found.')
-            return redirect('DisplayAllCBCTestResult')
-
-        context = {'object': object, 'type': 'record'}
-        return render(request, 'deleteCBCTestResult.html', context)
-
-class DeleteUploadedImage(LoginRequiredMixin, View):
-    def post(self, request, pk, *args, **kwargs):
-        try:
-            object = CBCTestResultImage.objects.get(id=pk)
-        except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
-        
-        if object != None:
-            object.delete()
-            os.remove(str(object.testImage.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
-            user.uploads = user.uploads + 1
-            user.save()
-
-            messages.success(request, 'Delete Image Successful!')
-
-            return redirect('UploadImage')
-        elif object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
-        
-        context = {'object': object, 'type': 'image'}
-        return render(request, 'deleteCBCTestResult.html', context)
-
-    def get(self, request, pk, *args, **kwargs):
-        try:
-            object = CBCTestResultImage.objects.get(id=pk)
-        except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
-
-        if object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
-        context = {'object': object, 'type': 'image'}
-        return render(request, 'deleteCBCTestResult.html', context)
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
     
-class DeleteCapturedImage(LoginRequiredMixin, View):
-    def post(self, request, pk, *args, **kwargs):
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
+
+    def deleteTest(self, object):
+        object.delete()
+
+    def post(self, request, id):
         try:
-            object = CBCTestResultImage.objects.get(id=pk)
+            object = self.getTest(id)
         except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            self.sendErrorMessage(request, self.record_error_message)
+            return self.redirectTemplate(self.redirect_template_name)
 
-        if object != None:
-            object.delete()
-            os.remove(str(object.testImage.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
-            user.uploads = user.uploads + 1
-            user.save()
-
-            messages.success(request, 'Delete Image Successful!')
-
-            return redirect('CaptureImage')
-        elif object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
-        
-        context = {'object': object, 'type': 'picture'}
-        return render(request, 'deleteCBCTestResult.html', context)
-
-    def get(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultImage.objects.get(id=pk)
+            self.deleteTest(object)
         except:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_template_name)
 
-        if object == None:
-            messages.error(request, 'The image was not found.')
-            return redirect('DisplayAddingOptions')
-        context = {'object': object, 'type': 'picture'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_template_name)
 
-class DeletePDF(LoginRequiredMixin, DeleteView):
-    def post(self, request, pk, *args, **kwargs):
+class DeleteCBCTestResultImage(LoginRequiredMixin, View):
+    template_name = 'DeleteCBCTestResultFile.html'
+    redirect_logout_template_name = 'LogoutView'
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
+    redirect_image_template_name = 'UploadCBCTestResultImage'
+    redirect_picture_template_name = 'CaptureCBCTestResultImage'
+    image_error_message = 'The image was not found.'
+    user_error_message = 'The user was not found.'
+    deletion_error_message = 'Something went wrong with the deletion process!'
+    success_message = 'Delete Image Successful!'
+    image_model = CBCTestResultImage
+    user_model = User
+
+    def getImage(self, id):
+        return self.image_model.objects.get(id=id)
+    
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def redirectTemplate(self, template_name, type=None, id=None):
+        if type == None and id == None:
+            return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
+
+    def addUserUploads(self, user):
+        user.uploads = user.uploads + 1
+        user.save()
+    
+    def deleteImage(self, object):
+        object.delete()
+
+    def post(self, request, type, id):
         try:
-            object = CBCTestResultPDF.objects.get(id=pk)
+            user = self.getUser(request)
         except:
-            messages.error(request, 'The pdf was not found.')
-            return redirect('DisplayAddingOptions')
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
-        if object != None:
-            object.delete()
-            os.remove(str(object.testPDF.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
-            user.uploads = user.uploads + 1
-            user.save()
-
-            messages.success(request, 'Delete PDF Successful!')
-
-            return redirect('UploadPDF')
-        elif object == None:
-            messages.error(request, 'The pdf was not found.')
-            return redirect('DisplayAddingOptions')
-
-        context = {'object': object, 'type': 'pdf'}
-        return render(request, 'deleteCBCTestResult.html', context)
-
-    def get(self, request, pk, *args, **kwargs):
-        object = CBCTestResultPDF.objects.get(id=pk)
-        if object == None:
-            messages.error(request, 'The pdf was not found.')
-            return redirect('DisplayAddingOptions')
-        context = {'object': object, 'type': 'pdf'}
-        return render(request, 'deleteCBCTestResult.html', context)
-
-class DeleteDocx(LoginRequiredMixin, DeleteView):
-    def post(self, request, pk, *args, **kwargs):
         try:
-            object = CBCTestResultDocx.objects.get(id=pk)
+            object = self.getImage(id)
         except:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
+            self.sendErrorMessage(request, self.image_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
 
-        if object != None:
-            object.delete()
-            os.remove(str(object.testDocx.url)[1:]) 
-            user = User.objects.get(id=request.user.id)
-            user.uploads = user.uploads + 1
-            user.save()
+        try:
+            self.deleteImage(object)
+            self.addUserUploads(user)
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
 
-            messages.success(request, 'Delete Docx Successful!')
+        self.sendSuccessMessage(request, self.success_message)
 
-            return redirect('UploadDocx')
-        elif object == None:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
-        
+        if type == 'image':
+            return self.redirectTemplate(self.redirect_image_template_name)
+        elif type == 'picture':
+            return self.redirectTemplate(self.redirect_picture_template_name)
+
+class DeleteCBCTestResultPDF(LoginRequiredMixin, View):
+    template_name = 'DeleteCBCTestResultFile.html'
+    redirect_logout_template_name = 'LogoutView'
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
+    redirect_upload_template_name = 'UploadCBCTestResultPDF'
+    pdf_error_message = 'The pdf was not found.'
+    user_error_message = 'The user was not found.'
+    deletion_error_message = 'Something went wrong with the deletion process!'
+    success_message = 'Delete PDF Successful!'
+    pdf_model = CBCTestResultPDF
+    user_model = User
+
+    def getPDF(self, id):
+        return self.pdf_model.objects.get(id=id)
+    
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
+
+    def addUserUploads(self, user):
+        user.uploads = user.uploads + 1
+        user.save()
+    
+    def deletePDF(self, object):
+        object.delete()
+
+    def post(self, request, id):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
+
+        try:
+            object = self.getPDF(id)
+        except:
+            self.sendErrorMessage(request, self.pdf_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
+                
+        try:
+            self.deletePDF(object)
+            self.addUserUploads(user)
+
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
+
+        self.sendSuccessMessage(request, self.success_message)
+
+        return self.redirectTemplate(self.redirect_upload_template_name)
+
+class DeleteCBCTestResultDocument(LoginRequiredMixin, View):
+    template_name = 'DeleteCBCTestResultFile.html'
+    redirect_logout_template_name = 'LogoutView'
+    redirect_adding_template_name = 'AddingCBCTestResultOptions'
+    redirect_upload_template_name = 'UploadCBCTestResultDocument'
+    docx_error_message = 'The document was not found.'
+    user_error_message = 'The user was not found.'
+    deletion_error_message = 'Something went wrong with the deletion process!'
+    success_message = 'Delete Docx Successful!'
+    docx_model = CBCTestResultDocument
+    user_model = User
+    
+    def getDocument(self, id):
+        return self.docx_model.objects.get(id=id)
+    
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
+
+    def addUserUploads(self, user):
+        user.uploads = user.uploads + 1
+        user.save()
+    
+    def deleteDocument(self, object):
+        object.delete()
+
+    def post(self, request, id):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            object = self.getDocument(id)
+        except:
+            self.sendErrorMessage(request, self.docx_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
+
+        try:
+            self.deleteDocument(object)
+            self.addUserUploads(user)
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
+
+        self.sendSuccessMessage(request, self.success_message)
+
+        return self.redirectTemplate(self.redirect_upload_template_name)
+
+    def get(self, request, id):
+        try:
+            object = self.getDocx(id)
+        except:
+            self.sendErrorMessage(request, self.docx_error_message)
+            return self.redirectTemplate(self.redirect_adding_template_name)
+
         context = {'object': object, 'type': 'docx'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        return self.renderTemplate(request, self.template_name, context)
 
-    def get(self, request, pk, *args, **kwargs):
+class ShowChatRoom(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
+    redirect_contacts_template_name = 'Contacts'
+    redirect_chat_template_name = 'EnterChatRoom'
+    error_message = 'The user is not found.'
+    model = User
+
+    def getUser(self, request):
+        return self.model.objects.get(id=request.user.id)
+
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+
+    def get(self, request):
         try:
-            object = CBCTestResultDocx.objects.get(id=pk)
+            user = self.getUser(request)
         except:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
+            self.sendErrorMessage(request, self.error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
 
-        if object == None:
-            messages.error(request, 'The document was not found.')
-            return redirect('DisplayAddingOptions')
-        context = {'object': object, 'type': 'docx'}
-        return render(request, 'deleteCBCTestResult.html', context)
+        if user.is_admin:
+            return self.redirectTemplate(self.redirect_contacts_template_name)
+        else:
+            return self.redirectTemplate(self.redirect_chat_template_name)
 
+class EnterChatRoom(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
+    template_name = 'EnterChatRoom.html'
+    redirect_chat_template_name = 'ChatRoom'
+    error_message = 'The user is not found.'
+    user_model = User
+    room_model = Room
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+
+    def renderTemplate(self, request, template_name):
+        return render(request, template_name)
+    
+    def redirectTemplate(self, template_name, id = None):
+        if id == None:
+            return redirect(template_name)
+        else:
+            return redirect(template_name, id)
+        
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def getRoom(self, user):
+        room = user.room_set.first()
+        return room.get_id()
+    
+    def newRoom(self, user):
+        new_room = self.room_model.objects.create()
+        new_room.set_owner(user)
+        new_room.save()
+        return new_room.get_id()
+
+    def get(self, request):
+        try:
+            self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        return self.renderTemplate(request, self.template_name)
+
+    def post(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        if user.room_set.first():
+            room_id = self.getRoom(user)
+            return self.redirectTemplate(self.redirect_chat_template_name, id = room_id)
+        else:
+            new_room_id = self.newRoom(user)
+            return self.redirectTemplate(self.redirect_chat_template_name, id = new_room_id)
+
+class ChatRoom(LoginRequiredMixin, View):
+    redirect_logout_template_name = 'LogoutView'
+    template_name = 'ChatRoom.html'
+    redirect_room_template_name = 'ShowChatRoom'
+    user_error_message = 'The user was not found!'
+    room_error_message = 'The chat room was not found!'
+    read_error_message = 'Something went wrong with the reading process!'
+    user_model = User
+    room_model = Room
+
+    def getRoom(self, id):
+        return self.room_model.objects.get(id=id)
+    
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+    
+    def readMessages(self, room_details, user):
+        room_details.message_set.filter(~Q(user__username=user.username)&Q(read=False)).update(read=True)
+    
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+        return render(request, template_name, context)
+        
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+
+    def get(self, request, id):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            room_details = self.getRoom(id)
+        except:
+            self.sendErrorMessage(request, self.room_error_message)
+            return self.redirectTemplate(self.redirect_room_template_name)
+        
+        try:
+             self.readMessages(room_details, user)
+        except:
+            self.sendErrorMessage(request, self.read_error_message)
+            return self.redirectTemplate(self.redirect_room_template_name)
+
+        context = {'room_details': room_details}
+        return self.renderTemplate(request, self.template_name, context)
+
+class Contacts(LoginRequiredMixin, View):
+    redirect_test_template_name = 'DisplayAllCBCTestResult'
+    redirect_logout_template_name = 'LogoutView'
+    user_error_message = 'The user was not found!'
+    rooms_error_message = 'Something is wrong with the Chat Rooms!'
+    template_name = 'Contacts.html'
+    user_model = User
+    room_model = Room
+
+    def redirectTemplate(self, template_name):
+        return redirect(template_name)
+    
+    def renderTemplate(self, request, template_name, context):
+         return render(request, template_name, context)
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+    
+    def getRooms(self, user):
+        return self.room_model.objects.filter(~Q(owner__username=user.username))
+    
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+
+    def get(self, request):
+        try:
+            user = self.getUser(request)
+        except:
+            self.sendErrorMessage(request, self.user_error_message)
+            return self.redirectTemplate(self.redirect_logout_template_name)
+
+        try:
+            rooms = self.getRooms(user)
+        except:
+            self.sendErrorMessage(request, self.rooms_error_message)
+            return self.redirectTemplate(self.redirect_test_template_name)
+
+        context = {'rooms': rooms}
+        return self.renderTemplate(request, self.template_name, context)
+
+class UnreadMessages(LoginRequiredMixin, View):
+    user_model = User
+    room_model = Room
+    admin_name = 'admin'
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def getRooms(self, user):
+        return self.room_model.objects.filter(~Q(owner__username=user.username))
+    
+    def countNotification(self, room, user):
+        return room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).count()
+    
+    def getAdminNotifications(self, user):
+        context = {}
+        rooms = self.getRooms(user)
+        queue = []
+        i = 0
+        for room in rooms:
+            count = self.countNotification(room, user)
+            i += 1
+            if count == 0:
+                queue.append(str(i))
+            
+            if count > 0 and queue:
+                zero_position = queue.pop(0)
+                temp_username = context[zero_position][0]
+                temp_count = context[zero_position][1]
+                temp_room_id = context[zero_position][2]
+                context[zero_position] = [room.get_owner().username, count, room.get_id()]
+                context[str(i)] = [temp_username, temp_count, temp_room_id]
+            else: 
+                context[str(i)] = [room.get_owner().username, count, room.get_id()]
+        
+        return context
+
+    def getUserNotifications(self, user):
+        context = {}
+        room = user.room_set.first()
+        count = self.countNotification(room, user)
+        context['0'] = [self.admin_name, count]
+        return context
+
+    def get(self, request):
+        context = {}
+        user = self.getUser(request)
+        if user.is_admin:
+            context = self.getAdminNotifications(user)
+        else:
+            if user.room_set.first():
+                context = self.getUserNotifications(user)
+
+        return JsonResponse({"messages":context})      
+
+class SendMessage(LoginRequiredMixin, View):
+    user_model = User
+    room_model = Room
+    message_model = Message
+
+
+    def getUser(self, id): 
+        return self.user_model.objects.get(id=id)
+
+    def getRoom(self, id):
+        return self.room_model.objects.get(id=id)
+
+    def saveMessage(self, message, user, room):
+        new_message = self.message_model.objects.create(value=message, user=user, room=room, date=self.message_model.current_time())
+        new_message.save()
+
+    def post(self, request):
+        user = self.getUser(request.user.id)
+
+        message = request.POST.get('message')
+        room_id = request.POST.get('room_id')
+
+        room = self.getRoom(room_id)
+
+        self.saveMessage(message, user, room)
+        
+        return HttpResponse('Message sent successfully')
+
+class GetMessages(LoginRequiredMixin, View):
+    user_model = User
+    room_model = Room
+
+    def getUser(self, request):
+        return self.user_model.objects.get(id=request.user.id)
+
+    def getRoom(self, id):
+        return self.room_model.objects.get(id=id)
+    
+    def getMessages(self, room):
+        return room.message_set.all()
+
+    def readMessages(self, room, user):
+        room.message_set.filter(~Q(user__username=user.username)&Q(read=False)).update(read=True)
+    
+    def getUserName(self, user):
+        return user.username
+
+    def get(self, request, id):
+        user = self.getUser(request)
+        room = self.getRoom(id)
+        messages = self.getMessages(room)
+        self.readMessages(room, user)
+        username = self.getUserName(user)
+        return JsonResponse({"messages":list(messages.values('user__username', 'value', 'date', 'read', 'id')), "username": username})
+
+class DeleteMessage(LoginRequiredMixin, View):
+    redirect_chat_template_name = 'ChatRoom'
+    redirect_room_template_name = 'ShowChatRoom'
+    deletion_error_message = 'Something went wrong with the deletion process!'
+    user_error_message = 'User is not the same with the message owner!'
+    success_message = 'Message is deleted!'
+    message_model = Message
+
+    def getMessage(self, id):
+        return self.message_model.objects.get(id=id)
+    
+    def deleteMessage(self, message):
+        message.delete()
+
+    def getRoomId(self, message):
+        return message.room.get_id()
+
+    def sendErrorMessage(self, request, message):
+        messages.error(request, message)
+    
+    def sendSuccessMessage(self, request, message):
+        messages.success(request, message)
+    
+    def redirectTemplate(self, template_name, id=None):
+        if id == None:
+            return  redirect(template_name)
+        else:
+            return redirect(template_name, id)
+    
+    def get(self, request, id):
+        try:
+            message = self.getMessage(id)
+            room_id = self.getRoomId(message)
+            if message.user.id == request.user.id:
+                    self.deleteMessage(message)
+            else:
+                self.sendErrorMessage(request, self.user_error_message)
+                return self.redirectTemplate(self.redirect_chat_template_name, room_id)
+        except:
+            self.sendErrorMessage(request, self.deletion_error_message)
+            return self.redirectTemplate(self.redirect_room_template_name)
+        
+        self.sendSuccessMessage(request, self.success_message)
+        return self.redirectTemplate(self.redirect_chat_template_name, room_id)
+        
 
 # Marc John Corral
-
 
 class DisplayAnalytics(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):

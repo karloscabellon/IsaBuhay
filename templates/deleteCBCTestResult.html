@@ -1,175 +1,28 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-
-  <head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
-
-    <title>Isabuhay - Adding Options</title>
-
-    <!-- Bootstrap core CSS -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-
-<!--
-
-TemplateMo 570 Chain App Dev
-
-https://templatemo.com/tm-570-chain-app-dev
-
--->
-
-    <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/jeff_custom.css' %}">
-    <!-- Buttonsss -->
-    
-    <style>
-      button{
-        position: relative;
-        left: 50%;
-        transform: translate(-50%, 0);
-        border-radius: 25px;
-        padding: 10px;
-        width: 125px;
-        color: white;
-        border: none;
-        background-image: linear-gradient(to right, rgb(88,110,236), rgb(43,217,252));
-      }
-    </style>
-
-  </head>
-
-<body>
-
-  <!-- ***** Preloader Start ***** -->
-  <div id="js-preloader" class="js-preloader">
-    <div class="preloader-inner">
-      <span class="dot"></span>
-      <div class="dots">
-        <span></span>
-        <span></span>
-        <span></span>
+<!-- Modal -->
+<div class="modal fade" id="deleteModal{{ object.id }}" tabindex="-1" aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalTitle">Delete CBC Test Result</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-    </div>
-  </div>
-  <!-- ***** Preloader End ***** -->
-
-  <!-- ***** Header Area Start ***** -->
-  <header class="header-area header-sticky wow slideInDown" data-wow-duration="0.75s" data-wow-delay="0s">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <nav class="main-nav">
-            <!-- ***** Logo Start ***** -->
-            <a href="#" class="logo">
-              <img src="{% static 'assets/images/logo.png' %}" alt="Chain App Dev">
-            </a>
-            <!-- ***** Logo End ***** -->
-            <!-- ***** Menu Start ***** -->
-            <ul class="nav">
-              <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAllCBCTestResult' %}">Reports</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
-              <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
-              <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-            </ul>        
-            <a class='menu-trigger'>
-                <span>Menu</span>
-            </a>
-            <!-- ***** Menu End ***** -->
-          </nav>
-        </div>
+      <div class="modal-body" style="text-align:justify;" >
+        <p>
+        Are you sure you want to delete this?
+        </p>
+        <p>
+          If you would still like your CBC Test Result deleted, click "Delete CBC Test Result".
+        </p>
       </div>
-    </div>
-  </header>
-  <!-- ***** Header Area End ***** -->
-
-  <div id="about" class="about-us section">
-    <div class="container">
-      {% include 'messages.html' %}
-      <div class="row">
-        <div class="col-lg-6  wow slideInLeft" style="margin-top: 20px;">
-
-          <div class="section-heading" data-wow-duration="1s" data-wow-delay="0.5s" style="text-align: center;">
-            {% if type == 'docx' %}
-              <h4>Delete <em>Docx</em></h4>  
-            {% elif type ==  'pdf' %}
-              <h4>Delete <em>PDF</em></h4>
-            {% elif type == 'image' %}
-              <h4>Delete <em>Uploaded Image</em></h4>
-            {% elif type == 'picture' %}
-              <h4>Delete <em>Captured Image</em></h4>
-            {% elif type == 'record' %}
-              <h4>Delete <em>Record</em></h4>
-            {% endif %}
-            <img src="{% static 'assets/images/heading-line-dec.png' %}" alt="">
-          </div>
-          <form id="msform" action="" method="POST">
-            {% csrf_token %}
-            <fieldset>
-              <h2 class="fs-title">Data to Delete</h2>
-              {% if type == 'docx' %}
-              <h3 class="fs-subtitle">Want to delete a Docx?</h3>
-            {% elif type ==  'pdf' %}
-            <h3 class="fs-subtitle">Want to delete a PDF?</h3>
-            {% elif type == 'image' %}
-            <h3 class="fs-subtitle">Want to delete a Image?</h3>
-            {% elif type == 'picture' %}
-            <h3 class="fs-subtitle">Want to delete a Picture?</h3>
-            {% elif type == 'record' %}
-            <h3 class="fs-subtitle">Want to delete a Record?</h3>
-            {% endif %}
-            <input type="button" value="Cancel" onclick="redirectBack()" name="previous" class="action-button-previous">
-            <input type="submit" class="action-button"  value="Delete"/>
-            </fieldset>
-                  
+      <div class="modal-footer">
+        <form method="POST" action="{% url 'DeleteCBCTestResult' object.id %}">
+          {% csrf_token %}
+          <input type="submit" class="btn btn-primary" value="Delete CBC Test Result">
         </form>
-        </div>
-        <div class="col-lg-6">
-          <div class="right-image">
-            <img src="{% static 'assets/images/about-right-dec.png' %}" alt="">
-          </div>
-        </div>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
-
-  <!-- Scripts -->
-  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
-  <script src="{% static 'assets/js/animation.js' %}"></script>
-  <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
-  <script src="{% static 'assets/js/popup.js' %}"></script>
-  <script src="{% static 'assets/js/custom.js' %}"></script>
-
-  <script>
-    function redirectBack(){
-      if ('{{type}}' === 'image') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'image' object.pk %}"
-        } else if ('{{type}}' === 'picture') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'picture' object.pk %}"
-        } else if ('{{type}}' === 'pdf') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'pdf' object.pk %}"
-        } else if ('{{type}}' === 'docx') {
-          window.location.href = "{% url 'CreateCBCTestResult' 'docx' object.pk %}"
-        } else if ('{{type}}' === 'record') {
-          window.location.href = "{% url 'DisplayCBCTestResult' object.pk %}"
-        } 
-      }
-</script>
-</body>
-</html>
+</div>

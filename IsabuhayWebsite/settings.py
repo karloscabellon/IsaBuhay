@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure--c#2qwydxaizl1x)0--ujwz+winjsqwqn7ctyq1ek5^gwn7@d3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['isabuhay-project.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,8 +82,12 @@ LOGIN_URL = reverse_lazy('DisplayLoginPage')
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'isabuhay_db',
+        'USER': 'postgres',
+        'PASSWORD': '12345678',
+        'HOST': 'database-3.cfgeb0pnzqn4.ap-northeast-1.rds.amazonaws.com',
+        'PORT': '5432'
     }
 }
 
@@ -121,14 +126,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
+STATIC_ROOT =  os.path.join(BASE_DIR, 'staticfiles')
+
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-    )
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+MEDIA_ROOT =  os.path.join(BASE_DIR, 'static/media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -155,3 +159,11 @@ EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'isabuhay.services.noreply@gmail.com'
 EMAIL_HOST_PASSWORD = 'pdplfcokkyerxnwf'
+
+AWS_ACCESS_KEY_ID = 'AKIAWALVJOKH6OSAHCOK'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'isabuhay-crm'
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

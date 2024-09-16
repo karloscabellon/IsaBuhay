@@ -1,3 +1,6 @@
 **/__pycache__/
-ocrenv
+__pycache__/
 ocrenv/
+**/ocrenv/
+env/
+**/env/

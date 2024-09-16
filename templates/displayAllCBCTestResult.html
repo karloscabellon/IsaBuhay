@@ -13,25 +13,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
 
+
     <title>Isabuhay - Reports</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
 <!--
-
 TemplateMo 570 Chain App Dev
-
 https://templatemo.com/tm-570-chain-app-dev
-
 -->
 
-    <!-- Additional CSS Files -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css' %}" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
-
+ 
+     <!-- Additional CSS Files -->
+     <link rel="stylesheet" href="{% static 'fontawesome/css/all.css' %}">
+     <link rel="stylesheet" href="{% static 'assets/css/templatemo-chain-app-dev.css' %}">
+     <link rel="stylesheet" href="{% static 'assets/css/animated.css' %}">
+     <link rel="stylesheet" href="{% static 'assets/css/owl.css' %}">
   </head>
 
   <body>
@@ -65,11 +63,14 @@ https://templatemo.com/tm-570-chain-app-dev
                 <li class="scroll-to-section"><a href="{% url 'DisplayClientSide' %}">Client Page</a></li>
                 <li class="scroll-to-section"><a href="#" class="active">Reports</a></li>
                 <li class="scroll-to-section"><a href="{% url 'DisplayAnalytics' %}">Analytics</a></li>
-                <li class="scroll-to-section"><a href="{% url 'DisplayAllPromoOptions' 'pay' %}">Pay</a></li>
+                <li class="scroll-to-section"><a href="{% url 'PromoOptions' 'pay' %}">Pay</a></li>
+                {% if user.is_admin == True %}
                 <li class="scroll-to-section"><a href="{% url 'DisplayAdminPage' %}">Admin</a></li>
+                {% endif %}
                 <li class="scroll-to-section"><a href="{% url 'DisplayAccountPage' %}">Account</a></li>
+                <li class="scroll-to-section"><a href="{% url 'ShowChatRoom' %}">Messages</a></li>
                 <li class="scroll-to-section"><a href="{% url 'LogoutView' %}">Sign Out</a></li>
-              </ul>            
+              </ul>              
               <a class='menu-trigger'>
                   <span>Menu</span>
               </a>
@@ -84,7 +85,7 @@ https://templatemo.com/tm-570-chain-app-dev
   
     <div id="All CBC" class="services section">
       <div class="container">
-  {% include 'messages.html' %}
+  {% include 'NotificationMessages.html' %}
         <div class="row">
           <div class="col-lg-8 offset-lg-2">
             <div class="section-heading  wow fadeInDown" data-wow-duration="1s" data-wow-delay="0.5s">
@@ -98,40 +99,49 @@ https://templatemo.com/tm-570-chain-app-dev
         <div class="row">
           <div class="col-lg-12">
             <div class="white-button first-button scroll-to-section">
-              <a href="{% url 'DisplayAddingOptions' %}"><i class="fab fa-buffer"></i>View Adding Options</a>
+              <a href="{% url 'AddingCBCTestResultOptions' %}"><i class="fab fa-buffer"></i>View Adding Options</a>
             </div>
         </div>
         <div class="row">
-          {% for result in object_list %}
-            <div class="col-lg-3" style="margin-top: 20px;"">
+          {% for object in object_list %}
+            <div class="col-lg-3" style="margin-top: 20px;">
               <div class="service-item first-service">
+                <a data-bs-toggle="modal" data-bs-target="#deleteModal{{ object.id }}"><i class="fa-solid fa-xmark xmark" style=" float: right; color: blue;"></i></a>
                 <div class="icon"></div>
                 <h4>CBC Test Result</h4>
-                <p>Lab Number: {{  result.labNumber }}<br>PID:{{ result.pid }}<br>Request Date:{{ result.dateRequested }}</p>
+                <p>Lab Number: {{  object.labNumber }}<br>PID:{{ object.pid }}<br>Request Date:{{ object.dateRequested }}</p>
                 <div class="text-button">
-                  <a href="{% url 'DisplayCBCTestResult' result.pk %}">View <i class="fa fa-arrow-right"></i></a>
+                  <a href="{% url 'DisplayCBCTestResult' object.id %}">View <i class="fa fa-arrow-right"></i></a>
+                  <a href="{% url 'UpdateCBCTestResult' object.id %}" style=" float: right;">Update <i class="fas fa-edit"></i> </a>
                 </div>
               </div>
             </div>
+
+            
+          {% include 'DeleteCBCTestResult.html' %}
           {% endfor %}
           
         </div>
       </div>
     </div>
+  </div>
+  
 
-  <!-- Scripts -->
-  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
-  <script src="{% static 'assets/js/animation.js' %}"></script>
-  <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
-  <script src="{% static 'assets/js/popup.js' %}"></script>
-  <script src="{% static 'assets/js/custom.js' %}"></script>
+   <!-- Scripts -->
+   <script src="{% static 'jquery/jquery.js' %}"></script>
+   <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+   <script src="{% static 'assets/js/owl-carousel.js' %}"></script>
+   <script src="{% static 'assets/js/animation.js' %}"></script>
+   <script src="{% static 'assets/js/imagesloaded.js' %}"></script>
+   <script src="{% static 'assets/js/popup.js' %}"></script>
+   <script src="{% static 'assets/js/custom.js' %}"></script>
+ 
   
   <script>
     setTimeout(function(){
-      if ($('#msg').length > 0) {
-        $('#msg').remove();
+      if ($('.alert').length > 0) {
+        $('.alert').remove();
       }
     }, 3000)
   </script> 
